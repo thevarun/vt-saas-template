@@ -1,3 +1,10 @@
+# 1.0.0 (2025-12-02)
+
+
+### Features
+
+* complete story 1.1 replace clerk auth with supabase auth ([0c824e8](https://github.com/thevarun/HealthCompanion/commit/0c824e8af2f8040a7136f7498fcca1f5ea8620e0))
+
 ## [1.7.6](https://github.com/ixartz/SaaS-Boilerplate/compare/v1.7.5...v1.7.6) (2025-05-01)
 
 
