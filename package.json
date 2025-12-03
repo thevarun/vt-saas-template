@@ -132,6 +132,12 @@
     "vitest": "^2.1.9",
     "vitest-fail-on-console": "^0.7.1"
   },
+  "overrides": {
+    "axios": "^1.13.2",
+    "cookie": "^0.7.2",
+    "glob": "^10.4.6",
+    "esbuild": "^0.25.1"
+  },
   "config": {
     "commitizen": {
       "path": "@commitlint/cz-commitlint"
