@@ -1,6 +1,6 @@
 # Story 1.3: Create Chat Interface with Assistant-UI
 
-**Status:** Draft
+**Status:** Ready for Dev
 
 ---
 
@@ -39,7 +39,8 @@ So that I can easily interact with the AI health coach.
 **Page Structure:**
 - [ ] Create app/[locale]/(chat)/page.tsx - main chat page (AC: #1)
 - [ ] Create app/[locale]/(chat)/layout.tsx - chat layout wrapper (AC: #1)
-- [ ] Add "Chat" link to navigation bar (AC: #1)
+- [ ] **CRITICAL: Add /chat to protectedPaths array in src/middleware.ts** (AC: #1 - ensures auth required)
+- [ ] **CRITICAL: Add "Chat" link to DashboardHeader menu in src/app/[locale]/(auth)/dashboard/layout.tsx** (AC: #1 - accessible from dashboard)
 
 **Chat Components:**
 - [ ] Create components/chat/ChatInterface.tsx - Assistant-UI integration (AC: #1, #2)
@@ -166,7 +167,17 @@ export function ChatInterface() {
 
 ---
 
+## Context References
+
+**Story Context:** [1-3-create-chat-interface-with-assistant-ui.context.xml](./1-3-create-chat-interface-with-assistant-ui.context.xml)
+
+---
+
 ## Dev Agent Record
+
+### Context Reference
+
+- **Story Context:** [1-3-create-chat-interface-with-assistant-ui.context.xml](./1-3-create-chat-interface-with-assistant-ui.context.xml)
 
 ### Agent Model Used
 

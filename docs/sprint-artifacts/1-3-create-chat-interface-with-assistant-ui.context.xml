@@ -1,0 +1,369 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>Create Chat Interface with Assistant-UI</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-03</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/story-ai-health-coach-3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>an intuitive chat interface</iWant>
+    <soThat>I can easily interact with the AI health coach</soThat>
+    <tasks>
+**Setup & Preparation:**
+- [ ] Install @assistant-ui/react package (AC: #1)
+- [ ] Review Assistant-UI documentation and examples (AC: #1)
+- [ ] Create sprint_artifacts directory if needed (AC: #1)
+
+**Page Structure:**
+- [ ] Create app/[locale]/(chat)/page.tsx - main chat page (AC: #1)
+- [ ] Create app/[locale]/(chat)/layout.tsx - chat layout wrapper (AC: #1)
+- [ ] **CRITICAL: Add /chat to protectedPaths array in src/middleware.ts** (AC: #1 - auth required)
+- [ ] **CRITICAL: Add "Chat" link to DashboardHeader menu in src/app/[locale]/(auth)/dashboard/layout.tsx** (AC: #1 - accessible from dashboard)
+
+**Chat Components:**
+- [ ] Create components/chat/ChatInterface.tsx - Assistant-UI integration (AC: #1, #2)
+- [ ] Create components/chat/ChatProvider.tsx - chat context provider (AC: #1)
+- [ ] Integrate Assistant-UI Thread component (AC: #2, #3)
+- [ ] Connect chat to /api/chat endpoint (AC: #2)
+- [ ] Implement message display (user right, AI left alignment) (AC: #3)
+- [ ] Add streaming response handling with typing indicator (AC: #4)
+
+**User Experience:**
+- [ ] Add loading spinner/skeleton during initial load (AC: #5)
+- [ ] Add typing indicator during AI response generation (AC: #5)
+- [ ] Implement error toast/banner for failed requests (AC: #6)
+- [ ] Auto-focus chat input on page load (AC: #8)
+- [ ] Handle Enter to send, Shift+Enter for new line (AC: #9)
+
+**Responsive Design:**
+- [ ] Style for mobile (&lt; 768px): full-screen, bottom input (AC: #7)
+- [ ] Style for tablet (768-1024px): sidebar + chat area (AC: #7)
+- [ ] Style for desktop (&gt; 1024px): full layout with sidebar (AC: #7)
+- [ ] Test on mobile device or emulator (AC: #7)
+- [ ] Test on tablet simulator (AC: #7)
+
+**Styling & Polish:**
+- [ ] Apply Tailwind CSS following boilerplate patterns (AC: #1)
+- [ ] Use Shadcn UI components (Button, Input, Card, etc.) (AC: #1)
+- [ ] Follow existing color palette from boilerplate (AC: #1)
+- [ ] Add timestamps to messages (subtle, small text) (AC: #3)
+- [ ] Add user/AI avatars to messages (AC: #3)
+
+**Testing:**
+- [ ] Write E2E test for complete chat flow (AC: #10)
+- [ ] Test: Sign in → Navigate to chat → Send message → Receive response (AC: #10)
+- [ ] Test: Error handling when backend fails (AC: #6, #10)
+- [ ] Manual accessibility test: keyboard navigation (AC: #8, #9)
+- [ ] Manual test: all responsive breakpoints (AC: #7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**AC #1:** Chat interface loads without errors for authenticated users
+**AC #2:** User can type messages and click send button
+**AC #3:** Messages display in chronological order (user right, AI left)
+**AC #4:** AI responses stream in real-time with typing indicator
+**AC #5:** Loading states display during response generation
+**AC #6:** Error messages display clearly when requests fail
+**AC #7:** UI is fully responsive on mobile (&lt; 768px), tablet (768-1024px), and desktop (&gt; 1024px)
+**AC #8:** Chat input field auto-focuses on page load
+**AC #9:** Enter key sends message, Shift+Enter adds new line
+**AC #10:** E2E tests pass for complete chat flow
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec/implementation-details.md</path>
+        <title>Implementation Details</title>
+        <section>Assistant-UI Integration</section>
+        <snippet>Use Assistant-UI's React components with custom runtime connecting to our Dify proxy. Thread component manages chat interface, composable primitives for messages, composer, auto-scroll.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/implementation-details.md</path>
+        <title>Implementation Details</title>
+        <section>Source Tree Changes - Files to CREATE</section>
+        <snippet>app/[locale]/(chat)/page.tsx, layout.tsx, components/ChatInterface.tsx. components/chat/ with ChatProvider, MessageList, ChatInput components. All following Next.js 14 App Router patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/implementation-details.md</path>
+        <title>Implementation Details</title>
+        <section>Existing Patterns to Follow</section>
+        <snippet>Server Components by default, Client Components with 'use client' for interactivity. Tailwind CSS utility classes, Shadcn UI for components. Props interfaces named [ComponentName]Props. Async Server Components for data fetching.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/uxui-considerations.md</path>
+        <title>UX/UI Considerations</title>
+        <section>Chat-Specific Patterns</section>
+        <snippet>User messages right-aligned blue background, AI messages left-aligned gray. Streaming shows cursor/typing animation. Timestamps subtle small text. User avatar right, AI avatar left.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/uxui-considerations.md</path>
+        <title>UX/UI Considerations</title>
+        <section>Responsive Design</section>
+        <snippet>Mobile (&lt;768px) full-screen chat bottom input. Tablet (768-1024px) sidebar + chat area. Desktop (&gt;1024px) sidebar + chat + optional info panel.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/uxui-considerations.md</path>
+        <title>UX/UI Considerations</title>
+        <section>Accessibility</section>
+        <snippet>Tab navigation through inputs/buttons. Enter sends, Escape closes modals. ARIA labels on interactive elements. Announce new AI messages. Color contrast ≥4.5:1. Focus indicators on all elements.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/uxui-considerations.md</path>
+        <title>UX/UI Considerations</title>
+        <section>Loading States</section>
+        <snippet>Skeleton screen while initial chat loads. Typing indicator while AI generates response. Button spinner during workflow execution. Network error and API error messages with clear user-friendly text.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 1: AI-Powered Health Coach</title>
+        <section>Story 1.3</section>
+        <snippet>Prerequisites: Stories 1.1, 1.2 completed (auth + proxy functional). Use Assistant-UI Thread component integrated with /api/chat endpoint. Style with Tailwind CSS following boilerplate patterns. 3 story points.</snippet>
+      </doc>
+      <doc>
+        <path>External: Assistant-UI Thread Component Docs</path>
+        <title>Assistant-UI Thread Documentation</title>
+        <section>Core Architecture</section>
+        <snippet>Thread built from Root, Viewport (scrollable auto-scroll), Messages (UserMessage, AssistantMessage), Empty, ScrollToBottom, Suggestion primitives. Fully customizable and composable. Markdown rendering, message branching/editing, attachments supported.</snippet>
+      </doc>
+      <doc>
+        <path>External: Assistant-UI LocalRuntime Docs</path>
+        <title>Assistant-UI LocalRuntime</title>
+        <section>Custom Backend Implementation</section>
+        <snippet>LocalRuntime provides built-in state management. Implement ChatModelAdapter with async run or async *run (streaming). Pass AbortSignal to fetch. For streaming: yield chunks progressively. Wrap app with AssistantRuntimeProvider.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/app/api/chat/route.ts</path>
+        <kind>API Route</kind>
+        <symbol>POST</symbol>
+        <lines>28-139</lines>
+        <reason>Backend proxy endpoint this chat interface will connect to. Validates Supabase sessions, proxies to Dify API, handles streaming SSE responses. Reference for error codes and response format.</reason>
+      </artifact>
+      <artifact>
+        <path>src/libs/dify/client.ts</path>
+        <kind>Service</kind>
+        <symbol>DifyClient</symbol>
+        <lines>19-112</lines>
+        <reason>Dify API client wrapper used by backend. Understanding its streaming response structure helps implement frontend SSE handling.</reason>
+      </artifact>
+      <artifact>
+        <path>src/libs/dify/types.ts</path>
+        <kind>Types</kind>
+        <symbol>DifyChatRequest, DifyStreamEvent</symbol>
+        <lines>1-67</lines>
+        <reason>TypeScript types for Dify API requests/responses. Reference for understanding message structure and stream events.</reason>
+      </artifact>
+      <artifact>
+        <path>src/libs/supabase/server.ts</path>
+        <kind>Service</kind>
+        <symbol>createClient</symbol>
+        <lines>4-34</lines>
+        <reason>Server-side Supabase client creation pattern. May need for Server Components if fetching user data on page load.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/ui/button.tsx</path>
+        <kind>UI Component</kind>
+        <symbol>Button</symbol>
+        <lines>13-24</lines>
+        <reason>Existing Shadcn Button component to use for send button, workflow triggers. Follows boilerplate styling patterns with buttonVariants.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/ui/input.tsx</path>
+        <kind>UI Component</kind>
+        <symbol>Input</symbol>
+        <lines>7-22</lines>
+        <reason>Existing Shadcn Input component. May use for chat input field or extend for multi-line textarea. Shows boilerplate styling approach.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/[locale]/(auth)/dashboard/layout.tsx</path>
+        <kind>Layout</kind>
+        <symbol>DashboardLayout</symbol>
+        <lines>18-53</lines>
+        <reason>CRITICAL: Dashboard layout with DashboardHeader menu (lines 26-41). Must add Chat link here: { href: '/chat', label: t('chat') }. This is how users navigate to chat after login.</reason>
+      </artifact>
+      <artifact>
+        <path>src/middleware.ts</path>
+        <kind>Middleware</kind>
+        <symbol>protectedPaths, isProtectedRoute</symbol>
+        <lines>19-27</lines>
+        <reason>CRITICAL: Route protection middleware. Must add '/chat' to protectedPaths array (line 19-23) to ensure unauthenticated users cannot access chat.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/[locale]/(auth)/dashboard/page.tsx</path>
+        <kind>Page Component</kind>
+        <symbol>DashboardPage</symbol>
+        <lines>entire file</lines>
+        <reason>Example of existing authenticated page structure. Reference for layout patterns, Server Component with auth check, i18n integration.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/[locale]/layout.tsx</path>
+        <kind>Layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>entire file</lines>
+        <reason>Root layout showing locale/i18n setup, theme provider, global structure. Chat layout should integrate consistently with this.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="@assistant-ui/react" version="to-be-installed" critical="true">Core UI library for chat interface - Thread component, runtime hooks, composable message primitives</package>
+        <package name="@assistant-ui/react-markdown" version="to-be-installed">Markdown rendering for AI messages with syntax highlighting support</package>
+        <package name="remark-gfm" version="to-be-installed">GitHub Flavored Markdown plugin for Assistant-UI markdown renderer</package>
+        <package name="react" version="^18.3.1">Already installed. React framework foundation.</package>
+        <package name="next" version="^14.2.25">Already installed. Next.js 14 App Router for routing and Server Components.</package>
+        <package name="tailwindcss" version="^3.4.14">Already installed. Utility-first CSS for responsive styling.</package>
+        <package name="@radix-ui/react-*" version="various">Already installed. Shadcn UI built on Radix primitives - Button, Input, Card, Tooltip, etc.</package>
+        <package name="lucide-react" version="^0.453.0">Already installed. Icon library for send button, menu icons, loading spinners.</package>
+        <package name="clsx" version="^2.1.1">Already installed. Utility for conditional className composition.</package>
+        <package name="tailwind-merge" version="^2.5.4">Already installed. Merge Tailwind classes without conflicts.</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **CRITICAL - Route Protection**: Add '/chat' to protectedPaths array in src/middleware.ts (line 19-23). This ensures unauthenticated users are redirected to /sign-in. The route MUST be protected at middleware level.
+- **CRITICAL - Navigation Access**: Add Chat link to DashboardHeader menu in src/app/[locale]/(auth)/dashboard/layout.tsx (line 26-41). Users must be able to navigate to chat from dashboard after login. Example: { href: '/chat', label: t('chat') }
+- **Server Components First**: Use Server Components by default (Next.js 14). Only add 'use client' directive when component needs interactivity (chat input, buttons, state management)
+- **API Integration**: Connect to existing /api/chat endpoint (Story 1.2). Must send { message, conversationId } in POST body. Expect SSE streaming response with 'text/event-stream' content-type
+- **Error Handling**: Handle 401 (AUTH_REQUIRED), 400 (validation errors), 429 (RATE_LIMIT), 500 (INTERNAL_ERROR) from backend. Display user-friendly messages via toast/banner
+- **Session Validation**: Route protected via middleware (see CRITICAL constraint above). Additionally verify session in Server Components if needed for user-specific data
+- **Responsive Design**: Mobile-first Tailwind approach. Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px). Test all breakpoints before completing
+- **Accessibility**: ARIA labels required. Keyboard navigation (Tab, Enter, Escape). Color contrast ≥4.5:1. Focus indicators visible. Screen reader announcements for new messages
+- **TypeScript Strict Mode**: Explicit return types on functions. Interface (not type) for component props. No any types without justification
+- **Component Patterns**: Props interfaces named [ComponentName]Props. Use cn() helper from utils/Helpers for className merging. Forward refs for primitive components
+- **Styling Convention**: Tailwind utility classes only. No inline styles or CSS modules. Use existing buttonVariants, badgeVariants patterns for consistency
+- **Import Organization**: External packages first, internal absolute (@/...), relative last. Grouped by: React, Next.js, third-party, internal
+- **Testing**: E2E test required (AC #10). Use Playwright. Test complete flow: auth → navigate → send → receive → error handling
+- **File Locations**: Pages in app/[locale]/(chat)/, components in components/chat/, tests in tests/e2e/chat.spec.ts
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/chat</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+POST /api/chat
+Headers: Cookie (Supabase session)
+Body: { message: string, conversationId?: string }
+Response (Streaming): text/event-stream with SSE events
+Response (Error): { error: string, code: string }
+Status Codes: 200 (OK), 401 (Unauthorized), 400 (Bad Request), 429 (Rate Limit), 500 (Internal Error)
+      </signature>
+      <path>src/app/api/chat/route.ts</path>
+    </interface>
+    <interface>
+      <name>Assistant-UI LocalRuntime Adapter</name>
+      <kind>ChatModelAdapter Interface</kind>
+      <signature>
+interface ChatModelAdapter {
+  async *run({ messages, abortSignal, context }): AsyncGenerator&lt;MessageContent&gt;
+}
+
+messages: Array&lt;{ role: 'user' | 'assistant', content: string }&gt;
+abortSignal: AbortSignal (for request cancellation)
+context: Runtime context object
+
+Return: Yield incremental message chunks for streaming
+      </signature>
+      <path>External: @assistant-ui/react</path>
+    </interface>
+    <interface>
+      <name>Thread Component</name>
+      <kind>React Component</kind>
+      <signature>
+import { Thread } from '@assistant-ui/react'
+
+&lt;Thread
+  autoScroll?: boolean
+  components?: {
+    UserMessage: ComponentType
+    AssistantMessage: ComponentType
+    EditComposer: ComponentType
+  }
+/&gt;
+
+Composable primitives: Thread.Root, Thread.Viewport, Thread.Messages, Thread.Empty, Thread.ScrollToBottom
+      </signature>
+      <path>External: @assistant-ui/react</path>
+    </interface>
+    <interface>
+      <name>Supabase Server Client</name>
+      <kind>Function</kind>
+      <signature>
+createClient(cookieStore: Awaited&lt;ReturnType&lt;typeof cookies&gt;&gt;): SupabaseClient
+
+Usage in Server Components:
+const cookieStore = await cookies()
+const supabase = createClient(cookieStore)
+const { data: { user } } = await supabase.auth.getUser()
+      </signature>
+      <path>src/libs/supabase/server.ts:4-34</path>
+    </interface>
+    <interface>
+      <name>Shadcn Button Component</name>
+      <kind>React Component</kind>
+      <signature>
+&lt;Button
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  asChild?: boolean
+&gt;
+  {children}
+&lt;/Button&gt;
+
+Follows buttonVariants from components/ui/buttonVariants.ts
+      </signature>
+      <path>src/components/ui/button.tsx:13-24</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Use Playwright for E2E tests. Test files in tests/e2e/ directory with .spec.ts extension. Follow existing patterns from boilerplate. Mock external services (Dify API) when needed. Test authenticated flows (sign in required). Use fixtures for common setup (authenticated user). Assert on visible UI elements and user interactions. Test responsive breakpoints using viewport settings.
+    </standards>
+    <locations>
+tests/e2e/chat.spec.ts (create new)
+tests/e2e/responsive.spec.ts (optional for AC #7)
+tests/integration/api/chat.test.ts (already exists from Story 1.2 - reference for API behavior)
+    </locations>
+    <ideas>
+**E2E Test: Complete Chat Flow (AC #1-#6, #10)**
+- Test: User signs in → lands on dashboard → sees "Chat" link in navigation → clicks Chat link → navigates to /chat
+- Test: Chat page loads without errors → chat interface visible (AC #1)
+- Test: User types message "Hello" → clicks send button → message appears in chat (right-aligned)
+- Test: AI response streams in → typing indicator shows → response appears (left-aligned)
+- Test: Loading state displays during response generation
+- Test: Error handling - mock API failure → error message displays clearly
+- Test: **CRITICAL - Auth Protection**: User not logged in → navigates to /chat directly → redirected to /sign-in page (middleware protection)
+- Test: **CRITICAL - Navigation**: After login → dashboard shows Chat link → clicking link navigates to /chat
+
+**E2E Test: Keyboard Navigation (AC #8, #9)**
+- Test: Chat input auto-focuses on page load
+- Test: Enter key sends message (not Shift+Enter)
+- Test: Shift+Enter adds new line to message
+- Test: Tab key navigates between input and send button
+
+**E2E Test: Responsive Design (AC #7)**
+- Test: Mobile viewport (375px) - chat is full-screen, input at bottom
+- Test: Tablet viewport (768px) - sidebar visible, chat area present
+- Test: Desktop viewport (1280px) - full layout with sidebar
+
+**E2E Test: Message Persistence**
+- Test: Send message → refresh page → message history loads (conversation persists in Dify)
+- Test: Send multiple messages → all appear in chronological order
+
+**Integration Test Ideas (Optional - Frontend Unit Tests)**
+- Test: ChatInterface component renders without crashing
+- Test: Message input validates empty messages (client-side)
+- Test: Error toast component displays correct error messages
+- Test: Typing indicator appears/disappears correctly based on stream events
+    </ideas>
+  </tests>
+</story-context>
