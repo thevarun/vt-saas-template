@@ -88,10 +88,19 @@
   },
   "DashboardLayout": {
     "home": "Accueil",
+    "chat": "Chat",
     "todos": "Todos",
     "members": "Membres",
     "billing": "Facturation",
     "settings": "Réglages"
+  },
+  "Chat": {
+    "meta_title": "Coach santé IA",
+    "meta_description": "Discutez avec votre coach santé IA pour des conseils personnalisés."
+  },
+  "ChatPage": {
+    "title": "Discussion",
+    "description": "Restez sur la même page en changeant de fils et obtenez des réponses rapidement."
   },
   "Dashboard": {
     "meta_title": "Tableau de bord du SaaS Template",

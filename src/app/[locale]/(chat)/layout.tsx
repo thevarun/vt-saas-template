@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 
+import { DashboardScaffold } from '@/features/dashboard/DashboardScaffold';
+
 export default function ChatLayout(props: { children: ReactNode }) {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <DashboardScaffold>
       {props.children}
-    </div>
+    </DashboardScaffold>
   );
 }

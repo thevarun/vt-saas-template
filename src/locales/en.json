@@ -98,6 +98,10 @@
     "meta_title": "AI Health Coach Chat",
     "meta_description": "Chat with your AI-powered health coach for personalized guidance and support"
   },
+  "ChatPage": {
+    "title": "Chat",
+    "description": "Stay in one place while you switch between threads and get answers quickly."
+  },
   "Dashboard": {
     "meta_title": "SaaS Template Dashboard",
     "meta_description": "A free and open-source landing page template for your SaaS business, built with Next.js, TypeScript, Shadcn UI, and Tailwind CSS."
