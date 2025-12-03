@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/thevarun/HealthCompanion/compare/v1.1.0...v1.2.0) (2025-12-03)
+
+
+### Features
+
+* add chat ux properly in the dashboard scaffold ([6040182](https://github.com/thevarun/HealthCompanion/commit/604018251c8a290c9451b5d38e1e8549846cc746))
+
 # [1.1.0](https://github.com/thevarun/HealthCompanion/compare/v1.0.0...v1.1.0) (2025-12-03)
 
 
