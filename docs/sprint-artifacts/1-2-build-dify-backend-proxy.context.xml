@@ -1,0 +1,225 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Build Dify Backend Proxy</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-02</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/story-ai-health-coach-2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>a secure backend proxy for the Dify API</iWant>
+    <soThat>API keys remain server-side and user sessions are validated before AI requests</soThat>
+    <tasks>
+      **Setup & Preparation:**
+      - Install dify-client package (or use native fetch for Dify API)
+      - Create Dify Cloud account and obtain API key
+      - Add DIFY_API_KEY and DIFY_API_URL to environment variables
+      - Test Dify API access with curl to verify credentials
+
+      **Core Implementation:**
+      - Create lib/dify/client.ts - Dify API wrapper
+      - Create lib/dify/types.ts - TypeScript interfaces for Dify requests/responses
+      - Create lib/dify/config.ts - Dify configuration constants
+      - Create app/api/chat/route.ts - Main chat endpoint with session validation
+      - Implement Supabase session validation in chat route
+      - Implement SSE streaming from Dify to client
+      - Add error handling for Dify API errors (429, 500, etc.)
+      - Add logging for chat requests and errors
+
+      **Security:**
+      - Verify API keys only accessible server-side
+      - Verify no API keys in client bundle (check browser DevTools)
+      - Add rate limiting considerations (document for future)
+
+      **Testing:**
+      - Write integration test for /api/chat with mock Supabase session
+      - Write integration test for unauthorized request
+      - Write integration test for Dify API error handling
+      - Manual test with Postman: Valid session → successful proxy
+      - Manual test with Postman: No session → 401 error
+      - Manual test streaming response in browser
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC #1: /api/chat endpoint validates Supabase session before proxying requests
+    AC #2: Unauthorized requests return 401 with appropriate error message
+    AC #3: Valid requests successfully proxy to Dify API
+    AC #4: Streaming responses (SSE) work correctly from Dify through proxy to client
+    AC #5: Dify API errors are caught and returned as appropriate HTTP responses
+    AC #6: Dify API key is never exposed to client-side code
+    AC #7: Integration tests pass for chat API route
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec/implementation-details.md</path>
+        <title>Tech Spec - Implementation Details</title>
+        <section>Dify Integration via Backend Proxy</section>
+        <snippet>Backend proxy pattern ensures API keys stay server-side and sessions are validated. Uses Supabase session validation followed by Dify API calls with streaming SSE responses. Example pattern shows POST /api/chat validating session, extracting message, calling Dify API, and streaming response back.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/technical-details.md</path>
+        <title>Tech Spec - Technical Details</title>
+        <section>Chat Message Flow & Error Handling Strategy</section>
+        <snippet>Complete flow: Client → POST /api/chat → Validate Supabase session → Extract user.id and message → Call Dify API with streaming mode → Proxy streams back to client. Error handling: 401 for unauthorized, 429 for rate limits, 500 for internal errors. Includes structured error responses with error codes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec/implementation-stack.md</path>
+        <title>Tech Spec - Implementation Stack</title>
+        <section>Backend & API</section>
+        <snippet>Next.js API Routes for server-side endpoints, Node.js 20.x runtime, Dify Cloud AI orchestration platform, dify-client SDK (or native fetch). Already have @supabase/ssr ^0.1.0 for authentication integration.</snippet>
+      </doc>
+      <doc>
+        <path>External: Dify API Documentation</path>
+        <title>Dify Chat Messages API</title>
+        <section>POST /v1/chat-messages</section>
+        <snippet>Endpoint: https://api.dify.ai/v1/chat-messages. Required params: query (user message), user (user identifier), response_mode (streaming/blocking). Optional: conversation_id (to continue chat), inputs (variables). Streaming mode uses SSE with events: message, message_end, error. Returns conversation_id for session continuity.</snippet>
+      </doc>
+      <doc>
+        <path>External: Dify Streaming Response</path>
+        <title>Dify Streaming Events</title>
+        <section>SSE Event Types</section>
+        <snippet>Stream chunks start with 'data:' prefix, separated by '\n\n'. Event types: 'message' (text chunk with answer field), 'message_end' (completion with metadata/usage), 'error' (failure with code/message), 'ping' (keepalive). Each event includes task_id, message_id, conversation_id, created_at.</snippet>
+      </doc>
+      <doc>
+        <path>External: Assistant-UI Documentation</path>
+        <title>Assistant-UI useDataStreamRuntime</title>
+        <section>Custom API Integration</section>
+        <snippet>useDataStreamRuntime hook connects to data stream protocol endpoint. Config: api (endpoint URL), headers (auth/custom), credentials, callbacks (onResponse/onFinish/onError). Returns runtime for AssistantRuntimeProvider. Supports streaming SSE responses with automatic message state management.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>middleware</symbol>
+        <lines>29-61</lines>
+        <reason>Existing Supabase session validation pattern used in protected routes. Shows how to validate user session via supabase.auth.getUser() and redirect to sign-in on 401. This pattern should be replicated in /api/chat route.</reason>
+      </artifact>
+      <artifact>
+        <path>src/libs/supabase/server.ts</path>
+        <kind>utility</kind>
+        <symbol>createClient</symbol>
+        <lines>4-34</lines>
+        <reason>Server-side Supabase client factory using @supabase/ssr. Required for validating sessions in API routes. Use this to create Supabase client in app/api/chat/route.ts.</reason>
+      </artifact>
+      <artifact>
+        <path>src/libs/supabase/middleware.ts</path>
+        <kind>utility</kind>
+        <symbol>updateSession</symbol>
+        <lines>1-44</lines>
+        <reason>Session refresh utility called in middleware. Demonstrates Supabase SSR cookie handling pattern for maintaining sessions across requests.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/e2e/Auth.e2e.ts</path>
+        <kind>test</kind>
+        <symbol>Auth E2E Tests</symbol>
+        <lines>1-300</lines>
+        <reason>Example E2E test structure for authentication flows using Playwright. Reference for structuring integration tests for /api/chat endpoint with session validation.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@supabase/ssr" version="^0.1.0" />
+        <package name="@supabase/supabase-js" version="^2.86.0" />
+        <package name="next" version="^14.2.25" />
+        <package name="zod" version="^3.23.8" />
+        <package name="react-hook-form" version="^7.53.0" />
+        <package name="@playwright/test" version="^1.48.1" devDependency="true" />
+        <package name="vitest" version="^2.1.9" devDependency="true" />
+        <note>Need to install: dify-client (TBD - may use native fetch instead)</note>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - API keys (DIFY_API_KEY, DIFY_API_URL) must NEVER be exposed to client-side code
+    - All API routes must validate Supabase session before processing requests
+    - Use server-side Supabase client (createClient from @/libs/supabase/server) for auth
+    - Streaming responses must use Next.js Response with 'text/event-stream' content type
+    - Error responses must follow existing pattern: { error: string, code: string }, status: number
+    - Follow existing middleware pattern for session validation (src/middleware.ts:40-57)
+    - Use TypeScript strict mode - all functions must have explicit return types
+    - Environment variables must be validated using existing Env.ts pattern with Zod
+    - API routes follow RESTful patterns and return proper HTTP status codes
+    - Integration tests should mock external API calls (Dify) to avoid dependencies
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Dify Chat Messages API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST https://api.dify.ai/v1/chat-messages
+Headers: Authorization: Bearer {api_key}, Content-Type: application/json
+Body: { query: string, user: string, response_mode: "streaming" | "blocking", conversation_id?: string, inputs?: object }
+Response (streaming): SSE events with data: prefix
+- Event: message { event, task_id, message_id, conversation_id, answer, created_at }
+- Event: message_end { event, task_id, message_id, conversation_id, metadata: { usage }, created_at }
+- Event: error { event, task_id, message_id, status, code, message }</signature>
+      <path>External: Dify Cloud API</path>
+    </interface>
+    <interface>
+      <name>Supabase Auth Session Validation</name>
+      <kind>Function signature</kind>
+      <signature>const supabase = createClient(cookies())
+const { data: { user }, error } = await supabase.auth.getUser()
+Returns: { user: User | null, error: AuthError | null }</signature>
+      <path>src/libs/supabase/server.ts</path>
+    </interface>
+    <interface>
+      <name>Next.js API Route Handler</name>
+      <kind>Function signature</kind>
+      <signature>export async function POST(request: Request): Promise&lt;Response&gt;
+- Validate session
+- Parse request body
+- Call external API
+- Return Response object with appropriate status and headers</signature>
+      <path>app/api/*/route.ts (pattern)</path>
+    </interface>
+    <interface>
+      <name>Assistant-UI Runtime Configuration</name>
+      <kind>Hook interface</kind>
+      <signature>const runtime = useDataStreamRuntime({
+  api: string,                    // API endpoint URL
+  headers?: Record&lt;string, string&gt; | (() =&gt; Promise&lt;Record&lt;string, string&gt;&gt;),
+  credentials?: RequestCredentials,
+  onResponse?: (response: Response) =&gt; void,
+  onFinish?: (message: ThreadMessage) =&gt; void,
+  onError?: (error: Error) =&gt; void
+})</signature>
+      <path>External: @assistant-ui/react-data-stream</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Playwright for E2E tests (tests/e2e/*.e2e.ts), Vitest for unit/integration tests.
+      E2E tests use Playwright's page object pattern with getByRole/getByText for accessible selectors.
+      Integration tests should mock external dependencies (Dify API) to ensure deterministic results.
+      All tests follow AAA pattern: Arrange, Act, Assert.
+      Test files colocated with source or in tests/ directory, named *.test.ts or *.e2e.ts.
+    </standards>
+    <locations>
+      - tests/e2e/*.e2e.ts - End-to-end tests using Playwright
+      - tests/integration/api/*.test.ts - API route integration tests (to be created)
+      - tests/unit/lib/**/*.test.ts - Unit tests for utilities (to be created)
+    </locations>
+    <ideas>
+      - [AC #1, #2] Integration test: POST /api/chat without session → expect 401 with error message
+      - [AC #1, #3] Integration test: POST /api/chat with valid session + mock Dify response → expect 200 with streamed response
+      - [AC #4] Integration test: Verify SSE stream format matches expected 'data:' prefix and event structure
+      - [AC #5] Integration test: Mock Dify API error (429 rate limit) → expect appropriate error response with code
+      - [AC #5] Integration test: Mock Dify API error (500 internal) → expect 500 with structured error
+      - [AC #6] Security test: Inspect Next.js client bundle to verify DIFY_API_KEY not present
+      - [AC #7] E2E test: Full chat flow with authenticated user → send message → receive streaming response
+      - Unit test: Dify client wrapper handles conversation_id correctly for session continuity
+      - Unit test: Request/response type validation with Zod schemas
+    </ideas>
+  </tests>
+</story-context>
