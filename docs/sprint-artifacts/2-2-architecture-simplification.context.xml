@@ -1,0 +1,423 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2</storyId>
+    <title>Architecture Simplification</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-2-architecture-simplification.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>to eliminate all unused boilerplate code, features, and infrastructure from the codebase</iWant>
+    <soThat>we have a clean, maintainable codebase focused solely on HealthCompanion's actual needs with reduced cognitive overhead and faster development velocity</soThat>
+    <tasks>
+- Phase 1: High-Impact Removals (AC: #1, #2, #3, #4, #5)
+  - Delete sponsors feature directory (src/features/sponsors/)
+  - Delete sponsors template (src/templates/Sponsors.tsx)
+  - Remove sponsor imports from landing page and dashboard
+  - Delete 40+ boilerplate image assets (Crowdin, Sentry, Arcjet, template logos)
+  - Delete demo components (src/templates/DemoBanner.tsx, src/components/DemoBadge.tsx)
+  - Remove demo component imports from landing page
+  - Clean hero section, CTA section, footer, navbar, dashboard of boilerplate content
+  - Remove Sponsors namespace from src/locales/en.json
+  - Remove boilerplate translations (Star on GitHub, Lorem ipsum, SaaS template references)
+  - Update src/utils/AppConfig.ts: "SaaS Template" → "HealthCompanion"
+  - Fix Sentry config in next.config.mjs
+  - Delete or update .github/FUNDING.yml
+  - Validate: npm run build succeeds
+
+- Phase 2: Dead Navigation & Unused Features (AC: #6, #4)
+  - Remove Members and Settings navigation from dashboard layout
+  - Delete Todos, Billing, BillingOptions, CheckoutConfirmation namespaces from locales
+  - Validate: npm run build succeeds
+
+- Phase 3: Database Schema Cleanup (AC: #7)
+  - Delete organizationSchema and todoSchema from src/models/Schema.ts
+  - Generate migration: npm run db:generate
+  - Apply migration (auto-applies on dev server start)
+  - Validate: Dev server starts without errors
+
+- Phase 4: Stripe Integration - Complete Removal (AC: #8)
+  - Delete src/features/billing/ directory
+  - Delete src/templates/Pricing.tsx and src/types/Subscription.ts
+  - Remove pricing plan config from src/utils/AppConfig.ts
+  - Remove Stripe env vars from .env
+  - Uninstall Stripe: npm uninstall stripe
+  - Validate: npm run build succeeds
+
+- Phase 5: CI/CD & Service Cleanup (AC: #9)
+  - Update .github/workflows/CI.yml: remove CLERK_SECRET_KEY reference
+  - Evaluate crowdin.yml and checkly.yml workflows for removal
+  - Delete or update checkly.config.ts
+  - Validate: CI workflows parse correctly
+
+- Phase 6: README Complete Replacement (AC: #10)
+  - Create new README.md with HealthCompanion-specific content
+  - Remove all boilerplate sponsor tables, screenshots, generic instructions
+  - Validate: README is accurate and helpful
+
+- Phase 7: Optional Dependency Cleanup (AC: #11, #12, #13)
+  - Audit @percy/* and @storybook/* packages
+  - Run validation: npm run build, npm run lint, npm test
+  - Manual smoke test: landing page, dashboard, auth flows
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Zero sponsor references in codebase** - All sponsor-related files, imports, translations, and images completely removed
+2. **No demo banners or badges** - DemoBanner, DemoBadge components and all references deleted
+3. **No boilerplate marketing content** - GitHub stars, Twitter badges, dummy nav links removed from landing page, dashboard, footer
+4. **Clean translation files** - Lorem ipsum, generic template text, unused namespaces (Sponsors, Todos, Billing) removed from all locale files
+5. **Correct project branding** - AppConfig name is "HealthCompanion", Sentry org/project names corrected
+6. **Dead navigation removed** - Members and Settings dashboard links completely removed from layout and components
+7. **Database schema simplified** - organization and todo tables removed via migration, schema updated
+8. **Stripe completely removed** - All billing files, dependencies, env vars, configuration deleted
+9. **CI/CD cleaned up** - CLERK_SECRET_KEY reference removed, optional Crowdin/Checkly workflows evaluated
+10. **Accurate README** - README.md replaced with HealthCompanion-specific content, no boilerplate references
+11. **Build succeeds** - npm run build completes successfully
+12. **Lint passes** - npm run lint completes with no errors
+13. **Tests pass** - npm test unit tests complete successfully
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Tech Spec - The Change: Story 2 details -->
+      <artifact>
+        <path>docs/tech-spec/the-change.md</path>
+        <title>The Change - Story 2: Architecture Simplification</title>
+        <section>Story 2: Architecture Simplification - Remove Boilerplate Bloat</section>
+        <snippet>Goal: Eliminate all unused boilerplate code, features, and infrastructure to create a clean, maintainable codebase. Includes 7 phases: High-Impact Removals (sponsors, demo components, marketing content, translations), Dead Navigation, Database Schema Cleanup (organization/todo tables), Stripe Complete Removal, CI/CD Cleanup, README Replacement, Optional Dependency Cleanup.</snippet>
+      </artifact>
+
+      <!-- Tech Spec - Implementation Guide: Story 2 steps -->
+      <artifact>
+        <path>docs/tech-spec/implementation-guide.md</path>
+        <title>Implementation Guide - Story 2 Implementation Steps</title>
+        <section>Story 2: Architecture Simplification (Do First)</section>
+        <snippet>Phase-by-phase implementation: Delete sponsors/demo files, remove imports, clean translations, update AppConfig, fix Sentry config, remove Members/Settings links, edit Schema.ts to remove organizationSchema/todoSchema, run db:generate, delete billing directory, uninstall Stripe, update CI.yml, replace README. Validation after each phase.</snippet>
+      </artifact>
+
+      <!-- Tech Spec - Context: Project Stack and Codebase Structure -->
+      <artifact>
+        <path>docs/tech-spec/context.md</path>
+        <title>Context - Existing Codebase Structure</title>
+        <section>Existing Codebase Structure</section>
+        <snippet>Feature-based organization in src/features/, components in src/components/, Next.js App Router with route groups (unauth), (auth), (chat). Database schema in src/models/Schema.ts. Locales in src/locales/. Pattern: kebab-case files, PascalCase components, absolute imports with @/ prefix.</snippet>
+      </artifact>
+
+      <!-- Tech Spec - Development Context: Files to modify/delete -->
+      <artifact>
+        <path>docs/tech-spec/development-context.md</path>
+        <title>Development Context - Files to Modify</title>
+        <section>Story 2 - Architecture Simplification</section>
+        <snippet>Files to modify: src/models/Schema.ts:22-59 (remove organizationSchema/todoSchema), src/utils/AppConfig.ts:7-74 (name and pricing config), next.config.mjs:35-37 (Sentry org/project names), .github/workflows/CI.yml:81 (CLERK_SECRET_KEY), package.json (remove stripe). Includes complete list of files to delete.</snippet>
+      </artifact>
+
+      <!-- Architecture: Database Schema -->
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Data Architecture</title>
+        <section>Database Schema</section>
+        <snippet>ORM: Drizzle ORM. Schema Location: src/models/Schema.ts. Tables include: Organization management (multi-tenancy), User profiles, Todo items (example CRUD). Migration strategy: Auto-applied on startup or manual via drizzle-kit. Database: PostgreSQL (Supabase/Prisma Postgres in production, PGlite for development).</snippet>
+      </artifact>
+
+      <!-- Architecture: Technology Stack -->
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Technology Stack</title>
+        <section>Technology Stack - AI & Features</section>
+        <snippet>AI Service: Dify API (custom integration). Payments: Stripe 16.12.0 (ready for integration). i18n: next-intl 3.21.1 (English, French supported). Component Library: Radix UI + shadcn/ui. Testing: Vitest (unit), Playwright (E2E).</snippet>
+      </artifact>
+
+      <!-- Architecture: Component Organization -->
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Component Architecture</title>
+        <section>Component Organization</section>
+        <snippet>src/components/ui/ contains shadcn/ui primitives (Radix), src/components/chat/ has ChatInterface.tsx (Assistant UI integration), shared components in src/components/. Pattern: Server Components default, Client Components with 'use client' directive. Composition over inheritance, TypeScript interfaces for props.</snippet>
+      </artifact>
+
+      <!-- Tech Spec - Code Style & Conventions -->
+      <artifact>
+        <path>docs/tech-spec/context.md</path>
+        <title>Context - Code Style & Conventions</title>
+        <section>Code Style & Conventions</section>
+        <snippet>ESLint: @antfu/eslint-config. Semicolons required, type over interface, 1tbs brace style, sorted imports (simple-import-sort). Naming: kebab-case files, PascalCase components, camelCase functions. Absolute imports with @/ prefix. Git hooks: Husky + lint-staged. Conventional Commits enforced.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <!-- Files to DELETE -->
+      <artifact>
+        <path>src/features/sponsors/SponsorLogos.tsx</path>
+        <kind>component</kind>
+        <symbol>SponsorLogos</symbol>
+        <lines>entire file</lines>
+        <reason>Sponsors feature - complete boilerplate removal</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/templates/Sponsors.tsx</path>
+        <kind>template</kind>
+        <symbol>Sponsors</symbol>
+        <lines>entire file</lines>
+        <reason>Sponsors template - boilerplate marketing component</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/templates/DemoBanner.tsx</path>
+        <kind>template</kind>
+        <symbol>DemoBanner</symbol>
+        <lines>entire file</lines>
+        <reason>Demo banner - boilerplate promotional component</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/templates/Pricing.tsx</path>
+        <kind>template</kind>
+        <symbol>Pricing</symbol>
+        <lines>entire file</lines>
+        <reason>Pricing page template - unused Stripe integration</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/features/billing/PricingInformation.tsx</path>
+        <kind>component</kind>
+        <symbol>PricingInformation</symbol>
+        <lines>entire file</lines>
+        <reason>Billing feature component - Stripe removal</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/features/billing/PricingCard.tsx</path>
+        <kind>component</kind>
+        <symbol>PricingCard</symbol>
+        <lines>entire file</lines>
+        <reason>Billing feature component - Stripe removal</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/features/billing/PricingFeature.tsx</path>
+        <kind>component</kind>
+        <symbol>PricingFeature</symbol>
+        <lines>entire file</lines>
+        <reason>Billing feature component - Stripe removal</reason>
+      </artifact>
+
+      <!-- Files to MODIFY -->
+      <artifact>
+        <path>src/models/Schema.ts</path>
+        <kind>schema</kind>
+        <symbol>organizationSchema, todoSchema</symbol>
+        <lines>22-59</lines>
+        <reason>Remove both table schemas - unused multi-tenancy and example CRUD. Lines 22-47 (organizationSchema), lines 49-59 (todoSchema) to be deleted. These tables are 100% unused.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/utils/AppConfig.ts</path>
+        <kind>configuration</kind>
+        <symbol>AppConfig</symbol>
+        <lines>9 (name), 23-74 (pricing config)</lines>
+        <reason>Update line 9: 'SaaS Template' → 'HealthCompanion'. Delete lines 23-74: entire PricingPlanList configuration (PLAN_ID, pricing tiers). Also has FIXME comment on line 7 indicating boilerplate.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/locales/en.json</path>
+        <kind>translations</kind>
+        <symbol>Sponsors, Todos, Billing namespaces</symbol>
+        <lines>various</lines>
+        <reason>Remove boilerplate translation namespaces: Sponsors (sponsor logos, marketing), Todos (example feature), Billing/BillingOptions/CheckoutConfirmation (Stripe). Also clean Lorem ipsum FAQ placeholders and generic SaaS template meta descriptions.</reason>
+      </artifact>
+
+      <artifact>
+        <path>src/app/[locale]/(auth)/dashboard/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>DashboardLayout</symbol>
+        <lines>various</lines>
+        <reason>Remove dead navigation links to Members (/organization-profile/organization-members) and Settings (/organization-profile). Update navigation structure to reflect actual routes only.</reason>
+      </artifact>
+
+      <artifact>
+        <path>next.config.mjs</path>
+        <kind>configuration</kind>
+        <symbol>Sentry config</symbol>
+        <lines>35-37</lines>
+        <reason>Fix Sentry configuration - replace boilerplate org 'nextjs-boilerplate-org' and project 'nextjs-boilerplate' with actual HealthCompanion values.</reason>
+      </artifact>
+
+      <artifact>
+        <path>.github/workflows/CI.yml</path>
+        <kind>ci-config</kind>
+        <symbol>env variables</symbol>
+        <lines>81</lines>
+        <reason>Remove CLERK_SECRET_KEY reference - authentication switched from Clerk to Supabase. Also evaluate Percy visual testing (lines 76-80) and Codecov upload (lines 66-69) for removal if unused.</reason>
+      </artifact>
+
+      <artifact>
+        <path>package.json</path>
+        <kind>package-manifest</kind>
+        <symbol>dependencies</symbol>
+        <lines>stripe dependency</lines>
+        <reason>Remove 'stripe': '^16.12.0' from dependencies. Also evaluate @percy/* and @storybook/* packages for removal if unused.</reason>
+      </artifact>
+
+      <artifact>
+        <path>README.md</path>
+        <kind>documentation</kind>
+        <symbol>entire file</symbol>
+        <lines>1-573</lines>
+        <reason>Complete replacement needed - current README is 573 lines of boilerplate marketing, sponsor tables, and generic template instructions. Replace with HealthCompanion-specific content.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <!-- Node.js Packages -->
+      <node>
+        <package name="stripe" version="16.12.0" action="REMOVE">Billing integration - complete removal, zero implementation exists</package>
+        <package name="drizzle-orm" version="0.35.1" action="USE">Database ORM - required for schema changes and migration generation</package>
+        <package name="drizzle-kit" version="0.26.2" action="USE">Migration tool - run 'npm run db:generate' after Schema.ts changes</package>
+        <package name="@percy/playwright" version="1.0.6" action="EVALUATE">Visual testing - only used in CI, consider removal if unused</package>
+        <package name="@storybook/*" version="8.3.5" action="EVALUATE">Component development - only 1 story exists, consider removal</package>
+      </node>
+
+      <!-- External Services -->
+      <service>
+        <name>Stripe</name>
+        <status>REMOVE</status>
+        <description>Payment processing - no implementation, skeleton only. Remove all config, env vars, dependencies.</description>
+      </service>
+
+      <service>
+        <name>Crowdin</name>
+        <status>EVALUATE</status>
+        <description>Translation management - workflow exists (.github/workflows/crowdin.yml). Remove if service not in use.</description>
+      </service>
+
+      <service>
+        <name>Checkly</name>
+        <status>EVALUATE</status>
+        <description>Monitoring as code - workflow exists (.github/workflows/checkly.yml). Requires paid account. Remove if unused.</description>
+      </service>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Development Constraints from Tech-Spec and Architecture -->
+    <constraint type="tooling">Use Edit tool for surgical code removal from existing files, not sed/awk. Use rm -rf for directory deletions.</constraint>
+    <constraint type="validation">Run 'npm run build' after each phase to verify no breakage. Must pass before proceeding to next phase.</constraint>
+    <constraint type="validation">Run 'npm run lint' after changes to catch unused imports and style violations.</constraint>
+    <constraint type="validation">Run 'npm test' after changes to ensure unit tests still pass.</constraint>
+    <constraint type="database">After modifying src/models/Schema.ts, run 'npm run db:generate' to create migration. Migration auto-applies on next DB interaction or dev server start.</constraint>
+    <constraint type="safety">Database migration removes unused tables (organization, todo) - zero risk as both are 100% unused by application logic.</constraint>
+    <constraint type="code-style">Follow existing ESLint rules: semicolons required, sorted imports, 1tbs brace style, type over interface.</constraint>
+    <constraint type="naming">Maintain kebab-case for files, PascalCase for components, absolute imports with @/ prefix.</constraint>
+    <constraint type="git">Conventional Commits enforced via Husky + Commitizen - use 'npm run commit' for commits.</constraint>
+    <constraint type="execution-order">Execute Story 2 phases in order: 1 → 2 → 3 → 4 → 5 → 6 → 7. Each phase validates before moving to next.</constraint>
+    <constraint type="manual-testing">After all phases complete, perform manual smoke test: landing page loads, dashboard accessible, auth flows work.</constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- Database Schema Interfaces (being removed) -->
+    <interface>
+      <name>organizationSchema</name>
+      <kind>Drizzle ORM schema</kind>
+      <signature>pgTable('organization', { id, stripeCustomerId, stripeSubscriptionId, stripeSubscriptionPriceId, stripeSubscriptionStatus, stripeSubscriptionCurrentPeriodEnd, updatedAt, createdAt })</signature>
+      <path>src/models/Schema.ts:22-47</path>
+      <note>TO BE REMOVED - Multi-tenancy feature unused. All Stripe-related fields.</note>
+    </interface>
+
+    <interface>
+      <name>todoSchema</name>
+      <kind>Drizzle ORM schema</kind>
+      <signature>pgTable('todo', { id, ownerId, title, message, updatedAt, createdAt })</signature>
+      <path>src/models/Schema.ts:49-59</path>
+      <note>TO BE REMOVED - Example CRUD feature unused.</note>
+    </interface>
+
+    <!-- Configuration Interfaces (being modified) -->
+    <interface>
+      <name>AppConfig</name>
+      <kind>App configuration object</kind>
+      <signature>{ name: string, locales: Locale[], defaultLocale: string, localePrefix: LocalePrefix }</signature>
+      <path>src/utils/AppConfig.ts:8-19</path>
+      <note>Update name property from 'SaaS Template' to 'HealthCompanion'</note>
+    </interface>
+
+    <interface>
+      <name>PricingPlanList</name>
+      <kind>Stripe pricing configuration</kind>
+      <signature>Record&lt;string, PricingPlan&gt; with FREE, PREMIUM, ENTERPRISE plans</signature>
+      <path>src/utils/AppConfig.ts:23-74</path>
+      <note>TO BE REMOVED - Stripe integration being deleted entirely</note>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Unit Testing: Vitest 2.1.9 with @testing-library/react 16.0.1, jsdom environment for components/hooks.
+      File pattern: *.test.{ts,tsx} co-located with source or in tests/ directory.
+      E2E Testing: Playwright 1.48.1 with *.spec.ts or *.e2e.ts files in tests/ directory.
+      Coverage: @vitest/coverage-v8 tracking enabled.
+      Assertions: Vitest globals (expect, describe, it), @testing-library matchers (getByRole, getByText), @testing-library/jest-dom custom matchers.
+      Commands: 'npm test' (unit), 'npm run test:e2e' (E2E), 'npm run lint' (style), 'npm run build' (build validation).
+    </standards>
+
+    <locations>
+      - Unit tests: Co-located *.test.ts(x) files in src/ OR tests/ directory
+      - E2E tests: tests/e2e/*.spec.ts or tests/e2e/*.e2e.ts
+      - Test setup: vitest-setup.ts (unit test setup)
+      - Playwright config: playwright.config.ts
+    </locations>
+
+    <ideas>
+      <!-- Validation Tests for Architecture Simplification -->
+      <test id="AC-11" type="build">
+        <name>Build succeeds after all phases</name>
+        <approach>Run 'npm run build' after Phase 1, Phase 2, Phase 4, and final validation. Must complete with exit code 0.</approach>
+        <ac-reference>AC #11: Build succeeds</ac-reference>
+      </test>
+
+      <test id="AC-12" type="lint">
+        <name>Lint passes with no errors</name>
+        <approach>Run 'npm run lint' after code changes. Catches unused imports from deleted components, style violations. Must pass with exit code 0.</approach>
+        <ac-reference>AC #12: Lint passes</ac-reference>
+      </test>
+
+      <test id="AC-13" type="unit">
+        <name>Unit tests pass</name>
+        <approach>Run 'npm test' after all phases. Ensures no existing unit tests broken by deletions. Must pass with exit code 0.</approach>
+        <ac-reference>AC #13: Tests pass</ac-reference>
+      </test>
+
+      <test id="phase-3-validation" type="integration">
+        <name>Dev server starts after database migration</name>
+        <approach>After Phase 3 (Schema.ts changes + db:generate), start dev server. Verify no database errors, migrations applied correctly.</approach>
+        <ac-reference>AC #7: Database schema simplified</ac-reference>
+      </test>
+
+      <test id="manual-smoke" type="manual">
+        <name>Manual smoke test of core flows</name>
+        <approach>After all phases complete: 1) Load landing page, verify no errors. 2) Navigate to dashboard (authenticated), verify loads. 3) Test sign-in flow. 4) Verify no 404s on navigation.</approach>
+        <ac-reference>All ACs - Overall functionality validation</ac-reference>
+      </test>
+
+      <test id="no-sponsor-references" type="grep">
+        <name>Verify zero sponsor references remain</name>
+        <approach>After Phase 1, grep codebase for 'sponsor' (case-insensitive). Should find zero matches in src/ directory.</approach>
+        <ac-reference>AC #1: Zero sponsor references in codebase</ac-reference>
+      </test>
+
+      <test id="no-stripe-references" type="grep">
+        <name>Verify Stripe completely removed</name>
+        <approach>After Phase 4, grep codebase for 'stripe' (case-insensitive). Check package.json dependencies, .env, AppConfig.ts. Should find zero Stripe references.</approach>
+        <ac-reference>AC #8: Stripe completely removed</ac-reference>
+      </test>
+
+      <test id="correct-branding" type="file-check">
+        <name>Verify correct project branding</name>
+        <approach>After Phase 1, check: 1) AppConfig.ts name field = 'HealthCompanion', 2) next.config.mjs Sentry org/project not boilerplate values, 3) README.md contains 'HealthCompanion' not 'SaaS Template'</approach>
+        <ac-reference>AC #5: Correct project branding, AC #10: Accurate README</ac-reference>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

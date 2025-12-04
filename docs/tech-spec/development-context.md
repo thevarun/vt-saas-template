@@ -2,278 +2,268 @@
 
 ## Relevant Existing Code
 
-**SaaS Boilerplate Reference Files:**
+**Key Files for Epic 2 Implementation:**
 
-Since we're replacing Clerk with Supabase, developers should review these boilerplate files to understand current auth implementation:
+**Story 1 - UX Enhancements:**
 
-- `middleware.ts:1-50` - Current Clerk middleware pattern (will be replaced)
-- `libs/auth.ts` - Clerk utility functions (replace with Supabase equivalents)
-- `app/[locale]/(auth)/sign-in/[[...sign-in]]/page.tsx` - Clerk SignIn component pattern
-- `app/[locale]/(auth)/sign-up/[[...sign-up]]/page.tsx` - Clerk SignUp component pattern
-- `components/UserButton.tsx` - How user data is displayed (adapt for Supabase)
+**Chat Interface:**
+- `src/app/[locale]/(chat)/chat/page.tsx` - Main chat page component
+- `src/components/chat/ChatInterface.tsx` - Assistant UI integration (if exists)
+- `src/app/api/chat/route.ts` - Dify API proxy endpoint (SSE streaming)
+- `src/libs/dify/client.ts` - Dify client wrapper
 
-**Testing Patterns:**
-- `tests/e2e/auth.spec.ts` - E2E auth flow tests (update for Supabase)
-- `tests/integration/api.test.ts` - API integration test patterns
+**Landing Page:**
+- `src/app/[locale]/(unauth)/page.tsx` - Landing page with hero, features, CTA
+- `src/templates/Navbar.tsx` - Navigation component
+- `src/templates/Hero.tsx` - Hero section
+- `src/templates/CTA.tsx` - Call-to-action section
+- `src/features/landing/CenteredFooter.tsx` - Footer component
 
-**No existing chat or AI code** - This is net-new functionality.
+**Dashboard:**
+- `src/app/[locale]/(auth)/dashboard/page.tsx` - Dashboard main page
+- `src/app/[locale]/(auth)/dashboard/layout.tsx` - Dashboard layout with navigation
+- `src/features/dashboard/DashboardScaffold.tsx` - Dashboard wrapper component
+
+**Auth Pages:**
+- `src/app/[locale]/(auth)/(center)/sign-in/page.tsx` - Sign-in page
+- `src/app/[locale]/(auth)/(center)/sign-up/page.tsx` - Sign-up page
+- `src/features/auth/` - Auth-related components
+
+**i18n:**
+- `src/libs/i18n.ts` - next-intl configuration
+- `src/utils/AppConfig.ts` - App-wide configuration including locales
+- `src/locales/en.json` - English translations
+- `src/middleware.ts` - Handles i18n routing
+
+**Story 2 - Architecture Simplification:**
+
+**Files to Delete:** (See Source Tree Changes section for complete list)
+
+**Files to Modify:**
+- `src/models/Schema.ts:22-59` - organizationSchema and todoSchema to remove
+- `src/utils/AppConfig.ts:7-74` - Name and pricing config to update/remove
+- `next.config.mjs:35-37` - Sentry org/project names to fix
+- `.github/workflows/CI.yml:81` - CLERK_SECRET_KEY reference to remove
+- `package.json` - Remove stripe dependency
+
+**Story 3 - E2E Test Suite:**
+
+**Existing Test Infrastructure:**
+- `playwright.config.ts` - Playwright configuration (already set up)
+- `tests/e2e/` - Directory for E2E tests (currently empty)
+- `.github/workflows/CI.yml:38-41` - E2E test execution in CI
+
+**Reference Examples:**
+- No existing E2E tests - creating from scratch
+
+**Story 4 - Documentation:**
+
+**Existing Documentation:**
+- `README.md` - Current boilerplate README (573 lines to replace)
+- `CLAUDE.md` - Project-specific Claude Code guide (good reference)
+- `docs/architecture.md` - System architecture doc
+- `docs/project-overview.md` - Project summary
+- `docs/development-guide.md` - Dev setup instructions
 
 ## Dependencies
 
 **Framework/Libraries:**
 
-```json
-{
-  "dependencies": {
-    "next": "14.x",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "@supabase/ssr": "^0.1.0",
-    "dify-client": "latest",
-    "@assistant-ui/react": "latest",
-    "drizzle-orm": "^0.29.0",
-    "postgres": "^3.4.0",
-    "@tailwindcss/typography": "^0.5.10",
-    "tailwindcss": "^3.4.0",
-    "shadcn-ui": "latest",
-    "react-hook-form": "^7.48.0",
-    "zod": "^3.22.0",
-    "pino": "^8.16.0",
-    "@sentry/nextjs": "^7.90.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.0",
-    "@types/react": "^18.2.0",
-    "@types/node": "^20.10.0",
-    "vitest": "^1.0.0",
-    "@testing-library/react": "^14.1.0",
-    "playwright": "^1.40.0",
-    "eslint": "^8.55.0",
-    "prettier": "^3.1.0",
-    "drizzle-kit": "^0.20.0"
-  }
-}
-```
+**Required for Epic 2:**
+- **@assistant-ui/react** 0.11.47 - Chat interface (Story 1 fixes)
+- **@supabase/supabase-js** 2.86.0 + **@supabase/ssr** 0.1.0 - Auth state detection (Story 1)
+- **next-intl** 3.21.1 - i18n for hi/bn locales (Story 1)
+- **drizzle-orm** 0.35.1 + **drizzle-kit** 0.26.2 - Database migration (Story 2)
+- **@playwright/test** 1.48.1 - E2E testing (Story 3)
+- All core dependencies: Next.js 14.2.25, React 18.3.1, TypeScript 5.6.3, Tailwind CSS 3.4.14
 
-**Remove:**
-- `@clerk/nextjs` and all Clerk-related packages
+**Removed in Story 2:**
+- **stripe** 16.12.0 - Complete removal (billing feature unused)
 
-## Internal Modules
+**Unchanged:**
+- All other dependencies remain (Sentry, Vitest, shadcn/ui, etc.)
 
-**Created for this project:**
+**Internal Modules:**
 
-```typescript
-// Supabase integration
-import { ChatInterface } from '@/components/chat/ChatInterface';
-import { ChatProvider } from '@/components/chat/ChatProvider';
-import { DifyClient } from '@/lib/dify/client';
-import type { ChatMessage, Workflow } from '@/lib/dify/types';
-import { createClient as createBrowserClient } from '@/lib/supabase/client';
-import { createClient as createServerClient } from '@/lib/supabase/server';
-import { userPreferences } from '@/models/schema/user-preferences';
+**Story 1 - UX Enhancements:**
+- `@/libs/supabase/server` - Server-side Supabase client for auth state
+- `@/libs/i18n` - next-intl configuration
+- `@/utils/AppConfig` - App configuration including locales
+- `@/libs/dify/client` - Dify API wrapper (chat fixes)
 
-// Dify integration
-// Chat components
-// Database schemas
-```
+**Story 2 - Architecture Simplification:**
+- `@/models/Schema` - Database schema (removing organizationSchema, todoSchema)
+- No new internal modules - only deletions
 
-**Existing from boilerplate:**
+**Story 3 - E2E Tests:**
+- No internal modules used - tests are external
 
-```typescript
-// UI components (Shadcn)
-// eslint-disable-next-line simple-import-sort/imports
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-
-// Utilities
-import { cn } from '@/utils/cn'; // Tailwind class merger
-```
+**Story 4 - Documentation:**
+- No internal modules affected
 
 ## Configuration Changes
 
-**Environment Variables (.env.local):**
+**Story 1: UX Enhancements**
 
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (server-side only)
-
-# Dify
-DIFY_API_KEY=app-xxxxxxxxxxxxx
-DIFY_API_URL=https://api.dify.ai/v1
-
-# Database (Supabase PostgreSQL)
-DATABASE_URL=postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres
-
-# Sentry (already in boilerplate)
-SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
-
-# Application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-**docker-compose.yml (NEW):**
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: healthcompanion_dev
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-```
-
-**drizzle.config.ts (UPDATE):**
-
+**i18n Configuration (`src/libs/i18n.ts`):**
 ```typescript
-import type { Config } from 'drizzle-kit';
+// BEFORE
+export const locales = ['en', 'fr'] as const;
 
-export default {
-  schema: './models/schema/**/*.ts',
-  out: './drizzle/migrations',
-  driver: 'pg',
-  dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,
-  },
-} satisfies Config;
+// AFTER
+export const locales = ['en', 'hi', 'bn'] as const;
 ```
 
-**package.json scripts (ADD):**
+**AppConfig (`src/utils/AppConfig.ts`):**
+```typescript
+// BEFORE
+locales: [Locales.EN, Locales.FR]
 
+// AFTER
+locales: [Locales.EN, Locales.HI, Locales.BN]
+```
+
+**Story 2: Architecture Simplification**
+
+**AppConfig Name (`src/utils/AppConfig.ts`):**
+```typescript
+// BEFORE (line 9)
+name: 'SaaS Template',
+
+// AFTER
+name: 'HealthCompanion',
+```
+
+**AppConfig Pricing Removal (`src/utils/AppConfig.ts`):**
+- DELETE lines 23-74 (entire pricing plan configuration)
+
+**Sentry Configuration (`next.config.mjs`):**
+```javascript
+// BEFORE (lines 35-37)
+org: 'nextjs-boilerplate-org',
+project: 'nextjs-boilerplate',
+
+// AFTER
+org: 'healthcompanion-org',  // or your actual Sentry org
+project: 'healthcompanion',
+```
+
+**Environment Variables (`.env`):**
+```bash
+# REMOVE (Stripe)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+BILLING_PLAN_ENV=dev
+
+# KEEP (Existing)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+DIFY_API_URL=...
+DIFY_API_KEY=...
+DATABASE_URL=...
+```
+
+**GitHub Actions CI (`.github/workflows/CI.yml`):**
+```yaml
+# REMOVE (line 81)
+CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+
+# Optionally REMOVE (if not using)
+# Percy visual testing (lines 76-80)
+# Codecov upload (lines 66-69)
+```
+
+**Package.json:**
 ```json
-{
-  "scripts": {
-    "db:generate": "drizzle-kit generate:pg",
-    "db:migrate": "drizzle-kit push:pg",
-    "db:studio": "drizzle-kit studio",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
-  }
-}
+// REMOVE
+"stripe": "^16.12.0"
+
+// Run after removal
+npm install
 ```
+
+**GitHub Funding (`.github/FUNDING.yml`):**
+- DELETE file OR update with HealthCompanion funding links
+
+**Story 3: E2E Tests**
+
+No configuration changes - uses existing `playwright.config.ts`
+
+**Story 4: Documentation**
+
+No configuration changes - documentation updates only
 
 ## Existing Conventions (Brownfield)
 
-**Conventions from SaaS Boilerplate (to follow):**
+**CONFIRMED: Following all existing conventions**
 
 **Code Style:**
-- TypeScript strict mode enabled
-- Single quotes for strings
-- Semicolons required
+- Semicolons required (ESLint enforced)
+- `type` over `interface` for TypeScript definitions
+- 1tbs brace style (opening brace on same line)
+- Sorted imports (simple-import-sort plugin)
+- Single quotes (JS/TS), double quotes (JSX attributes)
 - 2-space indentation
-- Line length: 100 characters (Prettier default)
-- Trailing commas in multiline
 
 **File Naming:**
-- Components: PascalCase (`ChatInterface.tsx`)
-- Utilities: camelCase (`formatMessage.ts`)
-- Constants: SCREAMING_SNAKE_CASE files (`API_ROUTES.ts`)
-- Test files: `*.test.ts` or `*.test.tsx`
+- kebab-case for files
+- PascalCase for components
+- Absolute imports with @/ prefix
 
-**Component Structure:**
-```typescript
-'use client'; // If client component
+**Testing:**
+- Unit: `*.test.ts(x)` with Vitest + Testing Library
+- E2E: `*.spec.ts` or `*.e2e.ts` with Playwright
+- Co-located with source or in tests/ directory
+- Coverage tracking enabled
 
-// Import statements...
-
-type ComponentProps = {
-  title: string;
-};
-
-export function ComponentName({ props }: ComponentProps) {
-  // Component implementation
-}
-```
+**React Patterns:**
+- Functional components (Server Components default, Client when needed)
+- React hooks for state management
+- Props interfaces with TypeScript
+- Composition over inheritance
 
 **Error Handling:**
-- API routes return JSON errors: `{ error: 'Message', code: 'ERROR_CODE' }`
-- Use Zod for input validation
-- Catch errors at component boundaries
-- Log errors with Pino (server) or Sentry (client)
+- Try/catch for async operations
+- Error boundaries for components
+- ServiceError pattern in services
+- Sentry tracking in production
 
 **Logging:**
-```typescript
-import logger from '@/lib/logger';
-
-logger.info('User action', { userId, action });
-logger.error('Operation failed', { error, context });
-```
+- Pino structured logging (JSON format)
+- Levels: error, warn, info, debug
+- Logtail aggregation in production
 
 ## Test Framework & Standards
 
-**Testing Stack:**
-- **Vitest** - Unit tests (React Testing Library)
-- **Playwright** - E2E tests
-- **Percy** - Visual regression (optional)
+**Unit Testing (Vitest):**
+- Framework: Vitest 2.1.9
+- Environment: jsdom for components/hooks
+- Libraries: @testing-library/react 16.0.1 + jest-dom + user-event
+- File Pattern: `*.test.{ts,tsx}`
+- Location: Co-located in src/ or tests/
+- Setup: vitest-setup.ts
+- Coverage: @vitest/coverage-v8
+- Mocking: Vitest built-in (vi.mock, vi.fn, vi.spyOn)
 
-**Test Organization:**
-```
-tests/
-├── unit/
-│   └── lib/supabase/client.test.ts
-├── integration/
-│   └── api/chat.test.ts
-└── e2e/
-    ├── auth.spec.ts
-    └── chat.spec.ts
-```
+**E2E Testing (Playwright):**
+- Framework: Playwright 1.48.1
+- File Pattern: `*.spec.ts` or `*.e2e.ts`
+- Location: tests/ directory
+- Browsers: Chromium (+ Firefox in CI)
+- Setup/Teardown: `*.setup.ts` and `*.teardown.ts`
+- Base URL: http://localhost:3000
 
-**Naming Convention:**
-- Test files: `*.test.ts` (unit/integration) or `*.spec.ts` (E2E)
-- Test suites: `describe('ComponentName', () => {})`
-- Test cases: `it('should do something', () => {})`
+**Test Commands:**
+- `npm test` - Run unit tests
+- `npm run test:e2e` - Run E2E tests
+- Coverage automatically tracked
 
-**Coverage Requirements:**
-- Target: 80% code coverage for business logic
-- Critical paths: 100% coverage (auth, API proxy)
-- UI components: Focus on integration over unit tests
-
-**Test Patterns:**
-
-```typescript
-// Unit test example
-// eslint-disable-next-line simple-import-sort/imports
-import { describe, expect, it } from 'vitest';
-import { createClient } from '@/lib/supabase/client';
-
-describe('Supabase Client', () => {
-  it('should create client with correct config', () => {
-    const client = createClient();
-
-    expect(client).toBeDefined();
-  });
-});
-```
-
-```typescript
-// E2E test example
-import { expect, test } from '@playwright/test';
-
-test('user can send chat message', async ({ page }) => {
-  await page.goto('/chat');
-  await page.fill('[data-testid="chat-input"]', 'Hello');
-  await page.click('[data-testid="send-button"]');
-
-  await expect(page.locator('[data-testid="chat-message"]')).toContainText('Hello');
-});
-```
-
-**Mocking:**
-- Mock Supabase client in tests: `vi.mock('@/lib/supabase/client')`
-- Mock Dify API calls: Use MSW (Mock Service Worker)
-- Mock environment variables: Test setup file
+**Assertion & Mocking:**
+- Vitest globals enabled (expect, describe, it, test)
+- @testing-library matchers (getByRole, getByText)
+- @testing-library/jest-dom custom matchers
+- @faker-js/faker for test data generation
 
 ---

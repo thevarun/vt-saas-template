@@ -53,8 +53,8 @@ workflow_status:
       - id: tech-spec
         agent: pm
         command: tech-spec
-        status: required
-        output: Technical Specification with stories
+        status: docs/tech-spec.md
+        output: Technical Specification with stories (Epic 2: Production Readiness)
         note: Integrates with existing codebase patterns from document-project
 
   - phase: 2

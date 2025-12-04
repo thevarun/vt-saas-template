@@ -2,277 +2,245 @@
 
 ## Setup Steps
 
-**Pre-implementation Checklist:**
+**Before Starting Epic 2:**
 
-- [ ] Supabase project created and credentials available
-- [ ] Dify Cloud account created with API key
-- [ ] GitHub repository initialized
-- [ ] Local development environment ready (Node.js 20.x, Docker)
-- [ ] SaaS boilerplate cloned
-- [ ] All team members have access to Supabase and Dify dashboards
+1. **Create feature branch:**
+   ```bash
+   git checkout -b epic-2-production-readiness
+   ```
 
-**Story-by-Story Setup:**
+2. **Ensure clean working directory:**
+   ```bash
+   git status  # Should show no uncommitted changes
+   ```
 
-**Before Story 1 (Supabase Auth Migration):**
-- Create feature branch: `git checkout -b feat/supabase-auth`
-- Install Supabase packages
-- Set up environment variables
-- Review Clerk implementation in boilerplate
+3. **Verify build succeeds:**
+   ```bash
+   npm run build
+   ```
 
-**Before Story 2 (Dify Proxy):**
-- Ensure Story 1 merged to main
-- Create feature branch: `git checkout -b feat/dify-proxy`
-- Install dify-client package
-- Set up Dify API credentials
-- Test Dify API access with curl
+4. **Run existing tests:**
+   ```bash
+   npm test
+   npm run lint
+   ```
 
-**Before Story 3 (Chat UI):**
-- Ensure Story 2 merged to main
-- Create feature branch: `git checkout -b feat/chat-ui`
-- Install Assistant-UI package
-- Review Assistant-UI documentation
-
-**Before Story 4 (Knowledge Base):**
-- Gather health coach content (documents, FAQs, methodology)
-- Prepare content in digestible format (MD, PDF, TXT)
-- Create feature branch for any app-side KB integration
-
-**Before Story 5 (Workflows):**
-- Define workflow requirements with health coach
-- Create feature branch: `git checkout -b feat/workflows`
-- Design workflow UI components
+**All setup steps complete - ready to implement!**
 
 ## Implementation Steps
 
-**High-Level Implementation Phases:**
+**Execute stories in this order: Story 2 → Story 1 → Story 3 → Story 4**
 
-**Phase 1: Foundation (Story 1)**
-1. Remove Clerk dependencies from package.json
-2. Install Supabase packages
-3. Create Supabase client utilities (lib/supabase/client.ts, server.ts)
-4. Replace middleware.ts with Supabase session handling
-5. Update auth pages (sign-in, sign-up, sign-out)
-6. Replace all Clerk hooks with Supabase equivalents
-7. Test auth flow end-to-end
-8. Update E2E tests for new auth
+**STORY 2: Architecture Simplification (Do First)**
 
-**Phase 2: Backend Infrastructure (Story 2)**
-1. Install dify-client package
-2. Create Dify client wrapper (lib/dify/client.ts)
-3. Implement /api/chat route with session validation
-4. Set up SSE streaming from Dify
-5. Add error handling and logging
-6. Write integration tests for proxy
-7. Test with Postman/curl
+**Phase 1: High-Impact Removals**
+1. Delete sponsors feature files:
+   ```bash
+   rm -rf src/features/sponsors
+   rm src/templates/Sponsors.tsx
+   ```
 
-**Phase 3: User Interface (Story 3)**
-1. Install Assistant-UI package
-2. Create chat page layout (app/[locale]/(chat)/page.tsx)
-3. Integrate Assistant-UI Thread component
-4. Connect to /api/chat endpoint
-5. Add loading states and error handling
-6. Style with Tailwind/Shadcn UI
-7. Make responsive (mobile, tablet, desktop)
-8. Add E2E tests for chat interaction
+2. Delete boilerplate image assets:
+   ```bash
+   rm public/assets/images/crowdin-*.png
+   rm public/assets/images/sentry-*.png
+   rm public/assets/images/arcjet-*.svg
+   rm public/assets/images/nextjs-boilerplate-*.png
+   rm public/assets/images/nextjs-starter-banner.png
+   rm public/assets/images/clerk-logo-white.png
+   rm public/assets/images/coderabbit-logo-*.svg
+   rm public/assets/images/codecov-*.svg
+   ```
 
-**Phase 4: Content & Intelligence (Story 4)**
-1. Prepare knowledge base content
-2. Upload to Dify dashboard (Knowledge Base section)
-3. Configure chunking and embedding settings
-4. Test knowledge retrieval in Dify playground
-5. Fine-tune agent prompts and persona
-6. Validate responses align with health coach expertise
+3. Delete demo components:
+   ```bash
+   rm src/templates/DemoBanner.tsx
+   rm src/components/DemoBadge.tsx
+   ```
 
-**Phase 5: Workflows (Story 5)**
-1. Design workflows in Dify workflow builder
-2. Create workflow trigger UI components
-3. Implement /api/chat/workflows endpoint
-4. Add workflow selection menu to chat interface
-5. Handle workflow parameters and results
-6. Test each workflow end-to-end
-7. Document workflow usage for users
+4. Remove imports from landing page (`src/app/[locale]/(unauth)/page.tsx`)
+5. Remove imports from dashboard (`src/app/[locale]/(auth)/dashboard/page.tsx`)
+6. Clean up translation files (remove Sponsors, Todos, Billing namespaces from `src/locales/en.json`)
+7. Update AppConfig name: "SaaS Template" → "HealthCompanion"
+8. Fix Sentry config in `next.config.mjs`
+9. Delete/update `.github/FUNDING.yml`
+
+**Validate:** `npm run build` succeeds
+
+**Phase 2: Dead Navigation**
+1. Remove Members/Settings links from `src/app/[locale]/(auth)/dashboard/layout.tsx`
+2. Remove Members/Settings from `src/features/dashboard/DashboardScaffold.tsx`
+3. Delete unused translation keys
+
+**Validate:** `npm run build` succeeds
+
+**Phase 3: Database Schema**
+1. Edit `src/models/Schema.ts` - remove `organizationSchema` and `todoSchema`
+2. Run `npm run db:generate` - creates migration
+3. Migration auto-applies on next dev server start
+
+**Validate:** Dev server starts without errors
+
+**Phase 4: Stripe Removal**
+1. Delete `src/features/billing/` directory
+2. Delete `src/templates/Pricing.tsx`
+3. Delete `src/types/Subscription.ts`
+4. Remove pricing config from `src/utils/AppConfig.ts`
+5. Remove Stripe env vars from `.env`
+6. Run `npm uninstall stripe`
+7. Run `npm install`
+
+**Validate:** `npm run build` succeeds
+
+**Phase 5: CI/CD Cleanup**
+1. Update `.github/workflows/CI.yml` - remove CLERK_SECRET_KEY
+2. Evaluate and optionally delete `crowdin.yml` and `checkly.yml`
+
+**Phase 6: README Replacement**
+1. Write new README.md from scratch (use CLAUDE.md as reference)
+
+**Validate:** All Story 2 changes complete, build succeeds
+
+---
+
+**STORY 1: UX Enhancements (Do Second)**
+
+1. **Fix Chat Interface:**
+   - Debug `src/app/[locale]/(chat)/chat/page.tsx`
+   - Fix multi-line input handling
+   - Fix height/rendering issues
+   - Fix thread history display
+
+2. **Landing Page Auth State:**
+   - Add Supabase session check to `src/app/[locale]/(unauth)/page.tsx`
+   - Conditional rendering based on user state
+   - Update `src/templates/Navbar.tsx` for auth state
+
+3. **Dashboard Personalization:**
+   - Update `src/app/[locale]/(auth)/dashboard/page.tsx` with user greeting
+   - Already removed dead links in Story 2
+
+4. **Auth Pages Polish:**
+   - Update `src/app/[locale]/(auth)/(center)/sign-in/page.tsx`
+   - Update `src/app/[locale]/(auth)/(center)/sign-up/page.tsx`
+   - Add home navigation link
+   - Apply Tailwind styling
+
+5. **i18n Change:**
+   - Delete `src/locales/fr.json`
+   - Create `src/locales/hi.json` (copy en.json structure)
+   - Create `src/locales/bn.json` (copy en.json structure)
+   - Update `src/libs/i18n.ts` - change locales array
+   - Update `src/utils/AppConfig.ts` - change locales array
+
+6. **Footer Attribution:**
+   - Update `src/features/landing/CenteredFooter.tsx`
+
+**Validate:** Manual testing of all UX changes
+
+---
+
+**STORY 3: E2E Test Suite (Do Third)**
+
+1. **Install Playwright (if needed):**
+   ```bash
+   npx playwright install
+   ```
+
+2. **Create test files in `tests/e2e/`:**
+   - `auth.spec.ts` - Authentication flows
+   - `chat.spec.ts` - Chat functionality
+   - `landing.spec.ts` - Landing page tests
+   - `dashboard.spec.ts` - Dashboard tests
+
+3. **Run tests:**
+   ```bash
+   npm run test:e2e
+   ```
+
+**Validate:** All tests pass
+
+---
+
+**STORY 4: Documentation (Do Last)**
+
+1. **README already replaced in Story 2**
+
+2. **Tech-spec created (this document)**
+
+3. **Optional: Update other docs:**
+   - `docs/architecture.md` - reflect removed features
+   - `docs/source-tree-analysis.md` - update file list
+   - `CLAUDE.md` - update if needed
+
+**Validate:** Documentation accurately reflects final state
 
 ## Testing Strategy
 
-**Unit Testing:**
+**Story 2: Architecture Simplification**
+- **Validation:** `npm run build` after each phase
+- **Smoke test:** Manual verification of landing, dashboard, auth flows
+- **Lint:** `npm run lint` to catch unused imports
 
-**Target:** 80% coverage for business logic
+**Story 1: UX Enhancements**
+- **Manual testing:** Test all changed pages (landing, dashboard, chat, auth)
+- **Browser testing:** Chrome, Firefox, Safari
+- **Mobile responsive:** Test on actual mobile device or emulator
+- **i18n testing:** Verify /hi/ and /bn/ routes work
 
-**Focus Areas:**
-- Supabase client utilities (lib/supabase/*)
-- Dify client wrapper (lib/dify/client.ts)
-- Utility functions
-- Drizzle schema validation
+**Story 3: E2E Test Suite**
+- **Automated:** Playwright tests run via `npm run test:e2e`
+- **CI integration:** Tests run automatically on PR/push
 
-**Example:**
-```typescript
-describe('Dify Client', () => {
-  it('should format chat message correctly', () => {
-    const client = new DifyClient(API_KEY);
-    const formatted = client.formatMessage('Hello', 'user-123');
-
-    expect(formatted).toHaveProperty('query', 'Hello');
-    expect(formatted).toHaveProperty('user', 'user-123');
-  });
-});
-```
-
-**Integration Testing:**
-
-**Target:** All API routes
-
-**Focus Areas:**
-- /api/chat - Complete flow with mocked Dify
-- /api/chat/workflows - Workflow trigger flow
-- Auth endpoints (if custom beyond Supabase)
-- Database operations
-
-**Example:**
-```typescript
-describe('POST /api/chat', () => {
-  it('should return 401 without valid session', async () => {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message: 'Hello' }),
-    });
-
-    expect(response.status).toBe(401);
-  });
-
-  it('should proxy to Dify with valid session', async () => {
-    // Mock Supabase session
-    // Mock Dify response
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { Cookie: validSessionCookie },
-      body: JSON.stringify({ message: 'Hello' }),
-    });
-
-    expect(response.ok).toBe(true);
-  });
-});
-```
-
-**E2E Testing (Playwright):**
-
-**Critical User Flows:**
-1. Sign up → Email verification → Onboarding → First chat
-2. Sign in → Load previous conversations → Send message
-3. Trigger workflow → Complete steps → View results
-4. Sign out → Redirected to landing page
-
-**Example:**
-```typescript
-test('complete chat flow', async ({ page }) => {
-  // Sign in
-  await page.goto('/sign-in');
-  await page.fill('[name="email"]', 'test@example.com');
-  await page.fill('[name="password"]', 'password123');
-  await page.click('button[type="submit"]');
-
-  // Navigate to chat
-  await expect(page).toHaveURL('/chat');
-
-  // Send message
-  await page.fill('[data-testid="chat-input"]', 'What are healthy breakfast options?');
-  await page.click('[data-testid="send-button"]');
-
-  // Verify response
-  await expect(page.locator('[data-testid="ai-response"]')).toBeVisible({ timeout: 10000 });
-  await expect(page.locator('[data-testid="ai-response"]')).not.toBeEmpty();
-});
-```
-
-**Manual Testing Checklist:**
-
-- [ ] Auth: Sign up, sign in, sign out, password reset
-- [ ] Chat: Send message, receive response, streaming works
-- [ ] Chat: Conversation history persists
-- [ ] Workflows: Each workflow triggers and completes
-- [ ] Responsive: Mobile, tablet, desktop layouts
-- [ ] Accessibility: Keyboard navigation, screen reader
-- [ ] Error states: Network errors, API errors, validation errors
-- [ ] Performance: Initial load < 3s, chat response starts < 1s
+**Story 4: Documentation**
+- **Review:** Read README and tech-spec for accuracy
+- **Links:** Verify all internal links work
 
 ## Acceptance Criteria
 
-**Overall MVP Success Criteria:**
+**Story 1: UX Enhancements**
+- ✅ Chat interface handles multi-line input correctly (Enter for new line, Shift+Enter to send)
+- ✅ Chat messages render without page jumping or height issues
+- ✅ Chat thread history displays complete conversation
+- ✅ Landing page shows "Dashboard" button when logged in, "Sign In/Up" when logged out
+- ✅ Dashboard displays personalized greeting with user email/name
+- ✅ Dashboard has NO dead links (Members/Settings removed)
+- ✅ Sign-in and sign-up pages have visual polish matching landing page aesthetic
+- ✅ Auth pages include "Back to Home" navigation link
+- ✅ Auth pages are responsive on mobile
+- ✅ French locale removed, Hindi and Bengali locales added
+- ✅ /hi/ and /bn/ routes work correctly
+- ✅ Footer attribution updated (no boilerplate references)
 
-1. **User can create account and sign in**
-   - Given a new user visits the site
-   - When they complete sign-up with email and password
-   - Then they receive verification email and can access the app
+**Story 2: Architecture Simplification**
+- ✅ Zero sponsor references in codebase (files, imports, translations, images)
+- ✅ No demo banners or badges
+- ✅ No boilerplate marketing content (GitHub stars, Twitter badges)
+- ✅ No Lorem ipsum or generic template text
+- ✅ AppConfig name is "HealthCompanion"
+- ✅ Sentry org/project names are correct (not boilerplate)
+- ✅ organization and todo tables removed from database
+- ✅ Stripe completely removed (files, dependencies, env vars, config)
+- ✅ CI.yml has no CLERK_SECRET_KEY reference
+- ✅ README accurately describes HealthCompanion (not boilerplate)
+- ✅ `npm run build` succeeds
+- ✅ `npm run lint` passes
+- ✅ `npm test` passes
 
-2. **User can have AI-powered conversation**
-   - Given an authenticated user on the chat page
-   - When they type a health-related question and send
-   - Then they receive a relevant, streaming response from the AI health coach within 2 seconds
+**Story 3: E2E Test Suite**
+- ✅ Auth tests pass: sign-up, sign-in, sign-out, auth redirects, session persistence
+- ✅ Chat tests pass: send message, receive response, conversation context, multi-line input
+- ✅ Landing page tests pass: logged-in/out state detection
+- ✅ Dashboard tests pass: personalized content, working navigation
+- ✅ All tests run in <3 minutes
+- ✅ Tests pass in CI
+- ✅ Clear test names and error messages
 
-3. **AI responses are grounded in health coach expertise**
-   - Given the knowledge base is populated with health coach content
-   - When user asks questions covered in knowledge base
-   - Then responses reflect the health coach's methodology and expertise
-
-4. **User can trigger predefined workflows**
-   - Given workflow buttons are visible in the chat interface
-   - When user clicks a workflow (e.g., "Goal Setting")
-   - Then the workflow executes and returns structured guidance
-
-5. **Conversations are persistent**
-   - Given a user has had previous conversations
-   - When they return to the chat page
-   - Then their conversation history is displayed and they can continue where they left off
-
-6. **Application is secure**
-   - Given any API endpoint
-   - When accessed without valid authentication
-   - Then request is rejected with 401 Unauthorized
-
-7. **Application is responsive**
-   - Given the application is loaded on mobile, tablet, or desktop
-   - When user interacts with chat interface
-   - Then UI adapts appropriately and remains fully functional
-
-**Story-Specific Acceptance Criteria:**
-
-**Story 1: Supabase Auth**
-- [ ] User can sign up with email/password
-- [ ] User receives verification email
-- [ ] User can sign in with verified credentials
-- [ ] User can sign out and session is cleared
-- [ ] Protected routes redirect to sign-in if not authenticated
-- [ ] Session persists across page refreshes
-- [ ] All Clerk code removed from codebase
-
-**Story 2: Dify Proxy**
-- [ ] /api/chat endpoint validates Supabase session
-- [ ] Unauthorized requests return 401
-- [ ] Valid requests proxy to Dify API successfully
-- [ ] Streaming responses work correctly
-- [ ] Errors from Dify are handled gracefully
-- [ ] API keys never exposed to client
-
-**Story 3: Chat UI**
-- [ ] Chat interface loads without errors
-- [ ] User can type and send messages
-- [ ] Messages display in chronological order
-- [ ] AI responses stream in real-time
-- [ ] Loading states display during response
-- [ ] Error messages show for failed requests
-- [ ] UI is responsive on all screen sizes
-
-**Story 4: Knowledge Base**
-- [ ] Health coach content uploaded to Dify
-- [ ] Embedding and indexing complete
-- [ ] Test queries return relevant information
-- [ ] Responses cite health coach methodology
-- [ ] Knowledge base is searchable and retrievable
-
-**Story 5: Workflows**
-- [ ] Workflow menu visible in chat UI
-- [ ] Each workflow can be triggered
-- [ ] Workflow parameters collected correctly
-- [ ] Workflow results displayed in chat
-- [ ] Workflow execution errors handled gracefully
+**Story 4: Documentation**
+- ✅ README describes HealthCompanion accurately
+- ✅ README has no boilerplate/template references
+- ✅ README includes setup instructions specific to HealthCompanion
+- ✅ Tech-spec (this document) created
+- ✅ Optional docs updated if needed
 
 ---
