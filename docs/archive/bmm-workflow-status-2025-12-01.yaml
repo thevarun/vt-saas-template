@@ -15,25 +15,13 @@
 #   - {file-path}: File created/found (e.g., "docs/product-brief.md")
 #   - skipped: Optional/conditional workflow that was skipped
 
-generated: '2025-12-04'
-project: 'HealthCompanion'
-project_type: 'brownfield'
-selected_track: 'quick-flow'
-field_type: 'brownfield'
-workflow_path: '.bmad/bmm/workflows/workflow-status/paths/quick-flow-brownfield.yaml'
+generated: 2025-12-01
+project: HealthCompanion
+project_type: greenfield
+selected_track: quick-flow
+field_type: greenfield
+workflow_path: .bmad/bmm/workflows/workflow-status/paths/quick-flow-greenfield.yaml
 workflow_status:
-  - prerequisite: true
-    name: Documentation
-    conditional: if_undocumented
-    note: NOT a phase - prerequisite for brownfield without docs
-    workflows:
-      - id: document-project
-        agent: analyst
-        command: document-project
-        status: docs/index.md
-        output: Comprehensive project documentation
-        purpose: Understand existing codebase before planning
-
   - phase: 0
     name: Discovery (Optional)
     workflows:
@@ -53,9 +41,16 @@ workflow_status:
       - id: tech-spec
         agent: pm
         command: tech-spec
-        status: required
+        status: docs/tech-spec.md
         output: Technical Specification with stories
-        note: Integrates with existing codebase patterns from document-project
+        epic: ai-health-coach
+        story_count: 5
+        stories:
+          - docs/sprint-artifacts/story-ai-health-coach-1.md
+          - docs/sprint-artifacts/story-ai-health-coach-2.md
+          - docs/sprint-artifacts/story-ai-health-coach-3.md
+          - docs/sprint-artifacts/story-ai-health-coach-4.md
+          - docs/sprint-artifacts/story-ai-health-coach-5.md
 
   - phase: 2
     name: Implementation
