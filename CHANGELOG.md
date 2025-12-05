@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/thevarun/HealthCompanion/compare/v1.3.0...v1.4.0) (2025-12-05)
+
+
+### Features
+
+* completed story 2.1 ux polish ([b81c2ac](https://github.com/thevarun/HealthCompanion/commit/b81c2ac629e5d63461b652eb8871f8bca8b64163))
+
 # [1.3.0](https://github.com/thevarun/HealthCompanion/compare/v1.2.0...v1.3.0) (2025-12-05)
 
 
