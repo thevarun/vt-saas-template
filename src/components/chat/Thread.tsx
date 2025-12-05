@@ -24,16 +24,16 @@ type ThreadProps = {
 };
 
 const UserMessage: FC = () => (
-  <div className="flex justify-end">
-    <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2 text-primary-foreground md:max-w-[70%]">
+  <div className="mb-4 flex justify-end">
+    <div className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-primary-foreground shadow-sm md:max-w-[70%]">
       <MessagePrimitive.Content />
     </div>
   </div>
 );
 
 const AssistantMessage: FC = () => (
-  <div className="flex justify-start">
-    <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-muted px-4 py-2 md:max-w-[70%]">
+  <div className="mb-4 flex justify-start">
+    <div className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 shadow-sm md:max-w-[70%]">
       <MessagePrimitive.Content />
     </div>
   </div>
@@ -50,7 +50,7 @@ export const Thread: FC<ThreadProps> = ({ className }) => {
   return (
     <ThreadPrimitive.Root className={className}>
       {/* AC #7: Responsive viewport */}
-      <ThreadPrimitive.Viewport className="flex h-full flex-col overflow-y-auto px-3 pt-4 sm:px-4 sm:pt-8">
+      <ThreadPrimitive.Viewport className="flex h-full flex-col overflow-y-auto scroll-smooth px-3 py-4 sm:px-4 sm:py-8">
         <ThreadPrimitive.Empty>
           <div className="flex flex-col items-center justify-center py-12 text-center sm:py-16">
             <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted sm:size-16">
@@ -90,14 +90,18 @@ export const Thread: FC<ThreadProps> = ({ className }) => {
         <ComposerPrimitive.Root className="flex items-end gap-2 rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring">
           <ComposerPrimitive.Input
             ref={inputRef}
-            placeholder="Type your message..."
-            className="flex-1 resize-none border-0 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground sm:px-4 sm:py-3 sm:text-base"
+            placeholder="Type your message... (Shift+Enter to send)"
+            className="max-h-40 flex-1 resize-none border-0 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground sm:px-4 sm:py-3 sm:text-base"
             rows={1}
+            submitOnEnter={false}
           />
           <ComposerPrimitive.Send className="m-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:m-2 sm:px-4 sm:py-2 sm:text-base">
             Send
           </ComposerPrimitive.Send>
         </ComposerPrimitive.Root>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Press Enter for new line, Shift+Enter or click Send to submit
+        </p>
       </div>
 
       <ThreadPrimitive.ScrollToBottom className="fixed bottom-20 right-4 rounded-full border bg-background p-2 shadow-lg sm:bottom-24 sm:right-8">

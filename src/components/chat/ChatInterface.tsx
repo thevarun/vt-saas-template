@@ -8,7 +8,7 @@ import {
   useLocalRuntime,
   useThreadListItem,
 } from '@assistant-ui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { DifyStreamEvent } from '@/libs/dify/types';
 
@@ -155,6 +155,20 @@ function ThreadList({ error, onDismissError }: { error: string | null; onDismiss
 export function ChatInterface({ className }: ChatInterfaceProps) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Persist conversation ID to localStorage for thread history continuity
+  useEffect(() => {
+    const stored = localStorage.getItem('dify_conversation_id');
+    if (stored) {
+      setConversationId(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (conversationId) {
+      localStorage.setItem('dify_conversation_id', conversationId);
+    }
+  }, [conversationId]);
 
   // Create custom adapter for Dify backend
   const adapter: ChatModelAdapter = {

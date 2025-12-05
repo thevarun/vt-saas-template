@@ -26,7 +26,7 @@ export default async function ChatPage() {
         description={t('description')}
       />
 
-      <div className="min-h-[70vh]">
+      <div className="h-[calc(100vh-12rem)]">
         <ChatInterface className="h-full" />
       </div>
     </div>

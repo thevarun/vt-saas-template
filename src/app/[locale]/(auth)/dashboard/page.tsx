@@ -1,10 +1,20 @@
-import { useTranslations } from 'next-intl';
+import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 
 import { MessageState } from '@/features/dashboard/MessageState';
 import { TitleBar } from '@/features/dashboard/TitleBar';
+import { createClient } from '@/libs/supabase/server';
 
-const DashboardIndexPage = () => {
-  const t = useTranslations('DashboardIndex');
+const DashboardIndexPage = async () => {
+  const t = await getTranslations('DashboardIndex');
+
+  // AC #5: Fetch user data from Supabase
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Extract name or email for personalized greeting
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   return (
     <>
@@ -12,6 +22,16 @@ const DashboardIndexPage = () => {
         title={t('title_bar')}
         description={t('title_bar_description')}
       />
+
+      {/* AC #5: Personalized greeting with user email/name */}
+      <div className="mb-6 rounded-lg border bg-card p-6 shadow-sm">
+        <h2 className="mb-2 text-2xl font-bold">
+          {t('welcome_message', { name: displayName })}
+        </h2>
+        <p className="text-muted-foreground">
+          {user?.email && t('user_email', { email: user.email })}
+        </p>
+      </div>
 
       <MessageState
         icon={(
