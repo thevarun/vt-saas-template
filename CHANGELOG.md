@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/thevarun/HealthCompanion/compare/v1.4.1...v1.4.2) (2025-12-05)
+
+
+### Bug Fixes
+
+* add missing Supabase env vars to CI workflow ([16eeccd](https://github.com/thevarun/HealthCompanion/commit/16eeccd84149b9375b15dcf8917c4cb16ff40df0))
+
 ## [1.4.1](https://github.com/thevarun/HealthCompanion/compare/v1.4.0...v1.4.1) (2025-12-05)
 
 
