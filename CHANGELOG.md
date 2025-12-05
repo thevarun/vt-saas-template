@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/thevarun/HealthCompanion/compare/v1.4.0...v1.4.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* fixed Dify key issue in CI, cleaned up .env files ([ca55bf6](https://github.com/thevarun/HealthCompanion/commit/ca55bf6b650c2ad3aa7e42d16ed2f8ac8ee8f75a))
+
 # [1.4.0](https://github.com/thevarun/HealthCompanion/compare/v1.3.0...v1.4.0) (2025-12-05)
 
 
