@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/thevarun/HealthCompanion/compare/v1.2.0...v1.3.0) (2025-12-05)
+
+
+### Features
+
+* completed 2.2 architecture simplification ([852f7ae](https://github.com/thevarun/HealthCompanion/commit/852f7ae0b4fb01f02616cd29f1981466d821da65))
+
 # [1.2.0](https://github.com/thevarun/HealthCompanion/compare/v1.1.0...v1.2.0) (2025-12-03)
 
 
