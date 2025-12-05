@@ -117,10 +117,10 @@ export const locales = ['en', 'hi', 'bn'] as const;
 **AppConfig (`src/utils/AppConfig.ts`):**
 ```typescript
 // BEFORE
-locales: [Locales.EN, Locales.FR]
+locales: [Locales.EN, Locales.FR];
 
 // AFTER
-locales: [Locales.EN, Locales.HI, Locales.BN]
+locales: [Locales.EN, Locales.HI, Locales.BN];
 ```
 
 **Story 2: Architecture Simplification**

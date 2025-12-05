@@ -1077,7 +1077,7 @@ Optional updates to existing brownfield docs:
 - **AppConfig Update:**
   ```typescript
   // src/utils/AppConfig.ts
-  locales: [Locales.EN, Locales.HI, Locales.BN] // Remove Locales.FR
+  locales: [Locales.EN, Locales.HI, Locales.BN]; // Remove Locales.FR
   ```
 - **Translation Files:** Copy en.json structure to hi.json and bn.json, translate critical strings
 - **Routing:** Next-intl handles /hi/ and /bn/ prefixes automatically
@@ -1128,7 +1128,7 @@ Optional updates to existing brownfield docs:
 
 **Test Pattern:**
 ```typescript
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
   test('should sign up new user', async ({ page }) => {
@@ -1136,6 +1136,7 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
+
     await expect(page).toHaveURL('/dashboard');
   });
 });
@@ -1448,10 +1449,10 @@ export const locales = ['en', 'hi', 'bn'] as const;
 **AppConfig (`src/utils/AppConfig.ts`):**
 ```typescript
 // BEFORE
-locales: [Locales.EN, Locales.FR]
+locales: [Locales.EN, Locales.FR];
 
 // AFTER
-locales: [Locales.EN, Locales.HI, Locales.BN]
+locales: [Locales.EN, Locales.HI, Locales.BN];
 ```
 
 **Story 2: Architecture Simplification**

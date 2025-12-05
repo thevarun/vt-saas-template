@@ -24,14 +24,6 @@ export function DashboardScaffold({ children }: DashboardScaffoldProps) {
       href: '/chat',
       label: t('chat'),
     },
-    {
-      href: '/dashboard/organization-profile/organization-members',
-      label: t('members'),
-    },
-    {
-      href: '/dashboard/organization-profile',
-      label: t('settings'),
-    },
   ];
 
   return (

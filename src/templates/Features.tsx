@@ -10,6 +10,7 @@ export const Features = () => {
   return (
     <Background>
       <Section
+        id="features"
         subtitle={t('section_subtitle')}
         title={t('section_title')}
         description={t('section_description')}

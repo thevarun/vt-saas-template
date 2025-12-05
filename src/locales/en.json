@@ -1,7 +1,7 @@
 {
   "Index": {
-    "meta_title": "SaaS Template - The perfect SaaS template to build and scale your business with ease.",
-    "meta_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "meta_title": "HealthCompanion - AI-Powered Health Coaching",
+    "meta_description": "Get personalized health guidance through AI-powered conversations with HealthCompanion."
   },
   "Navbar": {
     "sign_in": "Sign In",
@@ -13,31 +13,27 @@
     "company": "Company"
   },
   "Hero": {
-    "follow_twitter": "Follow @Ixartz on Twitter",
-    "title": "The perfect <important>SaaS template</important> to build and scale your business with ease.",
-    "description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
+    "title": "Your AI-powered <important>health companion</important> for a healthier life.",
+    "description": "Get personalized health guidance through intelligent conversations with your AI health coach.",
     "primary_button": "Get Started",
-    "secondary_button": "Star on GitHub"
-  },
-  "Sponsors": {
-    "title": "Sponsored by"
+    "secondary_button": "Learn More"
   },
   "Features": {
     "section_subtitle": "Features",
-    "section_title": "Unlock the Full Potential of the SaaS Template",
-    "section_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
-    "feature1_title": "Node.js",
-    "feature2_title": "React",
-    "feature3_title": "Tailwind CSS",
-    "feature4_title": "TypeScript",
-    "feature5_title": "Shadcn UI",
-    "feature6_title": "ESLint",
-    "feature_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "section_title": "Everything You Need for Your Health Journey",
+    "section_description": "HealthCompanion provides intelligent, personalized health coaching powered by AI.",
+    "feature1_title": "AI Health Coach",
+    "feature2_title": "Personalized Guidance",
+    "feature3_title": "24/7 Availability",
+    "feature4_title": "Secure & Private",
+    "feature5_title": "Multi-language Support",
+    "feature6_title": "Evidence-based Advice",
+    "feature_description": "Get expert health guidance whenever you need it."
   },
   "Pricing": {
-    "section_subtitle": "Features",
-    "section_title": "Unlock the Full Potential of the SaaS Template",
-    "section_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
+    "section_subtitle": "Pricing",
+    "section_title": "Choose the Right Plan for You",
+    "section_description": "Start your health journey with HealthCompanion today.",
     "button_text": "Get Started"
   },
   "PricingPlan": {
@@ -57,13 +53,13 @@
     "next_renew_date": "Your subscription renews on {date}"
   },
   "FAQ": {
-    "question": "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
-    "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam aliquam enim dui, id consequat turpis ullamcorper ac. Mauris id quam dolor. Nullam eu egestas turpis. Proin risus elit, sollicitudin in mi a, accumsan euismod turpis. In euismod mi sed diam tristique hendrerit."
+    "question": "How does HealthCompanion work?",
+    "answer": "HealthCompanion uses advanced AI to provide personalized health guidance based on your individual needs and goals. Chat with your AI health coach anytime to get evidence-based advice and support."
   },
   "CTA": {
-    "title": "You are ready?",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "button_text": "Star on GitHub"
+    "title": "Ready to Start Your Health Journey?",
+    "description": "Join HealthCompanion today and take control of your wellbeing.",
+    "button_text": "Get Started"
   },
   "Footer": {
     "product": "Product",
@@ -88,11 +84,7 @@
   },
   "DashboardLayout": {
     "home": "Home",
-    "chat": "Chat",
-    "todos": "Todos",
-    "members": "Members",
-    "billing": "Billing",
-    "settings": "Settings"
+    "chat": "Chat"
   },
   "Chat": {
     "meta_title": "AI Health Coach Chat",
@@ -103,16 +95,14 @@
     "description": "Stay in one place while you switch between threads and get answers quickly."
   },
   "Dashboard": {
-    "meta_title": "SaaS Template Dashboard",
-    "meta_description": "A free and open-source landing page template for your SaaS business, built with Next.js, TypeScript, Shadcn UI, and Tailwind CSS."
+    "meta_title": "HealthCompanion Dashboard",
+    "meta_description": "Your personal health dashboard - track your wellness journey and chat with your AI health coach."
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",
     "title_bar_description": "Welcome to your dashboard",
-    "message_state_title": "Let's get started",
-    "message_state_description": "You can customize this page by editing the file at <code>dashboard/page.tsx</code>",
-    "message_state_button": "Star on GitHub",
-    "message_state_alternative": "Want more features and the latest updates from Next.js 16? Try <url></url>."
+    "message_state_title": "Welcome to HealthCompanion",
+    "message_state_description": "Start chatting with your AI health coach to get personalized guidance for your wellness journey."
   },
   "UserProfile": {
     "title_bar": "User Profile",
@@ -122,54 +112,7 @@
     "title_bar": "Organization Management",
     "title_bar_description": "Manage your organization"
   },
-  "Billing": {
-    "title_bar": "Billing",
-    "title_bar_description": "Manage your billing and subscription",
-    "current_section_title": "Current Plan",
-    "current_section_description": "Adjust your payment plan to best suit your requirements",
-    "manage_subscription_button": "Manage Subscription"
-  },
-  "BillingOptions": {
-    "current_plan": "Current Plan",
-    "upgrade_plan": "Get Started"
-  },
-  "CheckoutConfirmation": {
-    "title_bar": "Payment Confirmation",
-    "message_state_title": "Payment successful",
-    "message_state_description": "Your payment has been successfully processed. Thank you for your purchase!",
-    "message_state_button": "Go back to Billing"
-  },
   "DataTable": {
     "no_results": "No results."
-  },
-  "Todos": {
-    "title_bar": "Todo List",
-    "title_bar_description": "View and manage your todo list",
-    "add_todo_button": "New todo"
-  },
-  "TodoTableColumns": {
-    "open_menu": "Open menu",
-    "edit": "Edit",
-    "delete": "Delete",
-    "title_header": "Title",
-    "message_header": "Message",
-    "created_at_header": "Created at"
-  },
-  "AddTodo": {
-    "title_bar": "Add Todo",
-    "add_todo_section_title": "Create a new todo",
-    "add_todo_section_description": "Fill in the form below to create a new todo"
-  },
-  "EditTodo": {
-    "title_bar": "Edit todo",
-    "edit_todo_section_title": "Modify todo",
-    "edit_todo_section_description": "Fill in the form below to edit the todo"
-  },
-  "TodoForm": {
-    "title_label": "Title",
-    "title_description": "Enter a descriptive title for your todo.",
-    "message_title": "Message",
-    "message_description": "Enter a detailed message for your todo.",
-    "submit_button": "Submit"
   }
 }
