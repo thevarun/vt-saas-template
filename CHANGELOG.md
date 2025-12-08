@@ -1,3 +1,10 @@
+## [1.4.7](https://github.com/thevarun/HealthCompanion/compare/v1.4.6...v1.4.7) (2025-12-08)
+
+
+### Bug Fixes
+
+* correct indentation in data-table component ([7013dce](https://github.com/thevarun/HealthCompanion/commit/7013dce07935ca15e9566fa5246e71b32d8d5530))
+
 ## [1.4.6](https://github.com/thevarun/HealthCompanion/compare/v1.4.5...v1.4.6) (2025-12-08)
 
 
