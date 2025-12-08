@@ -1,6 +1,6 @@
-import type { LocalePrefix } from 'node_modules/next-intl/dist/types/src/routing/types';
+import type { LocalePrefixMode } from 'next-intl/routing';
 
-const localePrefix: LocalePrefix = 'as-needed';
+const localePrefix: LocalePrefixMode = 'as-needed';
 
 export const AppConfig = {
   name: 'HealthCompanion',
