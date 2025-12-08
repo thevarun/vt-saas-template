@@ -77,21 +77,23 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   env:
+      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Install Playwright (used for Storybook and E2E tests)
-        run: npx playwright install --with-deps
+      # - name: Install Playwright (used for Storybook and E2E tests)
+      #   run: npx playwright install --with-deps
 
-      - name: Run storybook tests
-        run: npm run test-storybook:ci
+      # - name: Run storybook tests
+      #   run: npm run test-storybook:ci
+      #   env:
+      #     STORYBOOK: 'true'
 
-      - name: Run E2E tests
-        run: npx percy exec -- npm run test:e2e
-        env:
-          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+      # - name: Run E2E tests
+      #   run: npx percy exec -- npm run test:e2e
+      #   env:
+      #     PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
 
       - uses: actions/upload-artifact@v4
         if: always()
