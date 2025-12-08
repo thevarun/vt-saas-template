@@ -1,3 +1,10 @@
+## [1.4.6](https://github.com/thevarun/HealthCompanion/compare/v1.4.5...v1.4.6) (2025-12-08)
+
+
+### Bug Fixes
+
+* update LocalePrefix import to use LocalePrefixMode ([6c21cf2](https://github.com/thevarun/HealthCompanion/commit/6c21cf209d3945fa3d6af62bed2417e187b9a42d))
+
 ## [1.4.5](https://github.com/thevarun/HealthCompanion/compare/v1.4.4...v1.4.5) (2025-12-08)
 
 
