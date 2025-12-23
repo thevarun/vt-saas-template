@@ -51,24 +51,28 @@ test.describe('Landing Page', () => {
     authenticatedTest('displays dashboard button when authenticated', async ({ authenticatedPage }) => {
       await authenticatedPage.goto('/');
 
-      // Dashboard button should be visible
-      const dashboardButton = authenticatedPage.locator('a[href*="/dashboard"], button:has-text("Dashboard")').first();
+      // Dashboard button should be visible (in the navbar's right menu section)
+      const dashboardButton = authenticatedPage.locator('a[href="/dashboard"]:has-text("Dashboard")').first();
 
       // eslint-disable-next-line playwright/no-standalone-expect
       await expect(dashboardButton).toBeVisible();
 
-      // Sign-in and sign-up buttons should be hidden
-      const signInButton = authenticatedPage.locator('a[href*="/sign-in"]:visible, button:has-text("Sign In"):visible');
-      const signUpButton = authenticatedPage.locator('a[href*="/sign-up"]:visible, button:has-text("Sign Up"):visible');
-
-      // Note: Buttons may exist in DOM but hidden via CSS
-      const signInCount = await signInButton.count();
-      const signUpCount = await signUpButton.count();
+      // Hero section should also show "Go to Dashboard" button
+      const heroDashboardButton = authenticatedPage.locator('a[href="/dashboard"]:has-text("Go to Dashboard")');
 
       // eslint-disable-next-line playwright/no-standalone-expect
-      expect(signInCount).toBe(0);
+      await expect(heroDashboardButton).toBeVisible();
+
+      // Auth-specific sign-in/sign-up buttons should NOT be visible
+      // Note: We check that there are no visible "Sign In" or "Sign Up" text links that point to auth pages
+      // (excluding the many placeholder menu links that also point to /sign-up)
+      const authSignInLink = authenticatedPage.locator('a[href="/sign-in"]:has-text("Sign In")');
+      const authSignUpButton = authenticatedPage.locator('a[href="/sign-up"]').filter({ hasText: /^Sign Up$/ });
+
       // eslint-disable-next-line playwright/no-standalone-expect
-      expect(signUpCount).toBe(0);
+      await expect(authSignInLink).toBeHidden();
+      // eslint-disable-next-line playwright/no-standalone-expect
+      await expect(authSignUpButton).toBeHidden();
     });
 
     authenticatedTest('dashboard button navigates to dashboard', async ({ authenticatedPage }) => {
@@ -81,26 +85,4 @@ test.describe('Landing Page', () => {
       await expect(authenticatedPage).toHaveURL(/\/dashboard/);
     });
   });
-
-  // test.describe('Branding and Content', () => {
-  //   test('displays HealthCompanion branding', async ({ page }) => {
-  //     await page.goto('/');
-
-  //     // Should display project name (from Story 2.2 - AppConfig updated)
-  //     const appName = page.getByTestId('app-name');
-
-  //     await expect(appName).toContainText('Health');
-  //   });
-
-  //   test('no sponsor logos or demo badges visible', async ({ page }) => {
-  //     await page.goto('/');
-
-  //     // From Story 2.2 - sponsors and demo banners removed
-  //     const sponsorLogos = page.locator('[data-testid="sponsors"], .sponsor-logo');
-  //     const demoBadges = page.locator('[data-testid="demo-badge"], .demo-banner');
-
-  //     expect(await sponsorLogos.count()).toBe(0);
-  //     expect(await demoBadges.count()).toBe(0);
-  //   });
-  // });
 });

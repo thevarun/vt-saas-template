@@ -25,49 +25,28 @@ export const test = base.extend<AuthenticatedFixtures>({
       throw new Error('Test credentials not found. Ensure setup.ts ran successfully.');
     }
 
-    // Create Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    // Sign in through the UI to ensure Supabase properly sets all cookies
+    await page.goto('/sign-in');
 
-    // Sign in to get session
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: testEmail,
-      password: testPassword,
-    });
+    // Fill in the sign-in form
+    await page.fill('input[name="email"], input[type="email"]', testEmail);
+    await page.fill('input[name="password"], input[type="password"]', testPassword);
 
-    if (error || !data.session) {
-      throw new Error(`Authentication failed: ${error?.message || 'No session returned'}`);
-    }
+    // Submit the form
+    await page.click('button[type="submit"]');
 
-    // Set session cookies in the browser context
-    // Supabase uses these cookie names for SSR auth
-    await page.context().addCookies([
-      {
-        name: 'sb-access-token',
-        value: data.session.access_token,
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Math.floor(Date.now() / 1000) + data.session.expires_in,
-      },
-      {
-        name: 'sb-refresh-token',
-        value: data.session.refresh_token,
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
-      },
-    ]);
+    // Wait for redirect after successful sign-in
+    // Should redirect to dashboard or home page
+    await page.waitForURL(/\/(dashboard|en|fr)/, { timeout: 10000 });
 
     // Page is now authenticated - use it in the test
     await use(page);
 
     // Cleanup: Sign out after test
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
     await supabase.auth.signOut();
   },
 });
