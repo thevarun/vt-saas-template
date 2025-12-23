@@ -1,3 +1,7 @@
+import {
+  createCompleteMessageResponse,
+  MockResponses,
+} from './fixtures/dify-mocks';
 import { ChatPage } from './helpers/ChatPage';
 import { expect, test } from './helpers/fixtures';
 
@@ -29,12 +33,6 @@ test.describe('Chat Interface', () => {
 
       // Mock /api/chat to return deterministic response
       await authenticatedPage.route('**/api/chat', async (route) => {
-        // Mock SSE streaming response
-        const mockResponse = [
-          'data: {"event":"agent_message","message_id":"msg-123","conversation_id":"conv-123","answer":"Hello! How can I help you today?"}\n\n',
-          'data: {"event":"message_end","message_id":"msg-123"}\n\n',
-        ].join('');
-
         await route.fulfill({
           status: 200,
           headers: {
@@ -42,7 +40,7 @@ test.describe('Chat Interface', () => {
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
           },
-          body: mockResponse,
+          body: MockResponses.greeting(),
         });
       });
 
@@ -64,14 +62,6 @@ test.describe('Chat Interface', () => {
 
       // Mock streaming response from /api/chat
       await authenticatedPage.route('**/api/chat', async (route) => {
-        const mockStreamResponse = [
-          'data: {"event":"agent_message","message_id":"msg-456","conversation_id":"conv-456","answer":"Here are some healthy breakfast options:"}\n\n',
-          'data: {"event":"agent_thought","thought":"Thinking about nutrition..."}\n\n',
-          'data: {"event":"agent_message","message_id":"msg-456","answer":"\\n1. Oatmeal with berries"}\n\n',
-          'data: {"event":"agent_message","message_id":"msg-456","answer":"\\n2. Greek yogurt with nuts"}\n\n',
-          'data: {"event":"message_end","message_id":"msg-456"}\n\n',
-        ].join('');
-
         await route.fulfill({
           status: 200,
           headers: {
@@ -79,7 +69,7 @@ test.describe('Chat Interface', () => {
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
           },
-          body: mockStreamResponse,
+          body: MockResponses.healthAdvice(),
         });
       });
 
@@ -106,13 +96,10 @@ test.describe('Chat Interface', () => {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const mockResponse
-          = 'data: {"event":"agent_message","message_id":"msg-789","answer":"Response after delay"}\n\ndata: {"event":"message_end","message_id":"msg-789"}\n\n';
-
         await route.fulfill({
           status: 200,
           headers: { 'Content-Type': 'text/event-stream' },
-          body: mockResponse,
+          body: MockResponses.delayedResponse(),
         });
       });
 
@@ -149,23 +136,23 @@ test.describe('Chat Interface', () => {
           // First message - generate conversation ID
           conversationId = 'conv-context-test';
 
-          const mockResponse = `data: {"event":"agent_message","message_id":"msg-1","conversation_id":"${conversationId}","answer":"I'm your health assistant. What would you like to know?"}\n\ndata: {"event":"message_end","message_id":"msg-1"}\n\n`;
-
           await route.fulfill({
             status: 200,
             headers: { 'Content-Type': 'text/event-stream' },
-            body: mockResponse,
+            body: createCompleteMessageResponse(
+              'msg-1',
+              'I\'m your health assistant. What would you like to know?',
+              conversationId,
+            ),
           });
         } else {
           // Follow-up message - verify conversation_id is sent
-          expect(requestBody.conversation_id).toBe(conversationId);
-
-          const mockResponse = `data: {"event":"agent_message","message_id":"msg-2","conversation_id":"${conversationId}","answer":"Based on our previous conversation, here's my recommendation..."}\n\ndata: {"event":"message_end","message_id":"msg-2"}\n\n`;
+          expect(requestBody.conversationId).toBe(conversationId);
 
           await route.fulfill({
             status: 200,
             headers: { 'Content-Type': 'text/event-stream' },
-            body: mockResponse,
+            body: MockResponses.followUp(conversationId),
           });
         }
       });
@@ -232,7 +219,7 @@ test.describe('Chat Interface', () => {
         await route.fulfill({
           status: 200,
           headers: { 'Content-Type': 'text/event-stream' },
-          body: 'data: {"event":"agent_message","message_id":"msg-mobile","answer":"Mobile response"}\n\ndata: {"event":"message_end","message_id":"msg-mobile"}\n\n',
+          body: MockResponses.mobileResponse(),
         });
       });
 

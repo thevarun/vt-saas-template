@@ -24,7 +24,7 @@ type ThreadProps = {
 };
 
 const UserMessage: FC = () => (
-  <div className="mb-4 flex justify-end">
+  <div className="mb-4 flex justify-end" data-message-role="user">
     <div className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-primary-foreground shadow-sm md:max-w-[70%]">
       <MessagePrimitive.Content />
     </div>
@@ -32,7 +32,7 @@ const UserMessage: FC = () => (
 );
 
 const AssistantMessage: FC = () => (
-  <div className="mb-4 flex justify-start">
+  <div className="mb-4 flex justify-start" data-message-role="assistant">
     <div className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 shadow-sm md:max-w-[70%]">
       <MessagePrimitive.Content />
     </div>
@@ -90,6 +90,7 @@ export const Thread: FC<ThreadProps> = ({ className }) => {
         <ComposerPrimitive.Root className="flex items-end gap-2 rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring">
           <ComposerPrimitive.Input
             ref={inputRef}
+            data-testid="composer-input"
             placeholder="Type your message... (Shift+Enter to send)"
             className="max-h-40 flex-1 resize-none border-0 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground sm:px-4 sm:py-3 sm:text-base"
             rows={1}

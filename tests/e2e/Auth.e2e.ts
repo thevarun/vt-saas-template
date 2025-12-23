@@ -19,8 +19,8 @@ test.describe('Authentication', () => {
     test('should display sign up page', async ({ page }) => {
       await page.goto('/sign-up');
 
-      await expect(page.getByRole('heading', { name: 'Sign Up' })).toBeVisible();
-      await expect(page.getByText('Create your account to get started')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
+      await expect(page.getByText('Join HealthCompanion and start your wellness journey')).toBeVisible();
     });
 
     test('should show validation error for invalid email', async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('Authentication', () => {
       await page.click('button[type="submit"]');
 
       // HTML5 validation will prevent form submission
-      await expect(page.getByRole('heading', { name: 'Sign Up' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
     });
 
     test('should show validation error for short password', async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('Authentication', () => {
       await page.click('button[type="submit"]');
 
       // HTML5 minLength validation will prevent submission
-      await expect(page.getByRole('heading', { name: 'Sign Up' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
     });
 
     test('should submit sign up form and show verification message', async ({ page }) => {
@@ -63,7 +63,7 @@ test.describe('Authentication', () => {
     test('should display sign in page', async ({ page }) => {
       await page.goto('/sign-in');
 
-      await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
     });
 
     test('should show error for invalid credentials', async ({ page }) => {
@@ -152,8 +152,8 @@ test.describe('Authentication', () => {
       // Navigate to sign-out page
       await authPage.goToSignOut();
 
-      // Should redirect to home or sign-in page after sign out
-      await expect(page).toHaveURL(/\/(en|fr)?\/?$/);
+      // Should redirect to home page after sign out (with optional locale prefix)
+      await expect(page).toHaveURL(/^\/(en|hi|bn)?\/?$|^https?:\/\/[^/]+(\/|\/en|\/hi|\/bn)?$/);
 
       // Attempting to access dashboard should redirect back to sign-in
       await page.goto('/dashboard');

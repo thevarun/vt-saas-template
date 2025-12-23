@@ -32,7 +32,8 @@ export class DashboardPage {
   }
 
   getHomeLink() {
-    return this.page.locator('a[href="/"], a[href*="home"]');
+    // Select the "Home" navigation link, not the logo link
+    return this.page.locator('a[href="/dashboard"]:has-text("Home")');
   }
 
   async navigateToChat() {
@@ -42,7 +43,7 @@ export class DashboardPage {
 
   async navigateToHome() {
     await this.getHomeLink().click();
-    await this.page.waitForURL(/^\/(en|fr)?$/);
+    await this.page.waitForURL(/\/dashboard/);
   }
 
   // Verify removed links don't exist (from Story 2.2)

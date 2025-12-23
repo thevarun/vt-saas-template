@@ -18,7 +18,10 @@ export class AuthPage {
   }
 
   async goToSignOut() {
-    await this.page.goto('/sign-out');
+    // Navigate to sign-out and wait for the redirect
+    await this.page.goto('/sign-out', { waitUntil: 'networkidle' });
+    // Give extra time for sign-out and redirect to complete
+    await this.page.waitForTimeout(2000);
   }
 
   // Sign-up methods

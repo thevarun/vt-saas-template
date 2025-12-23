@@ -15,10 +15,16 @@ export class ChatPage {
 
   // Message interaction methods
   async typeMessage(message: string) {
-    // Assistant UI uses contenteditable div for message input
-    const composer = this.page.locator('[data-testid="composer-input"], [contenteditable="true"]').first();
+    // Assistant UI renders as a textarea element
+    const composer = this.page.locator('[data-testid="composer-input"]').first();
+    await composer.waitFor({ state: 'visible' });
     await composer.click();
-    await composer.fill(message);
+    // Clear any existing text first
+    await composer.clear();
+    // Use pressSequentially() for reliable text input with proper events
+    await composer.pressSequentially(message, { delay: 50 });
+    // Wait a bit for the component to process the input
+    await this.page.waitForTimeout(500);
   }
 
   async sendMessage(message?: string) {
@@ -26,8 +32,9 @@ export class ChatPage {
       await this.typeMessage(message);
     }
 
-    // Click send button or press Enter
-    const sendButton = this.page.locator('button[type="submit"], button[aria-label*="Send"]').first();
+    // Click send button - Assistant UI renders it as a button with "Send" text
+    const sendButton = this.page.locator('button:has-text("Send")').first();
+    await sendButton.waitFor({ state: 'visible' });
     await sendButton.click();
   }
 
@@ -84,7 +91,7 @@ export class ChatPage {
 
   // Composer (input area)
   getComposer() {
-    return this.page.locator('[data-testid="composer-input"], [contenteditable="true"]').first();
+    return this.page.locator('textarea[placeholder*="Type your message"], [data-testid="composer-input"]').first();
   }
 
   async isComposerFocused() {

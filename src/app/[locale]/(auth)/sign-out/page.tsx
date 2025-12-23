@@ -1,21 +1,19 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { createClient } from '@/libs/supabase/client';
 
 export default function SignOutPage() {
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const signOut = async () => {
       try {
         const supabase = createClient();
         await supabase.auth.signOut();
-        router.push('/sign-in');
-        router.refresh();
+        // Use hard navigation to ensure cookies are cleared
+        window.location.href = '/';
       } catch (error) {
         console.error('Sign out failed', error);
         setError('Failed to sign out');
@@ -23,7 +21,7 @@ export default function SignOutPage() {
     };
 
     signOut();
-  }, [router]);
+  }, []);
 
   if (error) {
     return (
@@ -33,8 +31,8 @@ export default function SignOutPage() {
             <h2 className="text-3xl font-bold text-red-600">Error</h2>
             <p className="mt-4 text-sm text-gray-600">{error}</p>
             <p className="mt-4">
-              <a href="/dashboard" className="text-blue-600 hover:underline">
-                Go to Dashboard
+              <a href="/" className="text-blue-600 hover:underline">
+                Go to Home
               </a>
             </p>
           </div>

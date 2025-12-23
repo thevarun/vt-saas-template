@@ -14,13 +14,18 @@ import { AllLocales } from '@/utils/AppConfig';
 // 3. Every 24 hours at 5am, the workflow will run automatically
 
 // Using internationalization in Server Components
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  // Get the locale using the new next-intl API (v3.22+)
+  // `requestLocale` is a Promise that resolves to the locale
+  const locale = await requestLocale;
+
   // Validate that the incoming `locale` parameter is valid
-  if (!AllLocales.includes(locale)) {
+  if (!locale || !AllLocales.includes(locale)) {
     notFound();
   }
 
   return {
+    locale,
     messages: (await import(`../locales/${locale}.json`)).default,
   };
 });
