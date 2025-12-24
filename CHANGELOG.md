@@ -1,3 +1,11 @@
+## [1.4.9](https://github.com/thevarun/HealthCompanion/compare/v1.4.8...v1.4.9) (2025-12-24)
+
+
+### Bug Fixes
+
+* all e2e tests are now passing ([a2b3cf9](https://github.com/thevarun/HealthCompanion/commit/a2b3cf99639f0b04d0a944ca79cd83116a65dc34))
+* tests for landing page are now working ([7299722](https://github.com/thevarun/HealthCompanion/commit/7299722895590ca27bec9b9b42724effd0f2ae6f))
+
 ## [1.4.8](https://github.com/thevarun/HealthCompanion/compare/v1.4.7...v1.4.8) (2025-12-08)
 
 
