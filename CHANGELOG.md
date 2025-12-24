@@ -1,3 +1,10 @@
+## [1.4.11](https://github.com/thevarun/HealthCompanion/compare/v1.4.10...v1.4.11) (2025-12-24)
+
+
+### Bug Fixes
+
+* ignore dify README in eslint config ([3de24e8](https://github.com/thevarun/HealthCompanion/commit/3de24e8371afabb853a3e35f61a76a20f1604c49))
+
 ## [1.4.10](https://github.com/thevarun/HealthCompanion/compare/v1.4.9...v1.4.10) (2025-12-24)
 
 
