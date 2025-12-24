@@ -1,3 +1,10 @@
+## [1.4.10](https://github.com/thevarun/HealthCompanion/compare/v1.4.9...v1.4.10) (2025-12-24)
+
+
+### Bug Fixes
+
+* resolve build failure with client-side auth check ([7763183](https://github.com/thevarun/HealthCompanion/commit/776318302fd34f82c6a8c582231a6ae1e291b349))
+
 ## [1.4.9](https://github.com/thevarun/HealthCompanion/compare/v1.4.8...v1.4.9) (2025-12-24)
 
 
