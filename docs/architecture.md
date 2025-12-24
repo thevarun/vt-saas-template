@@ -46,8 +46,7 @@ HealthCompanion is a SaaS web application built on Next.js 14 with App Router, p
 |-----------|-----------|---------|---------|
 | AI Service | Dify API | Custom | Chat-based AI assistant |
 | Chat UI | Assistant UI | 0.11.47 | React chat interface with streaming |
-| Payments | Stripe | 16.12.0 | Billing & subscriptions |
-| i18n | next-intl | 3.21.1 | Internationalization (en, fr) |
+| i18n | next-intl | 3.21.1 | Internationalization (en, hi, bn) |
 
 ### DevOps & Monitoring
 | Component | Technology | Version | Purpose |
@@ -119,10 +118,10 @@ HealthCompanion follows the **Next.js App Router** architectural pattern with cl
 └─────────────────────────────────────────────────────────────┘
 
 External Services:
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│   Dify AI    │  │    Stripe    │  │   Sentry     │
-│   Chat API   │  │   Payments   │  │   Errors     │
-└──────────────┘  └──────────────┘  └──────────────┘
+┌──────────────┐  ┌──────────────┐
+│   Dify AI    │  │   Sentry     │
+│   Chat API   │  │   Errors     │
+└──────────────┘  └──────────────┘
 ```
 
 ### Layered Architecture
@@ -157,14 +156,12 @@ External Services:
 **Migrations:** `migrations/`
 
 **Tables** (Pattern-based identification):
-- Organization management (multi-tenancy)
-- User profiles
-- Todo items (example CRUD)
-- Additional tables defined in Schema.ts
+- User authentication (managed by Supabase)
+- Additional tables defined in Schema.ts as needed
 
 **Key Relationships:**
-- User ↔ Organizations (many-to-many via memberships)
-- Organization-scoped data
+- Database schema is minimal and focused on application-specific data
+- User management handled by Supabase Auth
 
 ### Database Strategy
 
@@ -210,10 +207,6 @@ External Services:
 - **Location:** `src/libs/dify/client.ts`
 - **Pattern:** Proxy via `/api/chat` (never expose key to client)
 - **Features:** Streaming responses, conversation context
-
-**Stripe Integration:**
-- **Purpose:** Payment processing, subscription management
-- **Pattern:** Server-side only (API routes)
 
 ## Component Architecture
 
@@ -301,7 +294,7 @@ src/components/
 ### Security Best Practices
 
 - ✅ Environment variables for secrets (never in code)
-- ✅ API keys server-side only (Dify, Stripe)
+- ✅ API keys server-side only (Dify)
 - ✅ HTTPS enforced (Vercel auto-SSL)
 - ✅ CORS configured
 - ✅ Input validation (Zod schemas)

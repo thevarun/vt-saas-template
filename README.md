@@ -94,7 +94,8 @@ HealthCompanion is a modern web application that provides personalized health gu
 ### Available Scripts
 
 ```bash
-npm run dev              # Start development server
+npm run dev              # Start development server (with Sentry Spotlight)
+npm run dev:next         # Start Next.js dev server only (without Spotlight)
 npm run build            # Create production build
 npm start                # Start production server
 npm test                 # Run unit tests

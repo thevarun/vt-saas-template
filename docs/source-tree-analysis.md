@@ -10,7 +10,7 @@
 HealthCompanion/
 ├── src/                           # Main source code directory
 │   ├── app/                       # Next.js App Router (file-system routing)
-│   │   ├── [locale]/              # Internationalized routes (en, fr)
+│   │   ├── [locale]/              # Internationalized routes (en, hi, bn)
 │   │   ├── api/                   # API Routes
 │   │   │   └── chat/              # Dify AI proxy endpoint
 │   │   └── auth/                  # Authentication routes
@@ -20,9 +20,7 @@ HealthCompanion/
 │   ├── features/                  # Feature-specific modules
 │   │   ├── landing/               # Landing page features
 │   │   ├── auth/                  # Authentication features
-│   │   ├── sponsors/              # Sponsor management
-│   │   ├── dashboard/             # Dashboard features
-│   │   └── billing/               # Stripe billing features
+│   │   └── dashboard/             # Dashboard features
 │   ├── libs/                      # Third-party integrations & utilities
 │   │   ├── supabase/              # Supabase client/server/middleware
 │   │   ├── dify/                  # Dify AI integration
@@ -38,7 +36,8 @@ HealthCompanion/
 │   ├── utils/                     # Utility functions
 │   ├── locales/                   # i18n translations
 │   │   ├── en.json                # English translations
-│   │   └── fr.json                # French translations
+│   │   ├── hi.json                # Hindi translations
+│   │   └── bn.json                # Bengali translations
 │   ├── templates/                 # Email/notification templates
 │   ├── hooks/                     # Custom React hooks
 │   ├── middleware.ts              # Next.js middleware (auth + i18n)
@@ -159,7 +158,6 @@ HealthCompanion/
 ### External Services
 - **Supabase**: Authentication & Database
 - **Dify AI**: Chat AI service (proxied via `/api/chat`)
-- **Stripe**: Payment processing
 - **Sentry**: Error tracking & monitoring
 - **Logtail**: Log aggregation
 
@@ -182,7 +180,7 @@ HealthCompanion/
 ## Notes
 
 - **Quick Scan**: This analysis is pattern-based and does not include detailed code inspection
-- **Multi-language**: Supports English and French via next-intl
+- **Multi-language**: Supports English, Hindi, and Bengali via next-intl
 - **Type-safe**: Full TypeScript coverage with strict mode
 - **Modular**: Feature-based organization for scalability
 - **Well-documented**: Comprehensive tech spec and sprint artifacts

@@ -9,7 +9,6 @@ Health Companion is a SaaS application built on Next.js 14 with App Router. The 
 1. **Supabase Authentication** (replaced Clerk) - Custom authentication with SSR support
 2. **Dify AI Integration** - Chat-based AI health assistant via proxy API
 3. **Assistant UI** (@assistant-ui/react) - Modern chat interface with streaming support
-4. **Multi-tenancy** - Organization-based access control (Stripe integration ready)
 
 ## Core Architecture
 
@@ -41,15 +40,13 @@ Health Companion is a SaaS application built on Next.js 14 with App Router. The 
 ### Database
 - **ORM**: Drizzle ORM with PostgreSQL
 - **Schema**: `src/models/Schema.ts`
-  - `organization` table (Stripe subscription data)
-  - `todo` table (example CRUD entity)
 - **Migrations**: Auto-applied on app start, or manual via `npm run db:migrate`
 - **Local Dev**: PGlite for offline development
 - **Production**: Compatible with Prisma Postgres or any PostgreSQL provider
 
 ### Internationalization (i18n)
 - **Library**: next-intl
-- **Locales**: English (default), French
+- **Locales**: English (default), Hindi, Bengali
 - **Location**: Translation files in `src/locales/`
 - **Middleware**: Handles locale detection and prefix routing
 - **Config**: `src/utils/AppConfig.ts`
@@ -81,17 +78,11 @@ DIFY_API_KEY=           # Keep in .env.local
 
 # Database
 DATABASE_URL=           # PostgreSQL connection string
-
-# Stripe (Optional, for billing)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-BILLING_PLAN_ENV=dev    # or 'test' or 'production'
 ```
 
 ### Sensitive (.env.local only)
 ```bash
 SUPABASE_SERVICE_ROLE_KEY=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
 ```
 
 ## Common Development Commands
@@ -197,8 +188,3 @@ npm run storybook        # Start Storybook
 - **Formatting**: Prettier + ESLint with auto-fix on save
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
 
-## Recent Changes (Git Log)
-
-- Story 1.3: Assistant UI integration with Dify streaming
-- Story 1.2: Dify integration with authentication middleware
-- Story 1.1: Replaced Clerk auth with Supabase auth
