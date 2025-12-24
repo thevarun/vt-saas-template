@@ -142,7 +142,7 @@ Keep-alive event to maintain SSE connection.
 **Structure:**
 ```typescript
 {
-  event: 'ping'
+  event: 'ping';
 }
 ```
 

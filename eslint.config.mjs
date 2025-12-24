@@ -28,6 +28,7 @@ export default antfu({
     'docs/**/*',
     '.bmad/**/*',
     'CLAUDE.md',
+    'src/libs/dify/README.md',
   ],
 }, ...tailwind.configs['flat/recommended'], jsxA11y.flatConfigs.recommended, {
   plugins: {
