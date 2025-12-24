@@ -1,6 +1,6 @@
 # Story 2.4: documentation-overhaul
 
-Status: review
+Status: done
 
 ## Story
 
@@ -321,6 +321,9 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 ### Debug Log References
 
 ### Completion Notes List
+
+**Completed:** 2025-12-24
+**Definition of Done:** All acceptance criteria met, code reviewed, tests passing
 
 - ✅ README.md was already replaced in Story 2.2, added minor enhancements (dev:next command, Spotlight mention)
 - ✅ Tech-spec validation complete - all stories (2.1, 2.2, 2.3) accurately documented

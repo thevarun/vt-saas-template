@@ -1,19 +1,16 @@
 'use client';
 
-import type { User } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
 import { buttonVariants } from '@/components/ui/buttonVariants';
 import { CenteredHero } from '@/features/landing/CenteredHero';
 import { Section } from '@/features/landing/Section';
+import { useUser } from '@/hooks/useUser';
 
-type HeroProps = {
-  user: User | null;
-};
-
-export const Hero = ({ user }: HeroProps) => {
+export const Hero = () => {
   const t = useTranslations('Hero');
+  const { user } = useUser();
 
   return (
     <Section className="py-36">

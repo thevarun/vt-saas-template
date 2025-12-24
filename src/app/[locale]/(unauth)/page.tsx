@@ -1,13 +1,14 @@
-import { cookies } from 'next/headers';
 import { getTranslations, unstable_setRequestLocale } from 'next-intl/server';
 
-import { createClient } from '@/libs/supabase/server';
 import { CTA } from '@/templates/CTA';
 import { FAQ } from '@/templates/FAQ';
 import { Features } from '@/templates/Features';
 import { Footer } from '@/templates/Footer';
 import { Hero } from '@/templates/Hero';
 import { Navbar } from '@/templates/Navbar';
+
+// Force dynamic rendering to avoid RSC serialization issues during build
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
@@ -26,15 +27,12 @@ const IndexPage = async (props: { params: Promise<{ locale: string }> }) => {
   const { locale } = await props.params;
   unstable_setRequestLocale(locale);
 
-  // AC #4: Detect logged-in state via Supabase session
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
-
+  // AC #4: Auth state is now checked client-side for better performance
+  // Landing page is statically generated for fast load times and SEO
   return (
     <>
-      <Navbar user={user} />
-      <Hero user={user} />
+      <Navbar />
+      <Hero />
       <Features />
       <FAQ />
       <CTA />

@@ -1,6 +1,5 @@
 'use client';
 
-import type { User } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
@@ -8,15 +7,13 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { buttonVariants } from '@/components/ui/buttonVariants';
 import { CenteredMenu } from '@/features/landing/CenteredMenu';
 import { Section } from '@/features/landing/Section';
+import { useUser } from '@/hooks/useUser';
 
 import { Logo } from './Logo';
 
-type NavbarProps = {
-  user: User | null;
-};
-
-export const Navbar = ({ user }: NavbarProps) => {
+export const Navbar = () => {
   const t = useTranslations('Navbar');
+  const { user } = useUser();
 
   return (
     <Section className="px-3 py-6">
