@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/thevarun/HealthCompanion/compare/v1.4.11...v1.5.0) (2025-12-29)
+
+
+### Features
+
+* add health-companion schema in supabase dev-server project. completed story 3.1 ([c542513](https://github.com/thevarun/HealthCompanion/commit/c542513c745d2b2efaca4772ed4eb1eafb8d6993))
+
 ## [1.4.11](https://github.com/thevarun/HealthCompanion/compare/v1.4.10...v1.4.11) (2025-12-24)
 
 
