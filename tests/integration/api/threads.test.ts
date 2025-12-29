@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PATCH as PATCH_ARCHIVE } from '@/app/api/threads/[id]/archive/route';
 import { DELETE, PATCH } from '@/app/api/threads/[id]/route';
 import { GET, POST } from '@/app/api/threads/route';
-import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
+import * as threadsModule from '@/libs/supabase/threads';
 
 /**
  * Integration tests for /api/threads endpoints
@@ -21,14 +21,7 @@ import { createClient } from '@/libs/supabase/server';
 
 // Mock dependencies
 vi.mock('@/libs/supabase/server');
-vi.mock('@/libs/DB', () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock('@/libs/supabase/threads');
 vi.mock('@/libs/Logger', () => ({
   logger: {
     error: vi.fn(),
@@ -114,32 +107,30 @@ describe('/api/threads endpoints', () => {
       const mockThreads = [
         {
           id: 'thread-1',
-          userId: mockUserId,
-          conversationId: 'conv-1',
+          user_id: mockUserId,
+          conversation_id: 'conv-1',
           title: 'Thread 1',
-          lastMessagePreview: 'Hello',
+          last_message_preview: 'Hello',
           archived: false,
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-02T00:00:00.000Z',
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-02T00:00:00.000Z',
         },
         {
           id: 'thread-2',
-          userId: mockUserId,
-          conversationId: 'conv-2',
+          user_id: mockUserId,
+          conversation_id: 'conv-2',
           title: 'Thread 2',
-          lastMessagePreview: 'World',
+          last_message_preview: 'World',
           archived: false,
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-03T00:00:00.000Z',
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-03T00:00:00.000Z',
         },
       ];
 
-      const mockDbChain = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockResolvedValue(mockThreads),
-      };
-      vi.mocked(db.select).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.getThreads).mockResolvedValue({
+        data: mockThreads,
+        error: null,
+      });
 
       const response = await GET();
       const data = await response.json();
@@ -165,20 +156,19 @@ describe('/api/threads endpoints', () => {
       const now = new Date().toISOString();
       const newThread = {
         id: mockThreadId,
-        userId: mockUserId,
-        conversationId: 'conv-new',
+        user_id: mockUserId,
+        conversation_id: 'conv-new',
         title: 'New Thread',
-        lastMessagePreview: null,
+        last_message_preview: null,
         archived: false,
-        createdAt: now,
-        updatedAt: now,
+        created_at: now,
+        updated_at: now,
       };
 
-      const mockDbChain = {
-        values: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([newThread]),
-      };
-      vi.mocked(db.insert).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.createThread).mockResolvedValue({
+        data: newThread,
+        error: null,
+      });
 
       const request = new Request('http://localhost:3000/api/threads', {
         method: 'POST',
@@ -231,14 +221,12 @@ describe('/api/threads endpoints', () => {
       };
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      const duplicateError = new Error('Duplicate');
-      (duplicateError as any).code = '23505';
+      const duplicateError = new Error('duplicate key value violates unique constraint');
 
-      const mockDbChain = {
-        values: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockRejectedValue(duplicateError),
-      };
-      vi.mocked(db.insert).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.createThread).mockResolvedValue({
+        data: null,
+        error: duplicateError,
+      });
 
       const request = new Request('http://localhost:3000/api/threads', {
         method: 'POST',
@@ -268,21 +256,19 @@ describe('/api/threads endpoints', () => {
 
       const updatedThread = {
         id: mockThreadId,
-        userId: mockUserId,
-        conversationId: 'conv-123',
+        user_id: mockUserId,
+        conversation_id: 'conv-123',
         title: 'Updated Title',
-        lastMessagePreview: 'Updated preview',
+        last_message_preview: 'Updated preview',
         archived: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
-      const mockDbChain = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([updatedThread]),
-      };
-      vi.mocked(db.update).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.updateThread).mockResolvedValue({
+        data: updatedThread,
+        error: null,
+      });
 
       const request = new Request(`http://localhost:3000/api/threads/${mockThreadId}`, {
         method: 'PATCH',
@@ -312,12 +298,10 @@ describe('/api/threads endpoints', () => {
       };
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      const mockDbChain = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([]),
-      };
-      vi.mocked(db.update).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.updateThread).mockResolvedValue({
+        data: null,
+        error: null,
+      });
 
       const request = new Request(`http://localhost:3000/api/threads/${mockThreadId}`, {
         method: 'PATCH',
@@ -348,29 +332,26 @@ describe('/api/threads endpoints', () => {
 
       const currentThread = {
         id: mockThreadId,
-        userId: mockUserId,
-        conversationId: 'conv-123',
+        user_id: mockUserId,
+        conversation_id: 'conv-123',
         title: 'Thread',
-        lastMessagePreview: null,
+        last_message_preview: null,
         archived: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       const archivedThread = { ...currentThread, archived: true };
 
-      const mockSelectChain = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([currentThread]),
-      };
-      vi.mocked(db.select).mockReturnValue(mockSelectChain as any);
+      vi.mocked(threadsModule.getThreadById).mockResolvedValue({
+        data: currentThread,
+        error: null,
+      });
 
-      const mockUpdateChain = {
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([archivedThread]),
-      };
-      vi.mocked(db.update).mockReturnValue(mockUpdateChain as any);
+      vi.mocked(threadsModule.updateThread).mockResolvedValue({
+        data: archivedThread,
+        error: null,
+      });
 
       const request = new Request(`http://localhost:3000/api/threads/${mockThreadId}/archive`, {
         method: 'PATCH',
@@ -400,20 +381,19 @@ describe('/api/threads endpoints', () => {
 
       const deletedThread = {
         id: mockThreadId,
-        userId: mockUserId,
-        conversationId: 'conv-123',
+        user_id: mockUserId,
+        conversation_id: 'conv-123',
         title: 'Thread',
-        lastMessagePreview: null,
+        last_message_preview: null,
         archived: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
-      const mockDbChain = {
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([deletedThread]),
-      };
-      vi.mocked(db.delete).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.deleteThread).mockResolvedValue({
+        data: deletedThread,
+        error: null,
+      });
 
       const request = new Request(`http://localhost:3000/api/threads/${mockThreadId}`, {
         method: 'DELETE',
@@ -436,11 +416,10 @@ describe('/api/threads endpoints', () => {
       };
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      const mockDbChain = {
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([]),
-      };
-      vi.mocked(db.delete).mockReturnValue(mockDbChain as any);
+      vi.mocked(threadsModule.deleteThread).mockResolvedValue({
+        data: null,
+        error: null,
+      });
 
       const request = new Request(`http://localhost:3000/api/threads/${mockThreadId}`, {
         method: 'DELETE',

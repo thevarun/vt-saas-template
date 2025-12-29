@@ -49,7 +49,7 @@ development_status:
   epic-2-retrospective: optional
   epic-3: backlog
   3-1-database-schema-thread-crud-apis: done
-  3-2-thread-persistence-on-first-message: backlog
+  3-2-thread-persistence-on-first-message: review
   3-3-assistant-ui-integration-spike: backlog
   3-4-threadlist-sidebar-component: backlog
   3-5-thread-component-integration: backlog

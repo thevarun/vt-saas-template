@@ -1,13 +1,11 @@
-import { and, eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
-import { threads } from '@/models/Schema';
+import { deleteThread, updateThread } from '@/libs/supabase/threads';
 
 // Zod schema for PATCH /api/threads/[id] request validation
 const updateThreadSchema = z.object({
@@ -61,37 +59,37 @@ export async function PATCH(
 
     const { title, lastMessagePreview } = validationResult.data;
 
-    // Build update object dynamically (only include provided fields)
-    const updateData: Record<string, any> = {
-      updatedAt: new Date(),
-    };
-
-    if (title !== undefined) {
-      updateData.title = title;
-    }
-
-    if (lastMessagePreview !== undefined) {
-      updateData.lastMessagePreview = lastMessagePreview;
-    }
-
     // Get thread ID from params
     const { id } = await params;
 
-    // Update thread record, verify user ownership
-    const [updatedThread] = await db
-      .update(threads)
-      .set(updateData)
-      .where(and(eq(threads.id, id), eq(threads.userId, user.id)))
-      .returning();
+    // Update thread record - RLS ensures user ownership
+    const { data: updatedThread, error: dbError } = await updateThread(
+      supabase,
+      id,
+      {
+        title,
+        last_message_preview: lastMessagePreview,
+      },
+    );
 
     // Return 404 if thread not found or not owned by user
-    if (!updatedThread) {
+    if (dbError || !updatedThread) {
+      // PGRST116 = no rows returned (not found or RLS blocked)
+      const errorCode = (dbError as any)?.code;
+      if (errorCode === 'PGRST116' || !updatedThread) {
+        return NextResponse.json(
+          {
+            error: 'Thread not found or access denied',
+            code: 'NOT_FOUND',
+          },
+          { status: 404 },
+        );
+      }
+
+      logger.error({ error: dbError }, 'Failed to update thread');
       return NextResponse.json(
-        {
-          error: 'Thread not found or access denied',
-          code: 'NOT_FOUND',
-        },
-        { status: 404 },
+        { error: 'Failed to update thread', code: 'DB_ERROR' },
+        { status: 500 },
       );
     }
 
@@ -138,20 +136,30 @@ export async function DELETE(
     // Get thread ID from params
     const { id } = await params;
 
-    // Delete thread, verify user ownership
-    const [deletedThread] = await db
-      .delete(threads)
-      .where(and(eq(threads.id, id), eq(threads.userId, user.id)))
-      .returning();
+    // Delete thread - RLS ensures user ownership
+    const { data: deletedThread, error: dbError } = await deleteThread(
+      supabase,
+      id,
+    );
 
     // Return 404 if thread not found or not owned by user
-    if (!deletedThread) {
+    if (dbError || !deletedThread) {
+      // PGRST116 = no rows returned (not found or RLS blocked)
+      const errorCode = (dbError as any)?.code;
+      if (errorCode === 'PGRST116' || !deletedThread) {
+        return NextResponse.json(
+          {
+            error: 'Thread not found or access denied',
+            code: 'NOT_FOUND',
+          },
+          { status: 404 },
+        );
+      }
+
+      logger.error({ error: dbError }, 'Failed to delete thread');
       return NextResponse.json(
-        {
-          error: 'Thread not found or access denied',
-          code: 'NOT_FOUND',
-        },
-        { status: 404 },
+        { error: 'Failed to delete thread', code: 'DB_ERROR' },
+        { status: 500 },
       );
     }
 

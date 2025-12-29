@@ -1,13 +1,11 @@
-import { desc, eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
-import { threads } from '@/models/Schema';
+import { createThread, getThreads } from '@/libs/supabase/threads';
 
 // Zod schema for POST /api/threads request validation
 const createThreadSchema = z.object({
@@ -41,16 +39,20 @@ export async function GET(): Promise<Response> {
       );
     }
 
-    // Query threads table filtered by user_id, ordered by updated_at DESC
-    const userThreads = await db
-      .select()
-      .from(threads)
-      .where(eq(threads.userId, user.id))
-      .orderBy(desc(threads.updatedAt));
+    // Query threads table - RLS automatically filters by user_id
+    const { data: userThreads, error: dbError } = await getThreads(supabase);
+
+    if (dbError) {
+      logger.error({ error: dbError }, 'Failed to fetch threads');
+      return NextResponse.json(
+        { error: 'Failed to fetch threads', code: 'DB_ERROR' },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
-      threads: userThreads,
-      count: userThreads.length,
+      threads: userThreads ?? [],
+      count: userThreads?.length ?? 0,
     });
   } catch (error: any) {
     logger.error({ error }, 'GET /api/threads error');
@@ -105,17 +107,34 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const { conversationId, title } = validationResult.data;
 
-    // Insert thread record with user_id from session
-    const [newThread] = await db
-      .insert(threads)
-      .values({
-        userId: user.id,
-        conversationId,
+    // Insert thread record - RLS ensures user_id matches auth.uid()
+    const { data: newThread, error: dbError } = await createThread(
+      supabase,
+      user.id,
+      {
+        conversation_id: conversationId,
         title: title || null,
-        lastMessagePreview: null,
-        archived: false,
-      })
-      .returning();
+      },
+    );
+
+    if (dbError) {
+      // Handle duplicate conversation_id error
+      if (dbError.message?.includes('duplicate') || dbError.message?.includes('unique')) {
+        return NextResponse.json(
+          {
+            error: 'Thread with this conversation ID already exists',
+            code: 'DUPLICATE_CONVERSATION_ID',
+          },
+          { status: 409 },
+        );
+      }
+
+      logger.error({ error: dbError }, 'Failed to create thread');
+      return NextResponse.json(
+        { error: 'Failed to create thread', code: 'DB_ERROR' },
+        { status: 500 },
+      );
+    }
 
     // Return created thread with 201 status
     return NextResponse.json(
@@ -124,18 +143,6 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
   } catch (error: any) {
     logger.error({ error }, 'POST /api/threads error');
-
-    // Handle duplicate conversation_id error
-    if (error.code === '23505') {
-      // PostgreSQL unique violation
-      return NextResponse.json(
-        {
-          error: 'Thread with this conversation ID already exists',
-          code: 'DUPLICATE_CONVERSATION_ID',
-        },
-        { status: 409 },
-      );
-    }
 
     return NextResponse.json(
       { error: 'Internal server error', code: 'INTERNAL_ERROR' },

@@ -1,12 +1,10 @@
-import { and, eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
-import { threads } from '@/models/Schema';
+import { getThreadById, updateThread } from '@/libs/supabase/threads';
 
 /**
  * PATCH /api/threads/[id]/archive
@@ -41,12 +39,13 @@ export async function PATCH(
     const { id } = await params;
 
     // First, fetch the current thread to get its archived status
-    const [currentThread] = await db
-      .select()
-      .from(threads)
-      .where(and(eq(threads.id, id), eq(threads.userId, user.id)));
+    // RLS ensures only user's own thread is returned
+    const { data: currentThread, error: fetchError } = await getThreadById(
+      supabase,
+      id,
+    );
 
-    if (!currentThread) {
+    if (fetchError || !currentThread) {
       return NextResponse.json(
         {
           error: 'Thread not found or access denied',
@@ -56,15 +55,20 @@ export async function PATCH(
       );
     }
 
-    // Toggle the archived status
-    const [updatedThread] = await db
-      .update(threads)
-      .set({
-        archived: !currentThread.archived,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(threads.id, id), eq(threads.userId, user.id)))
-      .returning();
+    // Toggle the archived status - RLS ensures user ownership
+    const { data: updatedThread, error: updateError } = await updateThread(
+      supabase,
+      id,
+      { archived: !currentThread.archived },
+    );
+
+    if (updateError || !updatedThread) {
+      logger.error({ error: updateError }, 'Failed to toggle archive status');
+      return NextResponse.json(
+        { error: 'Failed to update thread', code: 'DB_ERROR' },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({ thread: updatedThread });
   } catch (error: any) {
