@@ -1,11 +1,12 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import type { Thread } from '@/libs/supabase/threads';
+import { cn } from '@/utils/Helpers';
 
 import { EmptyThreadState } from './EmptyThreadState';
 import { ThreadItem } from './ThreadItem';
@@ -28,6 +29,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
 
   const fetchThreads = async () => {
@@ -88,21 +90,48 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header with New Thread button */}
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="space-y-1">
+    <aside
+      data-collapsed={collapsed}
+      className={cn(
+        'group/sidebar relative flex h-full flex-col border-r bg-muted/40 transition-all duration-200',
+        collapsed ? 'w-16' : 'w-72',
+      )}
+    >
+      {/* Header with collapse toggle */}
+      <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+        <div
+          className={cn(
+            'space-y-0.5 transition-opacity duration-150',
+            collapsed && 'pointer-events-none opacity-0',
+          )}
+        >
           <p className="text-sm font-semibold">Chat</p>
           <p className="text-xs text-muted-foreground">Your conversations</p>
         </div>
         <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCollapsed(prev => !prev)}
+          className="size-9 rounded-full border bg-background shadow-sm hover:bg-accent"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+        </Button>
+      </div>
+
+      {/* Primary action: New Thread */}
+      <div className="px-3 pt-3">
+        <Button
           onClick={handleNewThread}
-          size="sm"
-          className="gap-1.5"
+          variant="outline"
+          className={cn(
+            'w-full justify-start gap-2 rounded-xl border bg-background text-sm font-medium shadow-sm transition-all hover:-translate-y-[1px] hover:shadow-md',
+            collapsed && 'justify-center px-0',
+          )}
           aria-label="Start new thread"
         >
           <Plus className="size-4" />
-          <span>New</span>
+          <span className={cn('truncate', collapsed && 'sr-only')}>New Thread</span>
         </Button>
       </div>
 
@@ -114,7 +143,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
       )}
 
       {/* Thread list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-3">
         {/* AC #10: Loading state */}
         {loading && <ThreadListSkeleton />}
 
@@ -123,18 +152,19 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
         {/* AC #2: Thread list */}
         {!loading && threads.length > 0 && (
-          <div className="space-y-1 p-3">
+          <div className="space-y-1 px-2 pt-2">
             {threads.map(thread => (
               <ThreadItem
                 key={thread.id}
                 thread={thread}
                 onArchive={handleArchive}
                 onNavigate={onNavigate}
+                collapsed={collapsed}
               />
             ))}
           </div>
         )}
       </div>
-    </div>
+    </aside>
   );
 }

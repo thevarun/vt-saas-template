@@ -1,0 +1,227 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>5</storyId>
+    <title>thread-component-integration</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-5-thread-component-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>to view and interact with individual conversation threads</iWant>
+    <soThat>I can have focused health discussions with context preserved across messages and sessions</soThat>
+    <tasks>
+      <task id="1" title="Create Dynamic Thread Route" acs="1,2">
+        <subtask id="1.1">Create `/src/app/[locale]/(chat)/chat/[threadId]/page.tsx` route</subtask>
+        <subtask id="1.2">Implement server component to fetch thread data from `/api/threads/[id]`</subtask>
+        <subtask id="1.3">Pass thread data to ThreadView client component</subtask>
+        <subtask id="1.4">Handle 404 error if thread not found (redirect to /chat with toast)</subtask>
+        <subtask id="1.5">Verify route navigation works from sidebar thread click</subtask>
+      </task>
+      <task id="2" title="Migrate ChatInterface to Use ThreadPrimitive" acs="1,2,9">
+        <subtask id="2.1">Update ChatInterface.tsx to use ThreadPrimitive.Root</subtask>
+        <subtask id="2.2">Replace custom message rendering with ThreadPrimitive.Messages</subtask>
+        <subtask id="2.3">Use ThreadPrimitive.Viewport for auto-scrolling behavior</subtask>
+        <subtask id="2.4">Integrate ThreadPrimitive.Composer for message input</subtask>
+        <subtask id="2.5">Verify markdown rendering still works (@assistant-ui/react-markdown)</subtask>
+        <subtask id="2.6">Ensure message streaming indicators display correctly</subtask>
+        <subtask id="2.7">Test dark mode compatibility with ThreadPrimitive components</subtask>
+      </task>
+      <task id="3" title="Configure Runtime Adapter for Multi-Thread Support" acs="3,4">
+        <subtask id="3.1">Update runtime adapter in ChatInterface to accept threadId prop</subtask>
+        <subtask id="3.2">Modify sendMessage handler to include conversation_id from thread data</subtask>
+        <subtask id="3.3">Ensure SSE streaming from `/api/chat` continues to work</subtask>
+        <subtask id="3.4">Handle case where thread has no conversation_id yet (first message)</subtask>
+        <subtask id="3.5">Verify assistant responses stream correctly with proper formatting</subtask>
+      </task>
+      <task id="4" title="Implement Thread Metadata Updates" acs="5">
+        <subtask id="4.1">After each message sent, extract last message text (first 100 chars)</subtask>
+        <subtask id="4.2">Call PATCH /api/threads/[id] to update last_message_preview</subtask>
+        <subtask id="4.3">Update updated_at timestamp via same PATCH request</subtask>
+        <subtask id="4.4">Implement optimistic update in ThreadListSidebar (refetch threads)</subtask>
+        <subtask id="4.5">Handle metadata update errors gracefully (log, don't block chat)</subtask>
+      </task>
+      <task id="5" title="Implement Inline Thread Title Editing" acs="6">
+        <subtask id="5.1">Create ThreadTitleEditor.tsx component</subtask>
+        <subtask id="5.2">Display thread title as editable text (click to edit mode)</subtask>
+        <subtask id="5.3">Show Input field on click, auto-focus, select all text</subtask>
+        <subtask id="5.4">Save title on blur or Enter key press</subtask>
+        <subtask id="5.5">Call PATCH /api/threads/[id] with new title</subtask>
+        <subtask id="5.6">Update thread title in sidebar immediately (optimistic update)</subtask>
+        <subtask id="5.7">Revert to original title if PATCH fails (with toast error)</subtask>
+        <subtask id="5.8">Show placeholder "Untitled Conversation" if title is null</subtask>
+      </task>
+      <task id="6" title="Integrate Assistant UI DevTools" acs="7">
+        <subtask id="6.1">Add DevToolsModal import in chat layout</subtask>
+        <subtask id="6.2">Render DevToolsModal inside AssistantRuntimeProvider</subtask>
+        <subtask id="6.3">Verify DevTools only appear in development mode</subtask>
+        <subtask id="6.4">Test DevTools display runtime state correctly</subtask>
+        <subtask id="6.5">Verify DevTools excluded from production bundle</subtask>
+      </task>
+      <task id="7" title="Update Empty Chat State" acs="1">
+        <subtask id="7.1">Update chat/page.tsx (root /chat route)</subtask>
+        <subtask id="7.2">Display EmptyThreadState component when no threadId in route</subtask>
+        <subtask id="7.3">Add helpful copy: "Start a new conversation" with CTA</subtask>
+        <subtask id="7.4">Ensure "New Thread" button in sidebar still navigates to /chat</subtask>
+      </task>
+      <task id="8" title="Write E2E Test for Multi-Thread Chat Flow" acs="8">
+        <subtask id="8.1">Create tests/e2e/multi-thread-chat.spec.ts</subtask>
+        <subtask id="8.2">Test: User sends message - Thread created in sidebar</subtask>
+        <subtask id="8.3">Test: User creates second thread via New Thread button</subtask>
+        <subtask id="8.4">Test: Send message in second thread</subtask>
+        <subtask id="8.5">Test: Switch back to first thread via sidebar click</subtask>
+        <subtask id="8.6">Test: Verify first thread messages visible, second not visible</subtask>
+        <subtask id="8.7">Test: Verify thread isolation (messages don't leak)</subtask>
+      </task>
+      <task id="9" title="Regression Testing" acs="9">
+        <subtask id="9.1">Verify streaming responses still work (check SSE chunks)</subtask>
+        <subtask id="9.2">Verify markdown rendering (bold, italic, lists, code blocks)</subtask>
+        <subtask id="9.3">Verify loading indicators during assistant response</subtask>
+        <subtask id="9.4">Test error handling (API failures, network errors)</subtask>
+        <subtask id="9.5">Verify dark mode works across all thread components</subtask>
+        <subtask id="9.6">Test responsive behavior (desktop, tablet, mobile)</subtask>
+      </task>
+      <task id="10" title="Code Quality Checks" acs="">
+        <subtask id="10.1">TypeScript compilation (npx tsc --noEmit)</subtask>
+        <subtask id="10.2">ESLint checks (npm run lint)</subtask>
+        <subtask id="10.3">Production build (npm run build)</subtask>
+        <subtask id="10.4">All checks passing</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Chat interface uses ThreadPrimitive.Root from @assistant-ui/react</criterion>
+    <criterion id="2">Messages render correctly in conversation view</criterion>
+    <criterion id="3">Composer sends message via /api/chat with conversation_id</criterion>
+    <criterion id="4">Streaming responses work (SSE from Dify)</criterion>
+    <criterion id="5">Thread metadata updates on new message (last_message_preview, updated_at via PATCH)</criterion>
+    <criterion id="6">Thread title editable inline (click to edit, blur to save)</criterion>
+    <criterion id="7">DevTools visible in dev mode, show runtime state (thread, messages, composer)</criterion>
+    <criterion id="8">E2E test: Full chat flow works with threading (send message, switch thread, verify isolation)</criterion>
+    <criterion id="9">No regression in existing chat functionality (markdown rendering, streaming indicators)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" title="Architecture Documentation" section="Component Architecture" snippet="Component patterns: Server Components default for static content, Client Components for interactivity ('use client'). State management via React hooks, no centralized store." />
+      <doc path="docs/architecture.md" title="Architecture Documentation" section="API Design" snippet="Chat API /api/chat: Input: User message, conversation_id. Output: SSE stream. Auth validates Supabase session before proxying to Dify." />
+      <doc path="docs/epics.md" title="Epic 3: Multi-Threaded Chat" section="Story 5: Thread Component Integration" snippet="Replace current chat interface with Assistant UI ThreadPrimitive, wire runtime adapter to /api/chat, implement thread metadata updates." />
+      <doc path="docs/tech-spec/implementation-details.md" title="Implementation Details" section="Technical Approach" snippet="Component-level state with Next.js dynamic routing. AppShell with sidebar + main content. ThreadPrimitive for chat, ThreadListPrimitive for sidebar." />
+      <doc path="docs/tech-spec/technical-details.md" title="Technical Details" section="State Synchronization Strategy" snippet="Optimistic UI updates with rollback on error. Thread creation/updates via PATCH /api/threads/[id]." />
+      <doc path="docs/tech-spec/development-context.md" title="Development Context" section="Dependencies" snippet="@assistant-ui/react 0.11.47 (Thread primitives), @assistant-ui/react-markdown 0.11.6 (markdown rendering). Need to install @assistant-ui/react-devtools." />
+      <doc path="docs/tech-spec/uxui-considerations.md" title="UX/UI Considerations" section="New Flow" snippet="User navigates to /chat, sees thread list. Click thread to navigate to /chat/[threadId]. Inline thread title editing. Archive old threads." />
+    </docs>
+    <code>
+      <file path="src/components/chat/ChatInterface.tsx" kind="component" symbol="ChatInterface" lines="1-199" reason="Main chat interface component - needs migration to use ThreadPrimitive pattern with threadId prop for multi-thread support" />
+      <file path="src/components/chat/Thread.tsx" kind="component" symbol="Thread" lines="1-87" reason="Existing Thread UI component using ThreadPrimitive - already implements message rendering, composer, viewport" />
+      <file path="src/components/chat/ThreadListSidebar.tsx" kind="component" symbol="ThreadListSidebar" lines="1-171" reason="Sidebar component from Story 3.4 - provides thread list, navigation, archive functionality. Needs thread refetch after metadata updates" />
+      <file path="src/components/chat/ThreadItem.tsx" kind="component" symbol="ThreadItem" lines="1-84" reason="Individual thread row - handles navigation to /chat/[threadId], active state highlighting" />
+      <file path="src/components/chat/AppShell.tsx" kind="component" symbol="AppShell" lines="1-122" reason="Layout wrapper with responsive sidebar - renders sidebar + main content, handles mobile Sheet overlay" />
+      <file path="src/components/chat/EmptyThreadState.tsx" kind="component" symbol="EmptyThreadState" lines="*" reason="Empty state component - reuse for /chat route when no thread selected" />
+      <file path="src/app/api/chat/route.ts" kind="api-route" symbol="POST" lines="156-318" reason="Chat API endpoint - already handles SSE streaming from Dify, thread auto-creation. Needs conversation_id passthrough" />
+      <file path="src/app/api/threads/route.ts" kind="api-route" symbol="GET,POST" lines="1-153" reason="Thread CRUD endpoints - GET lists threads, POST creates thread. Used for thread management" />
+      <file path="src/app/api/threads/[id]/route.ts" kind="api-route" symbol="PATCH,DELETE" lines="1-177" reason="Thread update/delete endpoints - PATCH updates title/lastMessagePreview, called after messages sent" />
+      <file path="src/libs/supabase/threads.ts" kind="service" symbol="getThreadById,updateThread" lines="1-161" reason="Thread database helper functions - getThreadById for route fetch, updateThread for metadata" />
+      <file path="src/app/[locale]/(chat)/chat/page.tsx" kind="page" symbol="ChatPage" lines="1-41" reason="Current chat page - needs update for empty state when no threadId" />
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="@assistant-ui/react" version="^0.11.47" purpose="Thread primitives (ThreadPrimitive.Root, Messages, Viewport, Composer)" />
+        <package name="@assistant-ui/react-markdown" version="^0.11.6" purpose="Markdown rendering in messages" />
+        <package name="@assistant-ui/react-devtools" version="latest" purpose="DevTools modal for runtime debugging - NEEDS INSTALL" status="missing" />
+        <package name="next" version="^14.2.25" purpose="Dynamic routing /chat/[threadId], useRouter, usePathname" />
+        <package name="react" version="^18.3.1" purpose="useState, useEffect, useMemo hooks" />
+        <package name="@supabase/supabase-js" version="^2.86.0" purpose="Supabase client for thread data fetching" />
+        <package name="zod" version="^3.23.8" purpose="Request validation in API routes" />
+        <package name="lucide-react" version="^0.453.0" purpose="Icons (Archive, Plus, Menu, etc.)" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint source="architecture.md">Server Components for route pages, Client Components for interactivity ('use client')</constraint>
+    <constraint source="architecture.md">Props flow: Server component fetches data, passes to client component</constraint>
+    <constraint source="dev-notes">IMPORTANT: Do NOT recreate ChatInterface - MODIFY existing to use ThreadPrimitive pattern</constraint>
+    <constraint source="tech-spec">No centralized state library - use React hooks (useState, useReducer)</constraint>
+    <constraint source="tech-spec">Optimistic UI updates with rollback on error for thread operations</constraint>
+    <constraint source="eslint-config">No semicolons, single quotes, 2-space indentation (Antfu ESLint)</constraint>
+    <constraint source="story-3.4">AppShell already handles responsive layout - no additional work needed</constraint>
+    <constraint source="story-3.3">@assistant-ui/react 0.11.53 fully compatible, only ~100 lines modification needed</constraint>
+    <constraint source="architecture.md">API keys server-side only (Dify key never exposed to client)</constraint>
+    <constraint source="tech-spec">Thread not found: Redirect to /chat with toast notification</constraint>
+    <constraint source="tech-spec">Metadata update failures: Log error, don't prevent message sending</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="ChatModelAdapter" kind="type" path="src/components/chat/ChatInterface.tsx">
+      <signature>
+interface ChatModelAdapter {
+  run({ messages, abortSignal }): AsyncGenerator&lt;{ content: { type: 'text', text: string }[] }&gt;
+}
+      </signature>
+    </interface>
+    <interface name="Thread" kind="type" path="src/libs/supabase/threads.ts">
+      <signature>
+type Thread = {
+  id: string
+  user_id: string
+  conversation_id: string
+  title: string | null
+  last_message_preview: string | null
+  archived: boolean
+  created_at: string
+  updated_at: string
+}
+      </signature>
+    </interface>
+    <interface name="PATCH /api/threads/[id]" kind="rest-endpoint" path="src/app/api/threads/[id]/route.ts">
+      <signature>
+Request: { title?: string, lastMessagePreview?: string }
+Response: { thread: Thread }
+Status: 200 OK, 400 Validation Error, 401 Unauthorized, 404 Not Found
+      </signature>
+    </interface>
+    <interface name="GET /api/threads/[id]" kind="rest-endpoint" path="src/libs/supabase/threads.ts">
+      <signature>
+Function: getThreadById(supabase, id)
+Returns: { data: Thread | null, error: Error | null }
+      </signature>
+    </interface>
+    <interface name="POST /api/chat" kind="rest-endpoint" path="src/app/api/chat/route.ts">
+      <signature>
+Request: { message: string, conversationId?: string }
+Response: SSE stream with Dify events
+Headers: Content-Type: text/event-stream
+      </signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Unit tests: Vitest + React Testing Library, co-located with source files (*.test.tsx).
+E2E tests: Playwright in tests/e2e/ directory.
+Coverage: Happy path focus for MVP - critical interactions only.
+Pattern: render() + screen.getByText() + userEvent.click() for component tests.
+Test commands: npm test (unit), npm run test:e2e (E2E).
+    </standards>
+    <locations>
+      <location>src/components/chat/*.test.tsx (component tests)</location>
+      <location>tests/e2e/multi-thread-chat.spec.ts (E2E flow test)</location>
+    </locations>
+    <ideas>
+      <idea acId="1">Unit test: Thread component renders ThreadPrimitive.Root with correct structure</idea>
+      <idea acId="2">Unit test: Messages render with correct user/assistant styling</idea>
+      <idea acId="3">Unit test: Composer sends message with conversation_id in payload</idea>
+      <idea acId="4">E2E test: Send message, verify SSE streaming works, response displays</idea>
+      <idea acId="5">E2E test: Send message, verify thread metadata updates in sidebar</idea>
+      <idea acId="6">Unit test: ThreadTitleEditor click enables edit mode, blur saves</idea>
+      <idea acId="7">Manual test: DevTools modal displays in dev, hidden in prod build</idea>
+      <idea acId="8">E2E test: Create two threads, switch between them, verify message isolation</idea>
+      <idea acId="9">E2E test: Send message with markdown, verify bold/italic/code renders</idea>
+    </ideas>
+  </tests>
+</story-context>

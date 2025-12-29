@@ -10,6 +10,7 @@ type ThreadItemProps = {
   thread: Thread;
   onArchive: (threadId: string) => void;
   onNavigate?: () => void;
+  collapsed?: boolean;
 };
 
 /**
@@ -22,7 +23,7 @@ type ThreadItemProps = {
  * - AC #5: Active thread highlighted in sidebar (visual indicator)
  * - AC #6: Archive button per thread (archives thread, removes from sidebar)
  */
-export function ThreadItem({ thread, onArchive, onNavigate }: ThreadItemProps) {
+export function ThreadItem({ thread, onArchive, onNavigate, collapsed }: ThreadItemProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -52,19 +53,21 @@ export function ThreadItem({ thread, onArchive, onNavigate }: ThreadItemProps) {
       }}
       role="button"
       tabIndex={0}
-      className={`group flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left transition hover:bg-muted/70 ${
-        isActive ? 'bg-primary/10' : ''
-      }`}
+      className={`group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-background p-3 text-left shadow-sm transition hover:-translate-y-px hover:shadow-md ${
+        isActive ? 'border-primary/40 ring-1 ring-primary/30' : 'border-transparent'
+      } ${collapsed ? 'justify-center p-2' : ''}`}
     >
       <div className="flex min-w-0 flex-col">
-        <span className="truncate text-sm font-semibold">
+        <span className={`truncate text-sm font-semibold ${collapsed ? 'sr-only' : ''}`}>
           {thread.title || 'New Conversation'}
         </span>
-        <span className="truncate text-xs text-muted-foreground">
+        <span className={`truncate text-xs text-muted-foreground ${collapsed ? 'sr-only' : ''}`}>
           {thread.last_message_preview || 'Start a conversation'}
         </span>
       </div>
-      <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+      <div
+        className={`flex items-center gap-1 opacity-0 transition group-hover:opacity-100 ${collapsed ? 'hidden' : ''}`}
+      >
         <Button
           variant="ghost"
           size="icon"
