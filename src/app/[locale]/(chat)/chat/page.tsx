@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
+import { AppShell } from '@/components/chat/AppShell';
 import { ChatInterface } from '@/components/chat/ChatInterface';
+import { ThreadListSidebar } from '@/components/chat/ThreadListSidebar';
 import { TitleBar } from '@/features/dashboard/TitleBar';
 
 export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
@@ -27,7 +29,9 @@ export default async function ChatPage() {
       />
 
       <div className="h-[calc(100vh-12rem)]">
-        <ChatInterface className="h-full" />
+        <AppShell sidebar={<ThreadListSidebar />}>
+          <ChatInterface />
+        </AppShell>
       </div>
     </div>
   );
