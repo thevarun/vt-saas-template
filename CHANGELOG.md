@@ -1,3 +1,19 @@
+# [1.6.0](https://github.com/thevarun/HealthCompanion/compare/v1.5.0...v1.6.0) (2025-12-30)
+
+
+### Bug Fixes
+
+* minor fixes after review ([a11a6fd](https://github.com/thevarun/HealthCompanion/commit/a11a6fd72abad591ed64cbf94dfcdf4f68552df8))
+* some chat UX improvements ([a27c073](https://github.com/thevarun/HealthCompanion/commit/a27c073dafa8875d636ed01e6c2a4ec3e6e6e1d2))
+
+
+### Features
+
+* add main nav sidebar ([89a49ec](https://github.com/thevarun/HealthCompanion/commit/89a49ec204e3ad4581841b88226c5e0bd2bf5dce))
+* hooked up dify & supabase together with supabase client for RLS & drizzle for migration mgmt ([aa85ceb](https://github.com/thevarun/HealthCompanion/commit/aa85cebcb1e1542a5c5112b889b49b782e2a5d3f))
+* implement multi-thread chat with dynamic routing and enhanced UI ([325297e](https://github.com/thevarun/HealthCompanion/commit/325297eef513b951284d51273b676eadab635d69))
+* implemented 3-5 story but needs fixes. Interim commit ([dd64a59](https://github.com/thevarun/HealthCompanion/commit/dd64a599f9e4b0684f6a6e6963979b5bd4ab7d4f))
+
 # [1.5.0](https://github.com/thevarun/HealthCompanion/compare/v1.4.11...v1.5.0) (2025-12-29)
 
 
