@@ -10,8 +10,6 @@ so that **I can confidently navigate the application and understand system statu
 
 ## Acceptance Criteria
 
-1. AC #1: Sidebar navigation includes: Threads (active), Pricing (placeholder), Feature 1 (placeholder), Feature 2 (placeholder)
-2. AC #2: Placeholder items show "Coming Soon" toast on click (no functionality)
 3. AC #3: All empty states styled and helpful (no threads, loading threads, failed to load)
 4. AC #4: All error states have retry mechanisms (toast with retry button)
 5. AC #5: Dark mode works across all new components (respects next-themes)
@@ -29,20 +27,10 @@ so that **I can confidently navigate the application and understand system statu
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Add Placeholder Navigation Items** (AC: #1, #2)
-  - [ ] 1.1: Update `src/components/chat/AppShell.tsx` to include navigation section
-  - [ ] 1.2: Add "Threads" nav item (active by default, already functional)
-  - [ ] 1.3: Add "Pricing" nav item with placeholder icon (DollarSign or CreditCard)
-  - [ ] 1.4: Add "Feature 1" nav item with placeholder icon
-  - [ ] 1.5: Add "Feature 2" nav item with placeholder icon
-  - [ ] 1.6: Implement onClick handler showing "Coming Soon" toast via shadcn/ui toast
-  - [ ] 1.7: Style nav items with proper hover/active states (Tailwind)
-  - [ ] 1.8: Ensure nav items are keyboard accessible (Tab + Enter)
 
 - [ ] **Task 2: Implement Empty State Components** (AC: #3)
   - [ ] 2.1: Create/update `src/components/chat/EmptyThreadState.tsx` with polished design
   - [ ] 2.2: Add icon (MessageSquare or similar), heading, and helpful copy
-  - [ ] 2.3: Include "Start a Conversation" CTA button
   - [ ] 2.4: Verify EmptyThreadState displays on `/chat` route when no threads
   - [ ] 2.5: Create `LoadingThreadState.tsx` component (skeleton cards)
   - [ ] 2.6: Integrate loading state in `ThreadListSidebar.tsx` during fetch
@@ -54,8 +42,8 @@ so that **I can confidently navigate the application and understand system statu
   - [ ] 3.2: Display `ErrorThreadState` when fetch fails
   - [ ] 3.3: Add retry button that triggers refetch
   - [ ] 3.4: Show toast.error() with error message
-  - [ ] 3.5: Add retry mechanism for thread metadata update failures
-  - [ ] 3.6: Add retry mechanism for thread creation failures
+  - [ ] 3.5: Add error toast & manual retry button for thread metadata update failures
+  - [ ] 3.6: Add error toast & manual retry mechanism for thread creation failures
   - [ ] 3.7: Test error handling with network disconnect simulation
 
 - [ ] **Task 4: Dark Mode Verification** (AC: #5)
