@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/thevarun/HealthCompanion/compare/v1.6.0...v1.6.1) (2025-12-31)
+
+
+### Bug Fixes
+
+* main nav sidebar shows up on chat now ([35b03fe](https://github.com/thevarun/HealthCompanion/commit/35b03fedc464c0fc469a6046a4f209e75ac8be32))
+
 # [1.6.0](https://github.com/thevarun/HealthCompanion/compare/v1.5.0...v1.6.0) (2025-12-30)
 
 
