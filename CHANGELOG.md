@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/thevarun/HealthCompanion/compare/v1.7.0...v1.8.0) (2026-01-04)
+
+
+### Features
+
+* subagents & workflow for implement epic with subagents ([43990c4](https://github.com/thevarun/HealthCompanion/commit/43990c4f9e6dcd9bc2f69504ef35bc483fd9c299))
+
 # [1.7.0](https://github.com/thevarun/HealthCompanion/compare/v1.6.1...v1.7.0) (2026-01-02)
 
 
