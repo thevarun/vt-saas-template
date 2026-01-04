@@ -27,6 +27,7 @@ export default antfu({
     'next-env.d.ts',
     'docs/**/*',
     '.bmad/**/*',
+    '_bmad/**/*',
     'CLAUDE.md',
     'src/libs/dify/README.md',
   ],

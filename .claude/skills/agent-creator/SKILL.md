@@ -1,12 +1,25 @@
 ---
-name: agent-creator
-description: Creates custom Claude Code sub-agents for project tasks. Use when the user wants to create specialized agents, design agent workflows, or needs help breaking down complex tasks into agent-based solutions. All created agents use tmp- prefix for easy identification and cleanup.
-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, WebSearch
+name: vt-bmad-dev-agents-creator
+description: Creates custom Claude Code sub-agents for project tasks. Use when the user wants to create specialized agents, design agent workflows, or needs help breaking down complex tasks into agent-based solutions. All created agents are stored in .claude/agents/vt-bmad-dev-agents/.
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, WebSearch, Task, LSP
 ---
 
 # Agent Creator Skill
 
-Create custom Claude Code sub-agents tailored to your project's needs. All agents are prefixed with `tmp-` for easy identification and cleanup.
+Create custom Claude Code sub-agents tailored to your project's needs. All agents are stored in `.claude/agents/vt-bmad-dev-agents/`.
+
+## Story-Based Agents (Default Behavior)
+
+**All created agents are story-focused by default.** This means:
+1. Every agent accepts a **story identifier** as input (story number or name)
+2. Every agent **must invoke `/dev-story`** as their first action when launched
+3. The story context drives all agent work
+
+### Why Story-Based?
+- Ensures traceability from story → implementation
+- Provides clear scope boundaries for the agent
+- Maintains sprint tracking via `sprint-status.yaml`
+- Aligns with BMAD Method workflows
 
 ## Workflow Overview
 
@@ -21,64 +34,32 @@ This skill follows a 5-step interactive process:
 
 ---
 
-## Quick Create Mode
+## Step 0: Quick Start (Always First)
 
-**For simple requests, skip Steps 1-3 and go directly to Step 4.**
+**Check for existing patterns before designing from scratch.**
 
-### When to Use Quick Create
-- User requests a single agent for a specific task
-- User says "just create a quick..." or "simple agent for..."
-- A saved template exists in `.claude/skills/agent-creator/templates/`
-- The registry has a successful pattern for this type
-
-### Important: Use Claude's Built-in Agents First
-Before creating custom agents, consider if Claude Code's built-in agents suffice:
-- **Explore** - Codebase exploration and research
-- **general-purpose** - Multi-step complex tasks
-- **Plan** - Implementation planning
-
-Only create custom `tmp-` agents when you need:
-- Project-specific knowledge baked in
-- Custom tool restrictions
-- Specialized workflows not covered by built-ins
-
-### Quick Create Flow
-1. Check registry for existing pattern: `cat .claude/skills/agent-creator/REGISTRY.yaml`
-2. Check templates: `ls .claude/skills/agent-creator/templates/`
-3. If match exists: Load it, ask for customizations
-4. Skip directly to Step 4 (Agent Creation)
-5. Complete Step 5 (Validation)
-
-### Templates Directory
-Templates are for **project-specific** patterns that worked well and were saved for reuse.
-This directory starts empty and fills up as you save successful patterns.
-
-Ask user: "Would you like Quick Create (reuse existing pattern) or Full Workflow (design from scratch)?"
-
----
-
-## Step 0: Memory Check (Always First)
-
-**Check the registry for existing patterns before designing from scratch.**
-
-### Load Registry
+### Check Registry & Templates
 ```bash
-cat .claude/skills/agent-creator/REGISTRY.yaml
+cat .claude/skills/agent-creator/REGISTRY.yaml 2>/dev/null
+ls .claude/skills/agent-creator/templates/ 2>/dev/null
 ```
 
-### Check for Matches
-1. Review `successful_agents` for patterns matching the current task
-2. Check `recommended_combinations` for common task types
-3. Note any `failed_patterns` to avoid
-
 ### If Match Found
-- Present the existing pattern to the user
-- Ask: "I found a previously successful pattern for [X]. Would you like to reuse it (with optional modifications)?"
-- If yes: Skip to Step 4 with the existing template
-- If no: Continue to Step 1
+- Ask: "I found a pattern for [X]. Reuse it or create fresh?"
+- If reuse: Skip to Step 4 with the template
+- If fresh: Continue to Step 1
 
 ### If No Match
-- Continue to Step 1 for fresh analysis
+- For simple requests ("quick agent for..."): Skip to Step 4
+- For complex needs: Continue to Step 1
+
+### Consider Built-in Agents First
+Before creating custom agents, check if built-ins suffice:
+- **Explore** - Codebase research
+- **general-purpose** - Multi-step tasks
+- **Plan** - Implementation planning
+
+Only create custom agents when you need project-specific knowledge or custom workflows.
 
 ---
 
@@ -92,7 +73,7 @@ Before creating agents, gather comprehensive context:
 ls -la . && ls -la src/ 2>/dev/null
 
 # Check existing agents
-ls -la .claude/agents/ 2>/dev/null || echo "No agents directory yet"
+ls -la .claude/agents/vt-bmad-dev-agents/ 2>/dev/null || echo "No agents directory yet"
 
 # Check existing templates in registry
 ls -la .claude/skills/agent-creator/templates/ 2>/dev/null || echo "No templates yet"
@@ -122,24 +103,31 @@ Present findings to user:
 
 Based on context, design the agent architecture:
 
-### Common Agent Patterns
+### Common Agent Patterns (All Story-Based)
+
+All agents below accept a story identifier and invoke `/dev-story`. The specialty provides context.
+
+| Agent Type | Specialty Focus | Key Tools |
+|------------|-----------------|-----------|
+| `frontend` | UI/React component stories | Read, Glob, Grep, Bash, Edit, Write |
+| `backend` | API/server-side stories | Read, Glob, Grep, Bash, Edit, Write |
+| `fullstack` | End-to-end feature stories | Read, Glob, Grep, Bash, Edit, Write |
+| `tester` | Test-focused stories | Read, Glob, Grep, Bash, Edit, Write |
+| `database` | Schema/migration stories | Read, Glob, Grep, Bash, Edit, Write |
+| `api-integrator` | External API integration stories | Read, Glob, Grep, Bash, Edit, Write, WebFetch |
+
+### Non-Story Agent Patterns (Rare - Only When Explicitly Requested)
 
 | Agent Type | Use Case | Key Tools |
 |------------|----------|-----------|
-| `tmp-explorer` | Codebase research, file discovery | Read, Glob, Grep |
-| `tmp-implementer` | Code writing, feature development | Read, Write, Edit, Bash |
-| `tmp-tester` | Test creation and execution | Read, Write, Bash |
-| `tmp-reviewer` | Code review, quality checks | Read, Grep, Glob |
-| `tmp-documenter` | Documentation updates | Read, Write |
-| `tmp-debugger` | Bug investigation, fixing | Read, Edit, Bash, Grep |
-| `tmp-refactorer` | Code restructuring | Read, Edit, Glob, Grep |
-| `tmp-api-integrator` | External API integration | Read, Write, WebFetch |
+| `explorer` | Codebase research, file discovery | Read, Glob, Grep |
+| `documenter` | Documentation-only updates | Read, Write |
 
 ### Design Considerations
-- Each agent should have a single, clear responsibility
-- Agents should be composable (can work together)
-- Tool access should follow principle of least privilege
-- Model selection: use `haiku` for simple tasks, `sonnet` for complex reasoning
+- **Story-first**: Default to story-based agents that invoke `/dev-story`
+- **Single responsibility**: Each agent has one specialty focus
+- **Minimal wrapper**: Agents delegate to `/dev-story` for all implementation
+- **Model selection**: Use `sonnet` for story agents (complex reasoning needed)
 
 ### CHECKPOINT 2
 Present agent design to user:
@@ -199,59 +187,27 @@ Share research findings:
 
 ## Step 4: Agent Creation
 
-Create agent files following Claude Code's native format:
+Create agent files following Claude Code's native format.
 
-### Agent File Template
-```markdown
----
-name: tmp-{agent-name}
-description: {Clear description of when/why to use this agent. Be specific about triggers.}
-tools: {Comma-separated list of allowed tools}
-model: {sonnet|haiku|opus|inherit}
----
+### Templates
 
-# Role & Purpose
+**Use the template files for full specifications:**
+- **Story-Based (Default)**: `.claude/skills/agent-creator/STORY-AGENT-TEMPLATE.md`
+- **Non-Story (Rare)**: `.claude/skills/agent-creator/NON-STORY-AGENT-TEMPLATE.md`
 
-You are a {role description} specialized in {specialty}.
-
-## When to Activate
-
-This agent should be used when:
-- {Trigger condition 1}
-- {Trigger condition 2}
-
-## Core Responsibilities
-
-1. {Primary responsibility}
-2. {Secondary responsibility}
-
-## Workflow
-
-1. {First step}
-2. {Second step}
-3. {Continue as needed}
-
-## Output Format
-
-{Describe expected output structure}
-
-## Constraints
-
-- {Limitation 1}
-- {Limitation 2}
-```
+Read the appropriate template file before creating agents.
 
 ### File Naming Convention
-- Location: `.claude/agents/tmp-{name}.md`
-- Naming: lowercase, hyphens only, `tmp-` prefix
-- Examples: `tmp-explorer.md`, `tmp-api-integrator.md`
+- Location: `.claude/agents/vt-bmad-dev-agents/{name}.md`
+- Naming: lowercase, hyphens only
+- Examples: `frontend.md`, `api-integrator.md`
 
 ### Pre-Save Validation
 Before presenting to user, validate each agent:
 
-1. **Name format**: Must be `tmp-{lowercase-alphanumeric-hyphens}`
-   - Valid: `tmp-api-client`, `tmp-db-migrator`
-   - Invalid: `tmp_test`, `TMP-Agent`, `my-agent`
+1. **Name format**: Must be `{lowercase-alphanumeric-hyphens}`
+   - Valid: `frontend`, `api-client`, `db-migrator`
+   - Invalid: `my_agent`, `MyAgent`, `FRONTEND`
 
 2. **Tools list**: Only valid Claude Code tools
    - Valid: Read, Write, Edit, Glob, Grep, Bash, WebFetch, WebSearch, Task, LSP
@@ -260,8 +216,15 @@ Before presenting to user, validate each agent:
 3. **Model**: Must be one of: `sonnet`, `haiku`, `opus`, `inherit`
 
 4. **Description**: Should be 20-300 characters, specific enough to trigger correctly
+   - **Story agents MUST include**: "Requires story number or name"
 
-5. **No duplicates**: Check `.claude/agents/` for existing agent with same name
+5. **No duplicates**: Check `.claude/agents/vt-bmad-dev-agents/` for existing agent with same name
+
+6. **Story-based validation** (for story agents):
+   - Description mentions story input requirement
+   - Content includes "Required Input" section for story identifier
+   - Content includes `/dev-story` invocation instruction
+   - Content does NOT include direct implementation steps (only /dev-story delegation)
 
 ### CHECKPOINT 4
 For each agent, show:
@@ -276,7 +239,7 @@ For each agent, show:
 ### Save Agent Files
 ```bash
 # Ensure agents directory exists
-mkdir -p .claude/agents
+mkdir -p .claude/agents/vt-bmad-dev-agents
 
 # Write each approved agent file
 # (Done via Write tool after user approval)
@@ -285,25 +248,25 @@ mkdir -p .claude/agents
 ### Verify Installation
 ```bash
 # List created agents
-ls -la .claude/agents/tmp-*.md
+ls -la .claude/agents/vt-bmad-dev-agents/
 
 # Show agent count
-echo "Created $(ls .claude/agents/tmp-*.md 2>/dev/null | wc -l) temporary agents"
+echo "Created $(ls .claude/agents/vt-bmad-dev-agents/*.md 2>/dev/null | wc -l) agents"
 ```
 
 ### Usage Instructions
 After creation, agents work in two ways:
 - **Automatic**: When your task matches the agent's description, Claude may use it automatically
-- **Explicit**: Reference the agent by name in your prompt, e.g., "Use the tmp-tester agent to..."
+- **Explicit**: Reference the agent by name in your prompt, e.g., "Use the tester agent to..."
 
 ### Cleanup Instructions
 When agents are no longer needed:
 ```bash
-# Remove all temporary agents
-rm .claude/agents/tmp-*.md
+# Remove all agents in the directory
+rm -rf .claude/agents/vt-bmad-dev-agents/
 
 # Or remove specific agent
-rm .claude/agents/tmp-{name}.md
+rm .claude/agents/vt-bmad-dev-agents/{name}.md
 ```
 
 ### CHECKPOINT 5 (Final)
@@ -330,7 +293,7 @@ Update `.claude/skills/agent-creator/REGISTRY.yaml`:
 2. Optionally save template file:
 ```bash
 mkdir -p .claude/skills/agent-creator/templates
-cp .claude/agents/tmp-{name}.md .claude/skills/agent-creator/templates/{name}.md
+cp .claude/agents/vt-bmad-dev-agents/{name}.md .claude/skills/agent-creator/templates/{name}.md
 ```
 
 3. Update `stats.total_agents_created`
@@ -347,22 +310,11 @@ If user reports issues later, record in `failed_patterns`:
 
 ## Quick Reference
 
-### Minimal Agent Template
-```markdown
----
-name: tmp-{name}
-description: {When to use this agent}
-tools: Read, Glob, Grep
-model: sonnet
----
+### Templates
 
-You are a {role}. Your job is to {primary task}.
-
-When invoked:
-1. {Step 1}
-2. {Step 2}
-3. {Step 3}
-```
+See the dedicated template files for full examples and minimal templates:
+- **Story-Based**: `STORY-AGENT-TEMPLATE.md`
+- **Non-Story**: `NON-STORY-AGENT-TEMPLATE.md`
 
 ### Available Tools Reference
 | Tool | Purpose |
