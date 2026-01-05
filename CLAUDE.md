@@ -205,6 +205,6 @@ This verification ensures changes meet design standards and user requirements.
 
 ## Research 
 
-- Use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
+- During planning, use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
 - After 1–2 failed debugging attempts, online search for known issues/solutions before continuing.
   
