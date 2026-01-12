@@ -41,15 +41,15 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Template Foundation & Modernization
-  epic-1: backlog
-  1-1-upgrade-nextjs-to-version-15: backlog
-  1-2-upgrade-react-to-version-19: backlog
-  1-3-upgrade-supabase-sdk-and-auth-patterns: backlog
-  1-4-upgrade-typescript-and-fix-type-errors: backlog
-  1-5-rebrand-to-vt-saas-template: backlog
-  1-6-validate-and-enhance-error-boundaries: backlog
-  1-7-standardize-api-error-handling: backlog
-  1-8-validate-cicd-pipeline: backlog
+  epic-1: in-progress
+  1-1-upgrade-nextjs-to-version-15: done
+  1-2-upgrade-react-to-version-19: done
+  1-3-upgrade-supabase-sdk-auth-patterns: done
+  1-4-upgrade-typescript-and-fix-type-errors: done
+  1-5-rebrand-to-vt-saas-template: done
+  1-6-validate-and-enhance-error-boundaries: done
+  1-7-standardize-api-error-handling: done
+  1-8-validate-cicd-pipeline: ready-for-dev
   1-9-validate-existing-features-post-upgrade: backlog
   epic-1-retrospective: optional
 

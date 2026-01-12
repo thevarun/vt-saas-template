@@ -171,22 +171,22 @@ Initialize the execution state file:
 
 ```yaml
 epic_execution_state:
-  epic_file: "[epic path]"
-  epic_name: "[parsed epic name]"
+  epic_file: '[epic path]'
+  epic_name: '[parsed epic name]'
   total_stories: X
   current_story: null
-  current_phase: "initialized"
+  current_phase: initialized
   stories_completed: []
-  stories_pending: ["N.1", "N.2", ...]
+  stories_pending: [N.1, N.2, ...]
   stories_skipped: []
   stories_failed: []
   execution_log: []
-  started_at: "[timestamp]"
-  last_updated: "[timestamp]"
+  started_at: '[timestamp]'
+  last_updated: '[timestamp]'
 
 specialist_agents_available:
-  - name: "[agent-name]"
-    specialty: "[specialty]"
+  - name: '[agent-name]'
+    specialty: '[specialty]'
 
 configuration:
   coverage_threshold: 80

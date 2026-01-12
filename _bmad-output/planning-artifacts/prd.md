@@ -279,7 +279,6 @@ The template will serve as the foundation for future projects, providing proven 
    - Multi-tenancy support (workspace model)
    - Advanced role-based permissions
 
-
 ## User Journeys
 
 **Journey 1: Alex Chen - The Weekend Side Project Turned Real**

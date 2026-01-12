@@ -756,7 +756,9 @@ These can be added later without architectural refactoring:
   // Middleware: Protect admin routes
   if (pathname.startsWith('/admin')) {
     const isAdmin = user.user_metadata?.isAdmin || false;
-    if (!isAdmin) return redirect('/dashboard');
+    if (!isAdmin) {
+      return redirect('/dashboard');
+    }
   }
   ```
 - **Affects**: Admin panel routes, admin API endpoints
@@ -782,7 +784,9 @@ These can be added later without architectural refactoring:
   ```typescript
   const supabase = createClient(cookies());
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (error || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   ```
 - **HTTPS Enforcement**: Vercel provides automatic HTTPS, middleware redirects HTTP to HTTPS in production
 - **Environment Variables**: Server-side only (never exposed to client), validated at build time with Zod
@@ -821,7 +825,9 @@ Complete authentication user experience with all necessary UI flows and states.
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     // Show success: "Check your email for reset link"
   }
 
@@ -829,7 +835,9 @@ Complete authentication user experience with all necessary UI flows and states.
   async function handleResetPassword(newPassword: string) {
     const supabase = createBrowserClient();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     // Redirect to sign-in with success message
   }
   ```
@@ -1342,7 +1350,9 @@ Complete authentication user experience with all necessary UI flows and states.
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
       loaded: (posthog) => {
-        if (process.env.NODE_ENV === 'development') posthog.opt_out_capturing();
+        if (process.env.NODE_ENV === 'development') {
+          posthog.opt_out_capturing();
+        }
       }
     });
   }
@@ -1508,6 +1518,7 @@ Internal analytics dashboard powered by PostgreSQL - no external provider depend
   ```typescript
   // src/libs/email/client.ts
   import { Resend } from 'resend';
+
   import WelcomeEmail from '@/emails/WelcomeEmail';
 
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -1527,9 +1538,9 @@ Internal analytics dashboard powered by PostgreSQL - no external provider depend
   - VerifyEmail.tsx - Email verification
 - **Abstraction Layer**: Email service interface for swappability
   ```typescript
-  interface EmailService {
-    send(params: EmailParams): Promise<EmailResult>;
-  }
+  type EmailService = {
+    send: (params: EmailParams) => Promise<EmailResult>;
+  };
 
   // Easy to swap Resend for SendGrid/SES later
   const emailService: EmailService = new ResendService();
@@ -1571,9 +1582,9 @@ VT SaaS Template provides essential SEO infrastructure out of the box, enabling 
     return {
       alternates: {
         languages: {
-          'en': '/en',
-          'hi': '/hi',
-          'bn': '/bn',
+          en: '/en',
+          hi: '/hi',
+          bn: '/bn',
         },
         canonical: `/${locale}`,
       },
@@ -1684,8 +1695,8 @@ VT SaaS Template provides essential SEO infrastructure out of the box, enabling 
 
     const staticPages = ['', '/features', '/pricing'];
 
-    return locales.flatMap((locale) =>
-      staticPages.map((page) => ({
+    return locales.flatMap(locale =>
+      staticPages.map(page => ({
         url: `${baseUrl}/${locale}${page}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
@@ -1824,7 +1835,7 @@ VT SaaS Template includes essential go-to-market infrastructure to help template
           uses: peter-evans/create-pull-request@v5
           with:
             title: 'docs: release content for ${{ github.event.release.tag_name }}'
-            body: 'Auto-generated social content for review'
+            body: Auto-generated social content for review
   ```
 - **n8n Workflow**: Example workflow JSON provided in `docs/n8n-release-workflow.json`
 - **Affects**: Marketing automation, content creation, release announcements
@@ -2104,15 +2115,15 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Examples:**
   ```typescript
   // Correct
-  app/api/threads/route.ts          // GET/POST /api/threads
-  app/api/threads/[id]/route.ts     // GET/PATCH/DELETE /api/threads/:id
-  app/api/threads/[id]/archive/route.ts // POST /api/threads/:id/archive
-  app/api/chat/route.ts             // POST /api/chat
+  app / api / threads / route.ts; // GET/POST /api/threads
+  app / api / threads / [id] / route.ts; // GET/PATCH/DELETE /api/threads/:id
+  app / api / threads / [id] / archive / route.ts; // POST /api/threads/:id/archive
+  app / api / chat / route.ts; // POST /api/chat
 
   // Incorrect
-  app/api/Thread/route.ts           // Wrong: PascalCase
-  app/api/thread/route.ts           // Wrong: singular for collection
-  app/api/threads-list/route.ts     // Wrong: kebab-case compound
+  app / api / Thread / route.ts; // Wrong: PascalCase
+  app / api / thread / route.ts; // Wrong: singular for collection
+  app / api / threads - list / route.ts; // Wrong: kebab-case compound
   ```
 
 **Route Parameters:**
@@ -2121,7 +2132,7 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Example:**
   ```typescript
   // Correct
-  app/api/threads/[id]/route.ts
+  app / api / threads / [id] / route.ts;
   export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
   }
@@ -2206,15 +2217,15 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Examples:**
   ```typescript
   // Correct
-  src/utils/helpers.ts
-  src/utils/logger.ts
-  src/hooks/useAuth.ts
-  src/components/ChatInterface.test.tsx
+  src / utils / helpers.ts;
+  src / utils / logger.ts;
+  src / hooks / useAuth.ts;
+  src / components / ChatInterface.test.tsx;
 
   // Incorrect
-  src/utils/Helpers.ts                // Wrong: PascalCase utility
-  src/hooks/UseAuth.ts                // Wrong: PascalCase hook
-  src/components/chat-interface.test.tsx  // Wrong: doesn't match source file
+  src / utils / Helpers.ts; // Wrong: PascalCase utility
+  src / hooks / UseAuth.ts; // Wrong: PascalCase hook
+  src / components / chat - interface.test.tsx; // Wrong: doesn't match source file
   ```
 
 ---
@@ -2281,10 +2292,11 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 **API Route Structure:**
 ```typescript
 // app/api/{resource}/route.ts
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/libs/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+import { createClient } from '@/libs/supabase/server';
 
 // 1. Define validation schema
 const createSchema = z.object({
@@ -2622,7 +2634,6 @@ export default async function DashboardPage() {
       // Business logic
       const result = await doSomething();
       return NextResponse.json({ data: result }, { status: 200 });
-
     } catch (error) {
       console.error('API Error:', error);
       return NextResponse.json({
@@ -2829,13 +2840,14 @@ export default async function DashboardPage() {
 // ✅ Correct: Follows all patterns
 // app/api/feedback/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/libs/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
 import { db } from '@/libs/DB';
-import { feedback } from '@/models/Schema';
 import { trackEvent } from '@/libs/posthog/client';
+import { createClient } from '@/libs/supabase/server';
+import { feedback } from '@/models/Schema';
 
 // Validation schema (Zod)
 const createFeedbackSchema = z.object({
@@ -2889,7 +2901,6 @@ export async function POST(request: NextRequest) {
 
     // 5. Return success response
     return NextResponse.json({ data: newFeedback }, { status: 201 });
-
   } catch (error) {
     console.error('Failed to create feedback:', { error, userId: user?.id });
     return NextResponse.json(
@@ -3035,15 +3046,15 @@ export async function POST(request: NextRequest) {
 **❌ Wrong Test Location:**
 ```typescript
 // ❌ Wrong: Tests in separate directory
-tests/
-  components/
-    ChatInterface.test.tsx
+tests
+/ components
+/ ChatInterface.test.tsx;
 
 // ✅ Correct: Co-located tests
-src/
-  components/
-    ChatInterface.tsx
-    ChatInterface.test.tsx
+src
+/ components
+/ ChatInterface.tsx;
+ChatInterface.test.tsx;
 ```
 
 ## Project Structure & Boundaries

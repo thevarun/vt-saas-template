@@ -15,12 +15,12 @@
 #   - {file-path}: File created/found (e.g., "docs/product-brief.md")
 #   - skipped: Optional/conditional workflow that was skipped
 
-generated: "2026-01-05"
-project: "VT SaaS Template"
-project_type: "saas"
-selected_track: "method"
-field_type: "brownfield"
-workflow_path: "method-brownfield.yaml"
+generated: 2026-01-05
+project: VT SaaS Template
+project_type: saas
+selected_track: method
+field_type: brownfield
+workflow_path: method-brownfield.yaml
 workflow_status:
   # Phase 0: Documentation
   document-project: skipped
@@ -31,11 +31,11 @@ workflow_status:
   product-brief: skipped
 
   # Phase 2: Planning
-  prd: "_bmad-output/planning-artifacts/prd.md"
-  create-ux-design: "_bmad-output/planning-artifacts/ux-design-specification.md"
+  prd: _bmad-output/planning-artifacts/prd.md
+  create-ux-design: _bmad-output/planning-artifacts/ux-design-specification.md
 
   # Phase 3: Solutioning
-  create-architecture: "_bmad-output/planning-artifacts/architecture.md"
+  create-architecture: _bmad-output/planning-artifacts/architecture.md
   create-epics-and-stories: required
   test-design: optional
   implementation-readiness: required

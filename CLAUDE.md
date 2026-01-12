@@ -277,6 +277,44 @@ export function MyComponent() {
 - **Development**: Sentry Spotlight runs automatically with `npm run dev`
 - **Production**: Update `org` and `project` in `next.config.mjs` and add DSN to `sentry.*.config.ts` files
 
+## CI/CD Pipeline
+
+The project uses GitHub Actions and Vercel for automated testing and deployment.
+
+### Quick Reference
+
+**Run all CI checks locally:**
+```bash
+npm run lint && npm run check-types && npm test && npm run build
+```
+
+**GitHub Actions Workflows:**
+- `.github/workflows/CI.yml` - Runs lint, type check, unit tests, build, and E2E tests
+- `.github/workflows/release.yml` - Automated semantic versioning and releases
+
+**Quality Gates:**
+- ESLint (zero errors, warnings allowed)
+- TypeScript type check (zero errors)
+- All unit tests passing (Vitest)
+- Production build completes
+- All E2E tests passing (Playwright)
+
+**Deployment:**
+- **Preview**: Automatic on all PRs (Vercel)
+- **Production**: Automatic on merge to main (Vercel)
+
+**Required GitHub Secrets:**
+- `DIFY_API_KEY`
+- `DIFY_API_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SENTRY_AUTH_TOKEN` (optional)
+
+**Branch Protection:** ⚠️ NOT CONFIGURED - Recommended to enable on `main` branch
+
+📖 **Full documentation:** [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md)
+📖 **Troubleshooting:** [docs/ci-cd-troubleshooting.md](docs/ci-cd-troubleshooting.md)
+
 ## Testing Notes
 
 ### Unit Tests (Vitest)
