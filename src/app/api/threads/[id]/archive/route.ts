@@ -2,7 +2,14 @@ import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { logger } from '@/libs/Logger';
+import {
+  dbError,
+  internalError,
+  logApiError,
+  logDbError,
+  notFoundError,
+  unauthorizedError,
+} from '@/libs/api/errors';
 import { createClient } from '@/libs/supabase/server';
 import { getThreadById, updateThread } from '@/libs/supabase/threads';
 
@@ -29,10 +36,7 @@ export async function PATCH(
 
     // Return 401 for unauthorized requests
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
     // Get thread ID from params
@@ -46,13 +50,7 @@ export async function PATCH(
     );
 
     if (fetchError || !currentThread) {
-      return NextResponse.json(
-        {
-          error: 'Thread not found or access denied',
-          code: 'NOT_FOUND',
-        },
-        { status: 404 },
-      );
+      return notFoundError('Thread');
     }
 
     // Toggle the archived status - RLS ensures user ownership
@@ -63,20 +61,23 @@ export async function PATCH(
     );
 
     if (updateError || !updatedThread) {
-      logger.error({ error: updateError }, 'Failed to toggle archive status');
-      return NextResponse.json(
-        { error: 'Failed to update thread', code: 'DB_ERROR' },
-        { status: 500 },
-      );
+      logDbError('toggle thread archive status', updateError, {
+        endpoint: `/api/threads/${id}/archive`,
+        method: 'PATCH',
+        userId: user.id,
+        metadata: { threadId: id },
+      });
+      return dbError('Failed to update thread');
     }
 
     return NextResponse.json({ thread: updatedThread });
   } catch (error: any) {
-    logger.error({ error }, 'PATCH /api/threads/[id]/archive error');
-
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    const { id } = await params;
+    logApiError(error, {
+      endpoint: `/api/threads/${id}/archive`,
+      method: 'PATCH',
+      metadata: { threadId: id },
+    });
+    return internalError();
   }
 }

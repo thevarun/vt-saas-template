@@ -75,15 +75,15 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Examples:**
   ```typescript
   // Correct
-  app/api/threads/route.ts          // GET/POST /api/threads
-  app/api/threads/[id]/route.ts     // GET/PATCH/DELETE /api/threads/:id
-  app/api/threads/[id]/archive/route.ts // POST /api/threads/:id/archive
-  app/api/chat/route.ts             // POST /api/chat
+  app / api / threads / route.ts; // GET/POST /api/threads
+  app / api / threads / [id] / route.ts; // GET/PATCH/DELETE /api/threads/:id
+  app / api / threads / [id] / archive / route.ts; // POST /api/threads/:id/archive
+  app / api / chat / route.ts; // POST /api/chat
 
   // Incorrect
-  app/api/Thread/route.ts           // Wrong: PascalCase
-  app/api/thread/route.ts           // Wrong: singular for collection
-  app/api/threads-list/route.ts     // Wrong: kebab-case compound
+  app / api / Thread / route.ts; // Wrong: PascalCase
+  app / api / thread / route.ts; // Wrong: singular for collection
+  app / api / threads - list / route.ts; // Wrong: kebab-case compound
   ```
 
 **Route Parameters:**
@@ -92,7 +92,7 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Example:**
   ```typescript
   // Correct
-  app/api/threads/[id]/route.ts
+  app / api / threads / [id] / route.ts;
   export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
   }
@@ -177,15 +177,15 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 - **Examples:**
   ```typescript
   // Correct
-  src/utils/helpers.ts
-  src/utils/logger.ts
-  src/hooks/useAuth.ts
-  src/components/ChatInterface.test.tsx
+  src / utils / helpers.ts;
+  src / utils / logger.ts;
+  src / hooks / useAuth.ts;
+  src / components / ChatInterface.test.tsx;
 
   // Incorrect
-  src/utils/Helpers.ts                // Wrong: PascalCase utility
-  src/hooks/UseAuth.ts                // Wrong: PascalCase hook
-  src/components/chat-interface.test.tsx  // Wrong: doesn't match source file
+  src / utils / Helpers.ts; // Wrong: PascalCase utility
+  src / hooks / UseAuth.ts; // Wrong: PascalCase hook
+  src / components / chat - interface.test.tsx; // Wrong: doesn't match source file
   ```
 
 ---
@@ -252,10 +252,11 @@ These patterns are derived from HealthCompanion's **production-proven codebase**
 **API Route Structure:**
 ```typescript
 // app/api/{resource}/route.ts
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/libs/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+import { createClient } from '@/libs/supabase/server';
 
 // 1. Define validation schema
 const createSchema = z.object({
@@ -593,7 +594,6 @@ export default async function DashboardPage() {
       // Business logic
       const result = await doSomething();
       return NextResponse.json({ data: result }, { status: 200 });
-
     } catch (error) {
       console.error('API Error:', error);
       return NextResponse.json({
@@ -800,13 +800,14 @@ export default async function DashboardPage() {
 // ✅ Correct: Follows all patterns
 // app/api/feedback/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@/libs/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
 import { db } from '@/libs/DB';
-import { feedback } from '@/models/Schema';
 import { trackEvent } from '@/libs/posthog/client';
+import { createClient } from '@/libs/supabase/server';
+import { feedback } from '@/models/Schema';
 
 // Validation schema (Zod)
 const createFeedbackSchema = z.object({
@@ -860,7 +861,6 @@ export async function POST(request: NextRequest) {
 
     // 5. Return success response
     return NextResponse.json({ data: newFeedback }, { status: 201 });
-
   } catch (error) {
     console.error('Failed to create feedback:', { error, userId: user?.id });
     return NextResponse.json(
@@ -1006,13 +1006,13 @@ export async function POST(request: NextRequest) {
 **❌ Wrong Test Location:**
 ```typescript
 // ❌ Wrong: Tests in separate directory
-tests/
-  components/
-    ChatInterface.test.tsx
+tests
+/ components
+/ ChatInterface.test.tsx;
 
 // ✅ Correct: Co-located tests
-src/
-  components/
-    ChatInterface.tsx
-    ChatInterface.test.tsx
+src
+/ components
+/ ChatInterface.tsx;
+ChatInterface.test.tsx;
 ```

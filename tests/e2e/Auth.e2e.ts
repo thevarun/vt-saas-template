@@ -20,7 +20,7 @@ test.describe('Authentication', () => {
       await page.goto('/sign-up');
 
       await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
-      await expect(page.getByText('Join HealthCompanion and start your wellness journey')).toBeVisible();
+      await expect(page.getByText('Create your account to get started')).toBeVisible();
     });
 
     test('should show validation error for invalid email', async ({ page }) => {

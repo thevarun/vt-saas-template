@@ -17,9 +17,9 @@ _This file contains critical rules and patterns that AI agents must follow when 
 ## Technology Stack & Versions
 
 ### Core Framework
-- **Next.js**: 14.2.25 (App Router) - Planning upgrade to 15
-- **React**: 18.3.1 - Planning upgrade to 19
-- **TypeScript**: 5.6.3 (strict mode) - Planning upgrade to 5.7+
+- **Next.js**: 15.1.6 (App Router) - Upgraded from 14.2.25
+- **React**: 19.2.3 - Upgraded from 18.3.1
+- **TypeScript**: 5.7.3 (strict mode) - Upgraded from 5.6.3
 - **Node.js**: Target ES2017
 
 ### Database & ORM
@@ -70,7 +70,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - React 18 → 19 migration planned (Server Components changes)
 - All Radix UI packages should use compatible versions
 
-
 ## Critical Implementation Rules
 
 ### Language-Specific Rules (TypeScript)
@@ -92,21 +91,25 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 1. **Array/Object Access** - Always check for undefined:
    ```typescript
-   const item = array[0] // Type: T | undefined
+   const item = array[0]; // Type: T | undefined
    if (item) { /* use item */ } // Required check
    ```
 
 2. **Null/Undefined Checks** - strictNullChecks enforced:
    ```typescript
-   const user = getUser()
-   if (user) { console.log(user.name) } // Required check
+   const user = getUser();
+   if (user) {
+     console.log(user.name);
+   } // Required check
    ```
 
 3. **Function Returns** - All paths must return:
    ```typescript
    function getValue(flag: boolean): string {
-     if (flag) return 'yes'
-     return 'no' // Required - can't have implicit undefined
+     if (flag) {
+       return 'yes';
+     }
+     return 'no'; // Required - can't have implicit undefined
    }
    ```
 
@@ -119,7 +122,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Prefer async/await over raw Promises
 - Always handle Promise rejections
 - Use Promise.all() for parallel operations
-
 
 ### Framework-Specific Rules (Next.js 14 App Router + React 18)
 
@@ -183,7 +185,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - NEVER mix clients - use correct client for context
 - Session managed via cookies, not client state
 
-
 ### Testing Rules
 
 **Test Organization:**
@@ -226,7 +227,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Use CSF3 format (Component Story Format 3)
 - Include multiple variants per component
 
-
 ### Code Quality & Style Rules
 
 **ESLint (Antfu Config) - Critical Style Rules:**
@@ -247,9 +247,10 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Order: Built-ins → External → Internal → Parent → Sibling
 - Example:
   ```typescript
-  import { useEffect } from 'react'
-  import { NextRequest } from 'next/server'
-  import { Button } from '@/components/ui/button'
+  import { NextRequest } from 'next/server';
+  import { useEffect } from 'react';
+
+  import { Button } from '@/components/ui/button';
   ```
 
 **Naming Conventions:**
@@ -293,7 +294,6 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Buttons must have accessible labels
 - Forms must have proper labels
 - Color contrast meets WCAG AA
-
 
 ### Development Workflow Rules
 
@@ -363,7 +363,6 @@ npm run db:studio     # Open database GUI
 - [ ] Responsive design works (mobile + desktop)
 - [ ] Accessibility checks pass (keyboard nav, alt text, labels)
 
-
 ### Critical Don't-Miss Rules ⚠️
 
 **THESE VIOLATIONS WILL BREAK THE APPLICATION - AI AGENTS MUST NEVER DO THESE**
@@ -375,13 +374,13 @@ npm run db:studio     # Open database GUI
 // ❌ WRONG - API key exposed to browser
 const response = await fetch('https://api.dify.ai/v1/chat', {
   headers: { Authorization: `Bearer ${process.env.DIFY_API_KEY}` }
-})
+});
 
 // ✅ CORRECT - Proxy through API route
 const response = await fetch('/api/chat', {
   method: 'POST',
   body: JSON.stringify({ message: 'Hello' })
-})
+});
 ```
 - **Check**: Only `NEXT_PUBLIC_*` env vars are safe for client code
 - **Pattern**: Always proxy external APIs through `/api/*` routes
@@ -391,22 +390,22 @@ const response = await fetch('/api/chat', {
 ```typescript
 // ❌ WRONG - No auth check
 export async function POST(request: Request) {
-  const body = await request.json()
-  await db.deleteUser(body.userId) // Anyone can call this!
+  const body = await request.json();
+  await db.deleteUser(body.userId); // Anyone can call this!
 }
 
 // ✅ CORRECT - Validate session first
 export async function POST(request: Request) {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json()
-  await db.deleteUser(body.userId) // Now safe
+  const body = await request.json();
+  await db.deleteUser(body.userId); // Now safe
 }
 ```
 - **Why**: Middleware protects pages, but API routes need explicit checks
@@ -415,22 +414,22 @@ export async function POST(request: Request) {
 **RULE 3: NEVER Skip Input Validation**
 ```typescript
 // ❌ WRONG - No validation
-export async function POST(request: Request) {
-  const body = await request.json()
-  await sendEmail(body.email) // Unsafe!
-}
-
 // ✅ CORRECT - Validate with Zod
-import { z } from 'zod'
+import { z } from 'zod';
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  await sendEmail(body.email); // Unsafe!
+}
 
 const EmailSchema = z.object({
   email: z.string().email()
-})
+});
 
 export async function POST(request: Request) {
-  const body = await request.json()
-  const validated = EmailSchema.parse(body) // Throws if invalid
-  await sendEmail(validated.email)
+  const body = await request.json();
+  const validated = EmailSchema.parse(body); // Throws if invalid
+  await sendEmail(validated.email);
 }
 ```
 - **Rule**: ALL API inputs MUST be validated with Zod
@@ -441,22 +440,20 @@ export async function POST(request: Request) {
 **RULE 4: NEVER Mix Supabase Client Types**
 ```typescript
 // ❌ WRONG - Browser client in Server Component
-'use server'
-import { createBrowserClient } from '@/libs/supabase/client'
-const supabase = createBrowserClient() // FAILS
-
+'use server';
+import { createBrowserClient } from '@/libs/supabase/client'; // FAILS
+// ✅ CORRECT - Browser client in Client Component
+import { createBrowserClient } from '@/libs/supabase/client';
 // ✅ CORRECT - Server client in Server Component
-import { createClient } from '@/libs/supabase/server'
-const supabase = createClient(await cookies())
+import { createClient } from '@/libs/supabase/server';
+import { createClient } from '@/libs/supabase/server'; // FAILS
+const supabase = createBrowserClient();
+const supabase = createClient(await cookies());
 
 // ❌ WRONG - Server client in Client Component
-'use client'
-import { createClient } from '@/libs/supabase/server'
-const supabase = createClient(cookies()) // FAILS
-
-// ✅ CORRECT - Browser client in Client Component
-import { createBrowserClient } from '@/libs/supabase/client'
-const supabase = createBrowserClient()
+'use client';
+const supabase = createClient(cookies());
+const supabase = createBrowserClient();
 ```
 - **Rule**: Server Components → `createClient(cookies())` | Client Components → `createBrowserClient()` | Middleware → `createServerClient()`
 - **Impact**: Wrong client = auth failures, runtime errors
@@ -466,18 +463,18 @@ const supabase = createBrowserClient()
 **RULE 5: NEVER Skip Undefined Checks**
 ```typescript
 // ❌ WRONG - TypeScript error with noUncheckedIndexedAccess
-const users = await getUsers()
-const firstUser = users[0]
-console.log(firstUser.name) // ERROR: might be undefined
+const users = await getUsers();
+const firstUser = users[0];
+console.log(firstUser.name); // ERROR: might be undefined
 
 // ✅ CORRECT - Check before use
-const firstUser = users[0]
+const firstUser = users[0];
 if (firstUser) {
-  console.log(firstUser.name)
+  console.log(firstUser.name);
 }
 
 // ✅ ALSO CORRECT - Optional chaining
-const userName = users[0]?.name ?? 'Unknown'
+const userName = users[0]?.name ?? 'Unknown';
 ```
 - **Why**: `noUncheckedIndexedAccess: true` enforces safety
 - **Impact**: Skipped checks = TypeScript compilation errors
@@ -528,10 +525,10 @@ export default async function UserProfile() {
 **RULE 8: NEVER Use Relative Imports for src/ Files**
 ```typescript
 // ❌ WRONG - Brittle relative imports
-import { Button } from '../../../components/ui/button'
-
 // ✅ CORRECT - Path aliases
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+
+import { Button } from '../../../components/ui/button';
 ```
 - **Rule**: ALWAYS use `@/` prefix
 - **Impact**: Relative imports break when files move
@@ -560,7 +557,7 @@ export default function UserList({ users }: { users: User[] }) {
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   newField: text('new_field') // Added without migration - BREAKS PROD
-})
+});
 
 // ✅ CORRECT - Generate migration
 // 1. Edit Schema.ts
@@ -577,13 +574,13 @@ export const users = pgTable('users', {
 export const users = pgTable('users', {
   userId: uuid('userId'), // WRONG
   firstName: text('firstName') // WRONG
-})
+});
 
 // ✅ CORRECT - snake_case in database
 export const users = pgTable('users', {
   userId: uuid('user_id'), // TypeScript: camelCase, DB: snake_case
   firstName: text('first_name')
-})
+});
 ```
 - **Rule**: Database columns use `snake_case`
 - **Impact**: Wrong casing = SQL query failures
@@ -624,4 +621,3 @@ const t = useTranslations('Auth')
 
 **If you only remember ONE thing:**
 🔐 **NEVER expose secrets client-side** + ⚡ **Server Components by default**
-

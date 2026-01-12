@@ -1,4 +1,4 @@
-# HealthCompanion - System Architecture
+# VT SaaS Template - System Architecture
 
 **Generated:** 2026-01-02
 **Architecture Type:** Serverless Full-stack Monolith
@@ -29,7 +29,7 @@
 
 ## Executive Summary
 
-HealthCompanion is built on a **serverless full-stack monolith architecture** using Next.js 14 App Router. The application combines server-side rendering, API routes, and edge middleware to deliver a secure, scalable AI health coaching platform.
+VT SaaS Template is built on a **serverless full-stack monolith architecture** using Next.js 14 App Router. The application combines server-side rendering, API routes, and edge middleware to deliver a secure, scalable AI-powered SaaS platform.
 
 **Key Architectural Decisions:**
 - **Serverless-first:** All backend logic runs as serverless functions
@@ -276,7 +276,7 @@ Indexes:
 **Separation of Concerns:**
 - Auth data: Supabase Auth tables
 - Chat messages: Dify conversation history
-- Thread organization: HealthCompanion database
+- Thread organization: Application database
 
 ---
 

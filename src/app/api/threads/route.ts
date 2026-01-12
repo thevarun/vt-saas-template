@@ -3,7 +3,17 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { logger } from '@/libs/Logger';
+import {
+  createErrorResponse,
+  dbError,
+  formatZodErrors,
+  HTTP_STATUS,
+  internalError,
+  logApiError,
+  logDbError,
+  unauthorizedError,
+  validationError,
+} from '@/libs/api/errors';
 import { createClient } from '@/libs/supabase/server';
 import { createThread, getThreads } from '@/libs/supabase/threads';
 
@@ -33,21 +43,19 @@ export async function GET(): Promise<Response> {
 
     // Return 401 for unauthorized requests
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
     // Query threads table - RLS automatically filters by user_id
-    const { data: userThreads, error: dbError } = await getThreads(supabase);
+    const { data: userThreads, error: dbQueryError } = await getThreads(supabase);
 
-    if (dbError) {
-      logger.error({ error: dbError }, 'Failed to fetch threads');
-      return NextResponse.json(
-        { error: 'Failed to fetch threads', code: 'DB_ERROR' },
-        { status: 500 },
-      );
+    if (dbQueryError) {
+      logDbError('fetch threads', dbQueryError, {
+        endpoint: '/api/threads',
+        method: 'GET',
+        userId: user.id,
+      });
+      return dbError('Failed to fetch threads');
     }
 
     return NextResponse.json({
@@ -55,12 +63,11 @@ export async function GET(): Promise<Response> {
       count: userThreads?.length ?? 0,
     });
   } catch (error: any) {
-    logger.error({ error }, 'GET /api/threads error');
-
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/threads',
+      method: 'GET',
+    });
+    return internalError();
   }
 }
 
@@ -84,10 +91,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     // Return 401 for unauthorized requests
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
     // Parse and validate request body
@@ -95,20 +99,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     const validationResult = createThreadSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          code: 'VALIDATION_ERROR',
-          details: validationResult.error.errors,
-        },
-        { status: 400 },
-      );
+      const errors = formatZodErrors(validationResult.error);
+      return validationError(errors);
     }
 
     const { conversationId, title } = validationResult.data;
 
     // Insert thread record - RLS ensures user_id matches auth.uid()
-    const { data: newThread, error: dbError } = await createThread(
+    const { data: newThread, error: dbInsertError } = await createThread(
       supabase,
       user.id,
       {
@@ -117,23 +115,22 @@ export async function POST(request: NextRequest): Promise<Response> {
       },
     );
 
-    if (dbError) {
+    if (dbInsertError) {
       // Handle duplicate conversation_id error
-      if (dbError.message?.includes('duplicate') || dbError.message?.includes('unique')) {
-        return NextResponse.json(
-          {
-            error: 'Thread with this conversation ID already exists',
-            code: 'DUPLICATE_CONVERSATION_ID',
-          },
-          { status: 409 },
+      if (dbInsertError.message?.includes('duplicate') || dbInsertError.message?.includes('unique')) {
+        return createErrorResponse(
+          'Thread with this conversation ID already exists',
+          'DUPLICATE_CONVERSATION_ID',
+          HTTP_STATUS.CONFLICT,
         );
       }
 
-      logger.error({ error: dbError }, 'Failed to create thread');
-      return NextResponse.json(
-        { error: 'Failed to create thread', code: 'DB_ERROR' },
-        { status: 500 },
-      );
+      logDbError('create thread', dbInsertError, {
+        endpoint: '/api/threads',
+        method: 'POST',
+        userId: user.id,
+      });
+      return dbError('Failed to create thread');
     }
 
     // Return created thread with 201 status
@@ -142,11 +139,10 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 201 },
     );
   } catch (error: any) {
-    logger.error({ error }, 'POST /api/threads error');
-
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/threads',
+      method: 'POST',
+    });
+    return internalError();
   }
 }

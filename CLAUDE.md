@@ -64,6 +64,69 @@ src/app/[locale]/
     └── chat/         # Dify proxy endpoint
 ```
 
+### API Error Handling
+
+All API endpoints return errors in a consistent format:
+
+```typescript
+// Error response format
+{
+  error: string;        // Human-readable message
+  code: string;         // Machine-readable code
+  details?: object;     // Optional (validation errors, debug info)
+}
+```
+
+**Quick Reference:**
+
+| Code | Status | When |
+|------|--------|------|
+| `AUTH_REQUIRED` | 401 | Not authenticated |
+| `FORBIDDEN` | 403 | Not authorized |
+| `VALIDATION_ERROR` | 400 | Input validation failed |
+| `NOT_FOUND` | 404 | Resource doesn't exist |
+| `CONFLICT` | 409 | Duplicate resource |
+| `DB_ERROR` | 500 | Database error |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+**Server-side:**
+```typescript
+import {
+  unauthorizedError,
+  validationError,
+  formatZodErrors,
+  logApiError,
+} from '@/libs/api/errors';
+
+// In API route
+if (authError || !user) {
+  return unauthorizedError();
+}
+
+const result = schema.safeParse(body);
+if (!result.success) {
+  const errors = formatZodErrors(result.error);
+  return validationError(errors);
+}
+```
+
+**Client-side:**
+```typescript
+import { parseApiError, getErrorMessage, isAuthError } from '@/libs/api/client';
+
+const response = await fetch('/api/threads', { method: 'POST', body });
+
+if (!response.ok) {
+  const error = await parseApiError(response);
+  if (isAuthError(error.code)) {
+    router.push('/sign-in');
+  }
+  toast.error(getErrorMessage(error.code, t));
+}
+```
+
+📖 **Full documentation:** [docs/api-error-handling.md](docs/api-error-handling.md)
+
 ## Environment Variables
 
 ### Required for Development
@@ -154,9 +217,103 @@ npm run storybook        # Start Storybook
    ```
 3. Crowdin syncs translations automatically via GitHub Actions on push to `main`
 
+### Error Handling
+
+The project implements a comprehensive error handling strategy with multiple layers of protection:
+
+**Error Boundary Hierarchy:**
+1. **Global Error Boundary** (`src/app/global-error.tsx`) - Catches errors in root layout (last resort)
+2. **Locale Error Boundary** (`src/app/[locale]/error.tsx`) - Catches errors in all locale routes
+3. **Auth Routes Error Boundary** (`src/app/[locale]/(auth)/error.tsx`) - Isolates dashboard errors
+4. **Chat Route Error Boundary** (`src/app/[locale]/(auth)/chat/error.tsx`) - Isolates chat errors
+5. **Component Error Boundary** (`src/components/errors/ErrorBoundary.tsx`) - Reusable wrapper for critical components
+
+**When to Use Each:**
+- **File-based boundaries** (`error.tsx`): Use for route-level isolation (automatic by Next.js)
+- **Component boundaries**: Use for critical components with:
+  - Complex async operations (API calls, streaming)
+  - Third-party integrations
+  - Heavy data processing
+  - High-risk state management
+
+**Adding Error Boundaries to Components:**
+```typescript
+import { ErrorBoundary, CardErrorFallback } from '@/components/errors';
+
+export function MyComponent() {
+  return (
+    <ErrorBoundary
+      fallback={(error, reset) => (
+        <CardErrorFallback
+          error={error}
+          onReset={reset}
+          message="Custom error message"
+        />
+      )}
+    >
+      <CriticalComponent />
+    </ErrorBoundary>
+  );
+}
+```
+
+**Recovery Patterns:**
+- All error boundaries provide "Try Again" buttons that reset the error state
+- Navigation escape routes (homepage, dashboard, chat)
+- Graceful degradation (preserve conversation state, show partial data)
+
+**Error Logging:**
+- All errors are automatically logged to Sentry with context
+- Development: Sentry Spotlight shows errors in real-time
+- Production: Errors include user ID, route context, and error digest
+
+**What Error Boundaries DON'T Catch:**
+- Event handler errors (use try/catch)
+- Async code outside rendering (use try/catch or .catch())
+- Errors in the error boundary itself
+- Server-side errors (use API error handling)
+
 ### Error Monitoring
 - **Development**: Sentry Spotlight runs automatically with `npm run dev`
 - **Production**: Update `org` and `project` in `next.config.mjs` and add DSN to `sentry.*.config.ts` files
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions and Vercel for automated testing and deployment.
+
+### Quick Reference
+
+**Run all CI checks locally:**
+```bash
+npm run lint && npm run check-types && npm test && npm run build
+```
+
+**GitHub Actions Workflows:**
+- `.github/workflows/CI.yml` - Runs lint, type check, unit tests, build, and E2E tests
+- `.github/workflows/release.yml` - Automated semantic versioning and releases
+
+**Quality Gates:**
+- ESLint (zero errors, warnings allowed)
+- TypeScript type check (zero errors)
+- All unit tests passing (Vitest)
+- Production build completes
+- All E2E tests passing (Playwright)
+
+**Deployment:**
+- **Preview**: Automatic on all PRs (Vercel)
+- **Production**: Automatic on merge to main (Vercel)
+
+**Required GitHub Secrets:**
+- `DIFY_API_KEY`
+- `DIFY_API_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SENTRY_AUTH_TOKEN` (optional)
+
+**Branch Protection:** ⚠️ NOT CONFIGURED - Recommended to enable on `main` branch
+
+📖 **Full documentation:** [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md)
+📖 **Troubleshooting:** [docs/ci-cd-troubleshooting.md](docs/ci-cd-troubleshooting.md)
 
 ## Testing Notes
 
@@ -172,9 +329,9 @@ npm run storybook        # Start Storybook
 - CI runs production build, local dev runs dev server
 - Setup/teardown files handle test account creation
 
-### Visual Development 
+### Visual Development
 
-**Quick Visual Check** 
+**Quick Visual Check**
 IMMEDIATELY after implementing any front-end change:
 
 1. Identify what changed - Review the modified components/pages
@@ -195,6 +352,45 @@ This verification ensures changes meet design standards and user requirements.
 4. **Conversation Persistence**: Track `conversation_id` from Dify for multi-turn conversations
 5. **Middleware Order**: i18n middleware runs first, then Supabase session update, then auth check
 6. **Absolute Imports**: Use `@/` prefix for all imports (configured in `tsconfig.json`)
+7. **Next.js 15 Async Params**: This project uses Next.js 15 where `params` and `searchParams` are Promises that must be awaited in page/layout components
+
+### Next.js 15 Async Params Pattern
+
+In Next.js 15, route params are async and must be awaited:
+
+```typescript
+// Page component with params
+export default async function Page(props: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { locale, id } = await props.params;
+  // use locale and id
+}
+
+// generateMetadata with params
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await props.params;
+  const t = await getTranslations({ locale, namespace: 'PageName' });
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+  };
+}
+
+// Layout component with params
+export default async function Layout(props: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await props.params;
+  // use locale
+  return <div>{props.children}</div>;
+}
+```
+
+Note: API routes use URL searchParams (not affected by this change)
 
 ## Code Style
 
@@ -203,8 +399,7 @@ This verification ensures changes meet design standards and user requirements.
 - **Formatting**: Prettier + ESLint with auto-fix on save
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
 
-## Research 
+## Research
 
 - During planning, use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
 - After 1–2 failed debugging attempts, online search for known issues/solutions before continuing.
-  

@@ -25,10 +25,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
 
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Validate commits (PR only)
         if: github.event_name == 'pull_request'
@@ -51,10 +51,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
 
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - run: npm run test -- --coverage
         env:
@@ -77,10 +77,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
 
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Build
         run: npm run build

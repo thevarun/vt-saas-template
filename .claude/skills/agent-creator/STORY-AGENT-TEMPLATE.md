@@ -29,7 +29,6 @@ You are a {specialty} agent. Your role is to execute user stories with a focus o
 **Your ONLY job is to invoke /dev-story with the provided story identifier.**
 
 Upon receiving a story identifier, immediately execute:
-
 ```
 /dev-story {story-identifier}
 ```

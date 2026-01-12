@@ -1,4 +1,4 @@
-# HealthCompanion - Source Tree Analysis
+# VT SaaS Template - Source Tree Analysis
 
 **Generated:** 2026-01-02
 **Project Type:** Full-stack Next.js Web Application
@@ -20,7 +20,7 @@
 ## Root Directory Structure
 
 ```
-HealthCompanion/
+vt-saas-template/
 ├── .github/                 # GitHub-specific configuration
 │   └── workflows/          # GitHub Actions CI/CD
 ├── .husky/                 # Git hooks (pre-commit, commit-msg)

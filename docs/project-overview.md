@@ -1,4 +1,4 @@
-# HealthCompanion - Project Overview
+# VT SaaS Template - Project Overview
 
 **Generated:** 2026-01-02
 **Project Type:** Full-stack Next.js Web Application (Monolith)
@@ -8,27 +8,27 @@
 
 ## Executive Summary
 
-HealthCompanion is an AI-powered health coaching application that provides personalized health guidance through conversational AI. Built on Next.js 14 with a modern serverless architecture, it combines secure authentication, real-time AI chat streaming, and multi-language support to deliver 24/7 health coaching in a private, secure environment.
+VT SaaS Template is an AI-powered SaaS application that provides AI-powered assistance through conversational AI. Built on Next.js 14 with a modern serverless architecture, it combines secure authentication, real-time AI chat streaming, and multi-language support to deliver 24/7 AI assistance in a private, secure environment.
 
-The application leverages Dify AI for intelligent health coaching conversations, Supabase for authentication and database services, and Assistant UI for a sophisticated chat interface with streaming support.
+The application leverages Dify AI for intelligent conversations, Supabase for authentication and database services, and Assistant UI for a sophisticated chat interface with streaming support.
 
 ---
 
 ## Project Purpose
 
-**Mission:** Democratize access to personalized health guidance through AI-powered conversations.
+**Mission:** Provide a production-ready SaaS template with AI-powered conversations.
 
 **Key Goals:**
-- Provide instant, personalized health guidance available 24/7
+- Provide instant, personalized AI assistance available 24/7
 - Maintain user privacy and data security through proper authentication
 - Support multi-language conversations (English, Hindi, Bengali)
 - Deliver seamless real-time chat experience with conversation history
 - Enable scalable, serverless deployment for global reach
 
 **Target Users:**
-- Individuals seeking personalized health guidance
-- Health-conscious users wanting ongoing coaching support
-- Non-English speakers needing health guidance in their native language
+- Developers building SaaS applications
+- Startups needing a production-ready template
+- Teams seeking a modern AI-powered web application foundation
 
 ---
 
@@ -109,7 +109,7 @@ The application leverages Dify AI for intelligent health coaching conversations,
 ### High-Level Organization
 
 ```
-HealthCompanion/
+vt-saas-template/
 ├── src/                    # Application source code
 │   ├── app/               # Next.js App Router (pages + API)
 │   ├── components/        # Reusable React components

@@ -176,7 +176,7 @@ Use template structure:
 Update `{sprintStatus}` to reflect epic completion:
 
 ```yaml
-epic-N: done  # or partial
+epic-N: done # or partial
 epic-N-retrospective: optional
 ```
 

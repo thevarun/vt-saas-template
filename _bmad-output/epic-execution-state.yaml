@@ -1,0 +1,37 @@
+epic_execution_state:
+  epic_file: _bmad-output/planning-artifacts/epics/epic-1-template-foundation-modernization.md
+  epic_name: 'Template Foundation & Modernization'
+  total_stories: 9
+  current_story: '1.8'
+  current_phase: dev
+  stories_completed:
+    - '1.1'
+    - '1.2'
+    - '1.3'
+    - '1.4'
+    - '1.5'
+    - '1.6'
+    - '1.7'
+  stories_pending:
+    - '1.8'
+    - '1.9'
+  stories_skipped: []
+  stories_failed: []
+  execution_log: []
+  started_at: '2026-01-12T00:00:00Z'
+  last_updated: '2026-01-12T00:00:00Z'
+
+specialist_agents_available:
+  - name: upgrade-specialist
+    specialty: 'Framework/SDK upgrades (Next.js, React, TypeScript, Supabase)'
+  - name: refactor-specialist
+    specialty: Code refactoring and rebranding
+  - name: error-handling-specialist
+    specialty: Error boundaries and API error standardization
+  - name: qa-validator
+    specialty: CI/CD pipeline validation and feature testing
+
+configuration:
+  coverage_threshold: 80
+  max_retries: 3
+  auto_commit: true

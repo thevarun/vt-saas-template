@@ -1,4 +1,4 @@
-# HealthCompanion Project Documentation
+# VT SaaS Template Project Documentation
 
 **Generated:** 2026-01-02
 **Scan Type:** Quick Scan (Pattern-based)

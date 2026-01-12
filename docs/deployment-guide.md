@@ -1,4 +1,4 @@
-# HealthCompanion - Deployment Guide
+# VT SaaS Template - Deployment Guide
 
 **Generated:** 2026-01-02
 **Last Updated:** 2026-01-02
@@ -7,7 +7,7 @@
 
 ## Overview
 
-HealthCompanion is a Next.js 14 application designed for serverless deployment. This guide covers deployment to **Vercel** (recommended) and alternative platforms.
+VT SaaS Template is a Next.js 14 application designed for serverless deployment. This guide covers deployment to **Vercel** (recommended) and alternative platforms.
 
 **Deployment Requirements:**
 - Node.js 20.x or higher
@@ -41,7 +41,7 @@ HealthCompanion is a Next.js 14 application designed for serverless deployment. 
 
 1. Go to [vercel.com/new](https://vercel.com/new)
 2. Click "Import Git Repository"
-3. Select your HealthCompanion repo
+3. Select your vt-saas-template repo
 4. Click "Import"
 
 #### 2. Configure Project

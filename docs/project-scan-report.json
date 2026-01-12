@@ -6,8 +6,8 @@
   },
   "mode": "initial_scan",
   "scan_level": "quick",
-  "project_root": "/Users/varuntorka/Coding/HealthCompanion",
-  "output_folder": "/Users/varuntorka/Coding/HealthCompanion/docs",
+  "project_root": "/Users/varuntorka/Coding/vt-saas-template",
+  "output_folder": "/Users/varuntorka/Coding/vt-saas-template/docs",
   "completed_steps": [
     {
       "step": "step_1",
@@ -61,7 +61,7 @@
     {
       "part_id": "healthcompanion",
       "project_type_id": "web",
-      "display_name": "HealthCompanion (Web App)"
+      "display_name": "VT SaaS Template (Web App)"
     }
   ],
   "outputs_generated": [

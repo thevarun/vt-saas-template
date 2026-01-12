@@ -5,6 +5,7 @@ import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
 import { DevToolsModal } from '@assistant-ui/react-devtools';
 import { useEffect, useMemo, useState } from 'react';
 
+import { CardErrorFallback, ErrorBoundary } from '@/components/errors';
 import { useToast } from '@/hooks/use-toast';
 import type { DifyStreamEvent } from '@/libs/dify/types';
 
@@ -54,7 +55,7 @@ type ChatInterfaceProps = {
 };
 
 /**
- * ChatInterface Component
+ * ChatInterface Component - Internal Implementation
  * Main chat interface using Assistant-UI's Thread component
  * Connects to /api/chat endpoint with streaming support
  *
@@ -69,7 +70,7 @@ type ChatInterfaceProps = {
  * - AC #8: Chat input field auto-focuses on page load
  * - AC #9: Enter key sends message, Shift+Enter adds new line
  */
-export function ChatInterface({ threadId, conversationId: initialConversationId }: ChatInterfaceProps = {}) {
+function ChatInterfaceInner({ threadId, conversationId: initialConversationId }: ChatInterfaceProps = {}) {
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId ?? null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -373,5 +374,41 @@ export function ChatInterface({ threadId, conversationId: initialConversationId 
         <Thread className="min-h-0 flex-1" />
       </div>
     </AssistantRuntimeProvider>
+  );
+}
+
+/**
+ * ChatInterface Component - Protected with Error Boundary
+ *
+ * Wraps the chat interface with an error boundary to catch and handle
+ * rendering errors gracefully. Provides user-friendly fallback UI.
+ *
+ * Protected against:
+ * - Component rendering errors
+ * - State management errors
+ * - Third-party library errors (Assistant UI)
+ *
+ * Rationale: Chat interface is complex with:
+ * - Async operations (streaming, API calls)
+ * - Third-party integration (Assistant UI)
+ * - State management (conversation history)
+ */
+export function ChatInterface(props: ChatInterfaceProps) {
+  return (
+    <ErrorBoundary
+      fallback={(error, reset) => (
+        <CardErrorFallback
+          error={error}
+          onReset={reset}
+          message="Chat interface encountered an error"
+        />
+      )}
+      onError={(error) => {
+        console.error('[ChatInterface] Error caught by boundary:', error);
+        // Error is automatically logged to Sentry by ErrorBoundary
+      }}
+    >
+      <ChatInterfaceInner {...props} />
+    </ErrorBoundary>
   );
 }

@@ -1,4 +1,4 @@
-# HealthCompanion - Component Inventory
+# VT SaaS Template - Component Inventory
 
 **Generated:** 2026-01-02
 **UI Library:** React 18.3.1
@@ -9,7 +9,7 @@
 
 ## Overview
 
-HealthCompanion uses a component-based architecture with **38+ React components** organized into functional categories. The UI is built on **shadcn/ui** (Radix UI primitives) with custom chat and layout components.
+VT SaaS Template uses a component-based architecture with **38+ React components** organized into functional categories. The UI is built on **shadcn/ui** (Radix UI primitives) with custom chat and layout components.
 
 **Total Components:** 38+
 **Component Libraries:**

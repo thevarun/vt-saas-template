@@ -64,7 +64,7 @@ describe('/api/chat POST endpoint', () => {
 
       expect(response.status).toBe(401);
       expect(data).toEqual({
-        error: 'Unauthorized',
+        error: 'Authentication required',
         code: 'AUTH_REQUIRED',
       });
     });

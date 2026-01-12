@@ -96,9 +96,9 @@ For each story in `stories_pending`:
 
 **Update sidecar:**
 ```yaml
-current_story: "N.M"
-current_phase: "create"
-last_updated: "[timestamp]"
+current_story: N.M
+current_phase: create
+last_updated: '[timestamp]'
 ```
 
 **Spawn agent:**
@@ -138,8 +138,8 @@ Task tool:
 
 **Update sidecar:**
 ```yaml
-current_phase: "dev"
-last_updated: "[timestamp]"
+current_phase: dev
+last_updated: '[timestamp]'
 ```
 
 **Select specialist agent:**
@@ -196,8 +196,8 @@ Task tool:
 
 **Update sidecar:**
 ```yaml
-current_phase: "quality"
-last_updated: "[timestamp]"
+current_phase: quality
+last_updated: '[timestamp]'
 ```
 
 **Spawn agent:**
@@ -248,8 +248,8 @@ Task tool:
 
 **Update sidecar:**
 ```yaml
-current_phase: "review"
-last_updated: "[timestamp]"
+current_phase: review
+last_updated: '[timestamp]'
 ```
 
 **Spawn agent:**
@@ -298,8 +298,8 @@ Task tool:
 
 **Update sidecar:**
 ```yaml
-current_phase: "commit"
-last_updated: "[timestamp]"
+current_phase: commit
+last_updated: '[timestamp]'
 ```
 
 **Execute git commit:**
@@ -324,17 +324,17 @@ Co-Authored-By: [agent_name] <noreply@anthropic.com>"
 **Update sidecar:**
 ```yaml
 current_story: null
-current_phase: "between_stories"
-stories_completed: [..., "N.M"]
+current_phase: between_stories
+stories_completed: [..., N.M]
 stories_pending: [remaining stories]
-last_updated: "[timestamp]"
+last_updated: '[timestamp]'
 execution_log:
-  - story: "N.M"
-    agent: "[dev_agent_used]"
+  - story: N.M
+    agent: '[dev_agent_used]'
     coverage: [X]
-    tests: "[passed]/[total]"
-    duration: "[time]"
-    completed_at: "[timestamp]"
+    tests: '[passed]/[total]'
+    duration: '[time]'
+    completed_at: '[timestamp]'
 ```
 
 **Update sprint-status.yaml:**
@@ -407,8 +407,8 @@ When `stories_pending` is empty:
 
 1. Update sidecar:
 ```yaml
-current_phase: "complete"
-completed_at: "[timestamp]"
+current_phase: complete
+completed_at: '[timestamp]'
 ```
 
 2. Output summary:

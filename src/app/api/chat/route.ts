@@ -4,6 +4,13 @@ import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import {
+  difyError,
+  internalError,
+  invalidRequestError,
+  logApiError,
+  unauthorizedError,
+} from '@/libs/api/errors';
 import { createDifyClient } from '@/libs/dify/client';
 import type { DifyChatRequest } from '@/libs/dify/types';
 import { logger } from '@/libs/Logger';
@@ -165,10 +172,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     // AC #2: Return 401 for unauthorized requests
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
     // Extract message and conversationId from request body
@@ -177,43 +181,24 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     // Validate message
     if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required', code: 'INVALID_REQUEST' },
-        { status: 400 },
-      );
+      return invalidRequestError('Message is required');
     }
 
     // Validate message size (max 10,000 characters)
     if (message.length > 10000) {
-      return NextResponse.json(
-        {
-          error: 'Message exceeds maximum length of 10,000 characters',
-          code: 'MESSAGE_TOO_LONG',
-        },
-        { status: 400 },
-      );
+      return invalidRequestError('Message exceeds maximum length of 10,000 characters');
     }
 
     // Validate conversation ID format if provided
     if (conversationId !== undefined && conversationId !== null) {
       if (typeof conversationId !== 'string') {
-        return NextResponse.json(
-          { error: 'Conversation ID must be a string', code: 'INVALID_REQUEST' },
-          { status: 400 },
-        );
+        return invalidRequestError('Conversation ID must be a string');
       }
 
       // Validate format: alphanumeric + hyphens, max 128 chars
       const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;
       if (!conversationIdPattern.test(conversationId)) {
-        return NextResponse.json(
-          {
-            error:
-              'Conversation ID must be alphanumeric with hyphens, max 128 characters',
-            code: 'INVALID_CONVERSATION_ID',
-          },
-          { status: 400 },
-        );
+        return invalidRequestError('Conversation ID must be alphanumeric with hyphens, max 128 characters');
       }
     }
 
@@ -296,23 +281,33 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
   } catch (error: any) {
     // AC #5: Handle Dify API errors
-    logger.error({ error }, 'Chat API error');
+    logApiError(error, {
+      endpoint: '/api/chat',
+      method: 'POST',
+      errorCode: error.code || (error.status ? 'DIFY_ERROR' : 'INTERNAL_ERROR'),
+      statusCode: error.status || 500,
+    });
 
-    // Handle Dify-specific errors
-    if (error.status) {
+    // Handle Dify-specific errors with custom codes (e.g., rate limit)
+    if (error.status && error.code) {
       return NextResponse.json(
         {
-          error: error.message || 'Dify API error',
-          code: error.code || 'DIFY_ERROR',
+          error: error.message || 'Request failed',
+          code: error.code,
         },
         { status: error.status },
       );
     }
 
+    // Handle Dify-specific errors without custom codes
+    if (error.status) {
+      return difyError(
+        error.message || 'AI service temporarily unavailable',
+        error.details,
+      );
+    }
+
     // Generic error
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    return internalError();
   }
 }

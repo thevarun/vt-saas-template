@@ -1,4 +1,4 @@
-# HealthCompanion - Development Guide
+# VT SaaS Template - Development Guide
 
 **Generated:** 2026-01-02
 **Last Updated:** 2026-01-02
@@ -29,8 +29,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/HealthCompanion.git
-cd HealthCompanion
+git clone https://github.com/yourusername/vt-saas-template.git
+cd vt-saas-template
 ```
 
 ### 2. Install Dependencies
@@ -174,7 +174,7 @@ npm run dev
 ## Project Structure
 
 ```
-HealthCompanion/
+vt-saas-template/
 ├── src/                    # Application source
 │   ├── app/               # Next.js pages & API
 │   ├── components/        # React components

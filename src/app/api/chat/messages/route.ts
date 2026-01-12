@@ -1,6 +1,13 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import {
+  difyError,
+  internalError,
+  invalidRequestError,
+  logApiError,
+  unauthorizedError,
+} from '@/libs/api/errors';
 import { createDifyClient } from '@/libs/dify/client';
 import { createClient } from '@/libs/supabase/server';
 
@@ -17,7 +24,7 @@ export async function GET(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return unauthorizedError();
     }
 
     // Get conversation_id from query params
@@ -25,10 +32,7 @@ export async function GET(request: Request) {
     const conversationId = searchParams.get('conversation_id');
 
     if (!conversationId) {
-      return NextResponse.json(
-        { error: 'conversation_id required' },
-        { status: 400 },
-      );
+      return invalidRequestError('conversation_id is required');
     }
 
     // Fetch message history from Dify
@@ -37,11 +41,18 @@ export async function GET(request: Request) {
     const response = await difyClient.getMessages(conversationId, user.id);
 
     return NextResponse.json(response);
-  } catch (error) {
-    console.error('Failed to fetch messages:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch messages' },
-      { status: 500 },
-    );
+  } catch (error: any) {
+    logApiError(error, {
+      endpoint: '/api/chat/messages',
+      method: 'GET',
+      errorCode: error.status ? 'DIFY_ERROR' : 'INTERNAL_ERROR',
+    });
+
+    // Handle Dify-specific errors
+    if (error.status) {
+      return difyError(error.message || 'Failed to fetch messages');
+    }
+
+    return internalError();
   }
 }

@@ -118,5 +118,37 @@
   },
   "DataTable": {
     "no_results": "No results."
+  },
+  "Errors": {
+    "boundary": {
+      "title": "Something Went Wrong",
+      "message": "We encountered an unexpected error. Please try again or return to the homepage.",
+      "retry": "Try Again",
+      "home": "Go to Homepage",
+      "reload": "Reload Application"
+    },
+    "auth": {
+      "title": "Dashboard Error",
+      "message": "Something went wrong with your dashboard. This could be a temporary issue.",
+      "refresh": "Refresh Dashboard",
+      "sign_out": "Sign Out",
+      "return_home": "Return to Homepage",
+      "help_text": "If the problem persists, try signing out and back in."
+    },
+    "chat": {
+      "title": "Chat Error",
+      "message": "The chat interface encountered an error. Your conversation history is safe.",
+      "new_chat": "Start New Chat",
+      "view_dashboard": "View Dashboard",
+      "help_text": "Starting a new chat will clear the current conversation state."
+    },
+    "component": {
+      "inline": "Failed to load component",
+      "card": "Component Error",
+      "card_message": "Something went wrong while loading this section.",
+      "modal": "Dialog Error",
+      "modal_message": "An error occurred in this dialog.",
+      "dismiss": "Dismiss"
+    }
   }
 }

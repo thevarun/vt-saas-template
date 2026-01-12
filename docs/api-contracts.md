@@ -1,4 +1,4 @@
-# HealthCompanion - API Contracts
+# VT SaaS Template - API Contracts
 
 **Generated:** 2026-01-02
 **API Version:** 1.0
@@ -23,7 +23,7 @@
 
 ## Overview
 
-The HealthCompanion API provides endpoints for AI health coaching conversations and thread management. All endpoints require authentication via Supabase session cookies.
+The VT SaaS Template API provides endpoints for AI-powered conversations and thread management. All endpoints require authentication via Supabase session cookies.
 
 **API Design Principles:**
 - **RESTful:** Standard HTTP methods (GET, POST, PATCH, DELETE)

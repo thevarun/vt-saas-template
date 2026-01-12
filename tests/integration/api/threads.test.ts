@@ -62,7 +62,7 @@ describe('/api/threads endpoints', () => {
 
       expect(response.status).toBe(401);
       expect(data).toEqual({
-        error: 'Unauthorized',
+        error: 'Authentication required',
         code: 'AUTH_REQUIRED',
       });
     });

@@ -7,7 +7,7 @@ import {
 import createMiddleware from 'next-intl/middleware';
 /* eslint-enable simple-import-sort/imports */
 
-import { updateSession } from '@/libs/supabase/middleware';
+import { createClient, updateSession } from '@/libs/supabase/middleware';
 import { AllLocales, AppConfig } from './utils/AppConfig';
 
 const intlMiddleware = createMiddleware({
@@ -38,9 +38,7 @@ export async function middleware(
 
   // Check if route requires authentication
   if (isProtectedRoute(request.nextUrl.pathname)) {
-    const supabase = await import('@/libs/supabase/server').then(mod =>
-      mod.createClient(request.cookies as any),
-    );
+    const supabase = createClient(request, response);
 
     const {
       data: { user },

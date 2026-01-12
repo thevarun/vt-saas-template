@@ -1,5 +1,7 @@
 # VT SaaS Template
 
+[![CI](https://github.com/thevarun/vt-saas-template/workflows/CI/badge.svg)](https://github.com/thevarun/vt-saas-template/actions)
+
 > Production-ready SaaS template with authentication, AI chat, and modern UI
 
 VT SaaS Template is a modern web application template that provides a solid foundation for building SaaS products. Built with Next.js 14 and powered by Dify AI, it offers authentication, real-time AI chat, and a responsive UI out of the box.

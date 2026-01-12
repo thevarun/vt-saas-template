@@ -306,14 +306,14 @@ notes: "Optional verification notes"
 **Sidecar File Schema:**
 ```yaml
 epic_execution_state:
-  epic_file: "path/to/epic.md"
-  current_story: "2.3"
-  stories_completed: ["2.1", "2.2"]
-  stories_pending: ["2.3", "2.4", "2.5"]
-  last_action: "dev-story"
-  last_status: "in-progress"
-  started_at: "2026-01-03T10:00:00Z"
-  last_updated: "2026-01-03T14:30:00Z"
+  epic_file: path/to/epic.md
+  current_story: '2.3'
+  stories_completed: ['2.1', '2.2']
+  stories_pending: ['2.3', '2.4', '2.5']
+  last_action: dev-story
+  last_status: in-progress
+  started_at: '2026-01-03T10:00:00Z'
+  last_updated: '2026-01-03T14:30:00Z'
 ```
 
 ### Core BMAD Tools

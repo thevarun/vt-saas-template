@@ -1,4 +1,4 @@
-# HealthCompanion - Data Models
+# VT SaaS Template - Data Models
 
 **Generated:** 2026-01-02
 **ORM:** Drizzle ORM
