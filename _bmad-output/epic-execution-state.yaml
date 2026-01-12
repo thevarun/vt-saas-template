@@ -2,8 +2,8 @@ epic_execution_state:
   epic_file: _bmad-output/planning-artifacts/epics/epic-1-template-foundation-modernization.md
   epic_name: 'Template Foundation & Modernization'
   total_stories: 9
-  current_story: '1.8'
-  current_phase: dev
+  current_story: '1.9'
+  current_phase: create
   stories_completed:
     - '1.1'
     - '1.2'
@@ -12,8 +12,8 @@ epic_execution_state:
     - '1.5'
     - '1.6'
     - '1.7'
-  stories_pending:
     - '1.8'
+  stories_pending:
     - '1.9'
   stories_skipped: []
   stories_failed: []
