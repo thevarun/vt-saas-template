@@ -195,6 +195,45 @@ This verification ensures changes meet design standards and user requirements.
 4. **Conversation Persistence**: Track `conversation_id` from Dify for multi-turn conversations
 5. **Middleware Order**: i18n middleware runs first, then Supabase session update, then auth check
 6. **Absolute Imports**: Use `@/` prefix for all imports (configured in `tsconfig.json`)
+7. **Next.js 15 Async Params**: This project uses Next.js 15 where `params` and `searchParams` are Promises that must be awaited in page/layout components
+
+### Next.js 15 Async Params Pattern
+
+In Next.js 15, route params are async and must be awaited:
+
+```typescript
+// Page component with params
+export default async function Page(props: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { locale, id } = await props.params;
+  // use locale and id
+}
+
+// generateMetadata with params
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await props.params;
+  const t = await getTranslations({ locale, namespace: 'PageName' });
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+  };
+}
+
+// Layout component with params
+export default async function Layout(props: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await props.params;
+  // use locale
+  return <div>{props.children}</div>;
+}
+```
+
+Note: API routes use URL searchParams (not affected by this change)
 
 ## Code Style
 
