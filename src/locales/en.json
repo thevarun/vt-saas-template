@@ -1,7 +1,7 @@
 {
   "Index": {
-    "meta_title": "HealthCompanion - AI-Powered Health Coaching",
-    "meta_description": "Get personalized health guidance through AI-powered conversations with HealthCompanion."
+    "meta_title": "VT SaaS Template",
+    "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."
   },
   "Navbar": {
     "sign_in": "Sign In",
@@ -14,28 +14,28 @@
     "company": "Company"
   },
   "Hero": {
-    "title": "Your AI-powered <important>health companion</important> for a healthier life.",
-    "description": "Get personalized health guidance through intelligent conversations with your AI health coach.",
+    "title": "Build your next <important>SaaS product</important> faster.",
+    "description": "A production-ready template with authentication, AI integration, and everything you need to launch quickly.",
     "primary_button": "Get Started",
     "dashboard_button": "Go to Dashboard",
     "secondary_button": "Learn More"
   },
   "Features": {
     "section_subtitle": "Features",
-    "section_title": "Everything You Need for Your Health Journey",
-    "section_description": "HealthCompanion provides intelligent, personalized health coaching powered by AI.",
-    "feature1_title": "AI Health Coach",
-    "feature2_title": "Personalized Guidance",
+    "section_title": "Everything You Need to Build Fast",
+    "section_description": "VT SaaS Template provides a solid foundation for your next product.",
+    "feature1_title": "AI Integration",
+    "feature2_title": "Authentication",
     "feature3_title": "24/7 Availability",
     "feature4_title": "Secure & Private",
     "feature5_title": "Multi-language Support",
-    "feature6_title": "Evidence-based Advice",
-    "feature_description": "Get expert health guidance whenever you need it."
+    "feature6_title": "Production Ready",
+    "feature_description": "Get started with a complete foundation."
   },
   "Pricing": {
     "section_subtitle": "Pricing",
     "section_title": "Choose the Right Plan for You",
-    "section_description": "Start your health journey with HealthCompanion today.",
+    "section_description": "Get started with VT SaaS Template today.",
     "button_text": "Get Started"
   },
   "PricingPlan": {
@@ -55,12 +55,12 @@
     "next_renew_date": "Your subscription renews on {date}"
   },
   "FAQ": {
-    "question": "How does HealthCompanion work?",
-    "answer": "HealthCompanion uses advanced AI to provide personalized health guidance based on your individual needs and goals. Chat with your AI health coach anytime to get evidence-based advice and support."
+    "question": "How does it work?",
+    "answer": "VT SaaS Template provides a complete foundation with authentication, AI chat integration, and modern UI components. Customize it to build your product quickly."
   },
   "CTA": {
-    "title": "Ready to Start Your Health Journey?",
-    "description": "Join HealthCompanion today and take control of your wellbeing.",
+    "title": "Ready to Get Started?",
+    "description": "Start building your next product today.",
     "button_text": "Get Started"
   },
   "Footer": {
@@ -89,24 +89,24 @@
     "chat": "Chat"
   },
   "Chat": {
-    "meta_title": "AI Health Coach Chat",
-    "meta_description": "Chat with your AI-powered health coach for personalized guidance and support"
+    "meta_title": "AI Assistant Chat",
+    "meta_description": "Chat with your AI assistant for personalized guidance and support"
   },
   "ChatPage": {
     "title": "Chat",
     "description": "Stay in one place while you switch between threads and get answers quickly."
   },
   "Dashboard": {
-    "meta_title": "HealthCompanion Dashboard",
-    "meta_description": "Your personal health dashboard - track your wellness journey and chat with your AI health coach."
+    "meta_title": "Dashboard",
+    "meta_description": "Your personal dashboard - access your account and chat with AI."
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",
     "title_bar_description": "Welcome to your dashboard",
     "welcome_message": "Welcome back, {name}!",
     "user_email": "Logged in as {email}",
-    "message_state_title": "Welcome to HealthCompanion",
-    "message_state_description": "Start chatting with your AI health coach to get personalized guidance for your wellness journey."
+    "message_state_title": "Welcome",
+    "message_state_description": "Start chatting with the AI assistant to get help with your questions."
   },
   "UserProfile": {
     "title_bar": "User Profile",

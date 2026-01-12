@@ -135,7 +135,7 @@ export default function SignUpPage() {
               Create Account
             </h1>
             <p className="text-sm text-gray-600 sm:text-base">
-              Join HealthCompanion and start your wellness journey
+              Create your account to get started
             </p>
           </div>
 

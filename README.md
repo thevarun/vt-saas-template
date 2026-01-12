@@ -1,12 +1,12 @@
-# HealthCompanion
+# VT SaaS Template
 
-> AI-powered health coaching through conversational interface
+> Production-ready SaaS template with authentication, AI chat, and modern UI
 
-HealthCompanion is a modern web application that provides personalized health guidance through AI-powered conversations. Built with Next.js 14 and powered by Dify AI, it offers users 24/7 access to intelligent health coaching in a secure, private environment.
+VT SaaS Template is a modern web application template that provides a solid foundation for building SaaS products. Built with Next.js 14 and powered by Dify AI, it offers authentication, real-time AI chat, and a responsive UI out of the box.
 
 ## Features
 
-- 🤖 **AI Health Coach** - Get personalized health guidance through natural conversations
+- 🤖 **AI Integration** - Chat interface with Dify AI backend
 - 🔒 **Secure Authentication** - Supabase-powered auth with email and OAuth support
 - 💬 **Real-time Chat** - Streaming AI responses with conversation history
 - 🌍 **Multi-language Support** - English, Hindi, and Bengali locales
@@ -46,8 +46,8 @@ HealthCompanion is a modern web application that provides personalized health gu
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/HealthCompanion.git
-   cd HealthCompanion
+   git clone https://github.com/yourusername/vt-saas-template.git
+   cd vt-saas-template
    ```
 
 2. **Install dependencies**
@@ -185,7 +185,7 @@ The application is compatible with any platform that supports Next.js 14:
 
 ## Architecture
 
-HealthCompanion follows a serverless architecture:
+VT SaaS Template follows a serverless architecture:
 
 - **Frontend**: React Server Components with selective client components
 - **Middleware**: Handles authentication and i18n routing
@@ -240,4 +240,4 @@ For issues, questions, or contributions:
 
 ---
 
-**HealthCompanion** - Your AI-powered health companion for a healthier life.
+**VT SaaS Template** - Build your next SaaS product faster.

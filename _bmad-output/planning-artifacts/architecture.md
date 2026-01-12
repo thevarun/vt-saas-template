@@ -13,7 +13,7 @@ inputDocuments:
   - /Users/varuntorka/Coding/HealthCompanion/docs/development-guide.md
   - /Users/varuntorka/Coding/HealthCompanion/docs/source-tree-analysis.md
 workflowType: 'architecture'
-project_name: 'HealthCompanion'
+project_name: 'VT SaaS Template'
 user_name: 'Varun'
 date: '2026-01-05'
 lastStep: 8

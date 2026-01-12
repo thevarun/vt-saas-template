@@ -1,5 +1,5 @@
 ---
-project_name: 'HealthCompanion'
+project_name: 'VT SaaS Template'
 user_name: 'Varun'
 date: '2026-01-06'
 sections_completed: ['technology_stack', 'language_rules', 'framework_rules', 'testing_rules', 'code_quality', 'development_workflow', 'critical_dont_miss_rules']

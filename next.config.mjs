@@ -32,8 +32,8 @@ export default withSentryConfig(
   {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
-    org: 'health-companion',
-    project: 'health-companion',
+    org: 'your-org',
+    project: 'your-project',
 
     // Only print logs for uploading source maps in CI
     silent: !process.env.CI,

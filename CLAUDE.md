@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the user's customized SaaS template, which they would be using for building multiple SaaS applications down the road. At this time, the project includes:
+VT SaaS Template is a production-ready SaaS template for building web applications. The project includes:
 
-1. **Supabase Authentication** (replaced Clerk) - Custom authentication with SSR support
-2. **Dify AI Integration** - Chat-based AI health assistant via proxy API
+1. **Supabase Authentication** - Custom authentication with SSR support
+2. **Dify AI Integration** - Chat-based AI assistant via proxy API
 3. **Assistant UI** (@assistant-ui/react) - Modern chat interface with streaming support
 
 ## Core Architecture
@@ -189,7 +189,7 @@ This verification ensures changes meet design standards and user requirements.
 
 ## Important Implementation Notes
 
-1. **Authentication**: This project uses Supabase, not Clerk (README mentions Clerk but it's been replaced)
+1. **Authentication**: This project uses Supabase Auth (not Clerk)
 2. **Chat Proxy Pattern**: Never expose Dify API key to client - always proxy through `/api/chat`
 3. **Streaming**: Chat uses SSE (Server-Sent Events) - ensure proper headers in responses
 4. **Conversation Persistence**: Track `conversation_id` from Dify for multi-turn conversations

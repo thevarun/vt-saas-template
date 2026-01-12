@@ -28,7 +28,7 @@ async function globalSetup(_config: FullConfig) {
   );
 
   // Test account credentials (stored in process.env for use in tests)
-  const TEST_EMAIL = `e2e-test-${Date.now()}@healthcompanion.test`;
+  const TEST_EMAIL = `e2e-test-${Date.now()}@vt-saas-template.test`;
   const TEST_PASSWORD = 'TestPassword123!';
 
   // Store credentials in env for access in tests

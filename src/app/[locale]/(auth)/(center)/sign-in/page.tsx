@@ -70,7 +70,7 @@ export default function SignInPage() {
               Welcome Back
             </h1>
             <p className="text-sm text-gray-600 sm:text-base">
-              Sign in to continue to HealthCompanion
+              Sign in to continue
             </p>
           </div>
 
@@ -146,7 +146,7 @@ export default function SignInPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-gray-500">New to HealthCompanion?</span>
+                <span className="bg-white px-4 text-gray-500">New here?</span>
               </div>
             </div>
 

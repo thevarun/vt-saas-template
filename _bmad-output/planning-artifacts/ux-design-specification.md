@@ -7,7 +7,7 @@ inputDocuments:
 workflowComplete: true
 ---
 
-# UX Design Specification HealthCompanion
+# UX Design Specification - VT SaaS Template
 
 **Author:** Varun
 **Date:** 2026-01-05
