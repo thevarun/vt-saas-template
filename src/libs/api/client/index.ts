@@ -9,6 +9,13 @@
  * ```
  */
 
+// Error display
+export {
+  formatValidationDetails,
+  getErrorMessage,
+  getErrorTitle,
+  isRetryableError,
+} from './displayError';
 // Error parsing
 export type { ParsedApiError } from './parseError';
 export {
@@ -19,11 +26,3 @@ export {
   isValidationError,
   parseApiError,
 } from './parseError';
-
-// Error display
-export {
-  formatValidationDetails,
-  getErrorMessage,
-  getErrorTitle,
-  isRetryableError,
-} from './displayError';

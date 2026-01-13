@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
 import { buttonVariants } from '@/components/ui/buttonVariants';
@@ -13,12 +14,12 @@ export const CTA = () => {
         title={t('title')}
         description={t('description')}
         buttons={(
-          <a
+          <Link
             className={buttonVariants({ variant: 'outline', size: 'lg' })}
             href="/sign-up"
           >
             {t('button_text')}
-          </a>
+          </Link>
         )}
       />
     </Section>

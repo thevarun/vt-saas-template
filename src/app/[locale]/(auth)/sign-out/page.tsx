@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { createClient } from '@/libs/supabase/client';
@@ -31,9 +32,9 @@ export default function SignOutPage() {
             <h2 className="text-3xl font-bold text-red-600">Error</h2>
             <p className="mt-4 text-sm text-gray-600">{error}</p>
             <p className="mt-4">
-              <a href="/" className="text-blue-600 hover:underline">
+              <Link href="/" className="text-blue-600 hover:underline">
                 Go to Home
-              </a>
+              </Link>
             </p>
           </div>
         </div>

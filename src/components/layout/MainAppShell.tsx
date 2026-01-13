@@ -10,7 +10,8 @@ import {
   User,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ThemeToggle } from '@/components/theme';
 import { Button } from '@/components/ui/button';

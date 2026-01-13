@@ -23,19 +23,19 @@
  * - INVALID_CONVERSATION_ID: Conversation ID is invalid or malformed
  * - DUPLICATE_CONVERSATION_ID: Conversation ID already exists
  */
-export type ApiErrorCode =
-  | 'AUTH_REQUIRED'
-  | 'FORBIDDEN'
-  | 'INVALID_REQUEST'
-  | 'VALIDATION_ERROR'
-  | 'NOT_FOUND'
-  | 'CONFLICT'
-  | 'DB_ERROR'
-  | 'INTERNAL_ERROR'
-  | 'DIFY_ERROR'
-  | 'MESSAGE_TOO_LONG'
-  | 'INVALID_CONVERSATION_ID'
-  | 'DUPLICATE_CONVERSATION_ID';
+export type ApiErrorCode
+  = | 'AUTH_REQUIRED'
+    | 'FORBIDDEN'
+    | 'INVALID_REQUEST'
+    | 'VALIDATION_ERROR'
+    | 'NOT_FOUND'
+    | 'CONFLICT'
+    | 'DB_ERROR'
+    | 'INTERNAL_ERROR'
+    | 'DIFY_ERROR'
+    | 'MESSAGE_TOO_LONG'
+    | 'INVALID_CONVERSATION_ID'
+    | 'DUPLICATE_CONVERSATION_ID';
 
 /**
  * Standard API error response format

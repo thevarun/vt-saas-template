@@ -101,7 +101,7 @@ function ChatInterfaceInner({ threadId, conversationId: initialConversationId }:
 
   // Create custom adapter for Dify backend (stable reference)
   const adapter = useMemo<ChatModelAdapter>(() => ({
-    async *run({ messages, abortSignal }) {
+    async* run({ messages, abortSignal }) {
       try {
         setError(null);
 

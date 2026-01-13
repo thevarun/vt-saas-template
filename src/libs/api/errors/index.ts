@@ -15,9 +15,15 @@
  * ```
  */
 
-// Types
-export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse } from './types';
-export { HTTP_STATUS } from './types';
+// Logging
+export type { ApiErrorContext } from './logger';
+export {
+  logApiError,
+  logAuthError,
+  logAuthzError,
+  logDbError,
+  logValidationError,
+} from './logger';
 
 // Response builders
 export {
@@ -33,6 +39,9 @@ export {
   validationError,
 } from './responses';
 
+// Types
+export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse } from './types';
+export { HTTP_STATUS } from './types';
 // Validation formatters
 export {
   formatFieldName,
@@ -41,13 +50,3 @@ export {
   formatZodErrorsReadable,
   getFirstZodError,
 } from './validation';
-
-// Logging
-export type { ApiErrorContext } from './logger';
-export {
-  logApiError,
-  logAuthError,
-  logAuthzError,
-  logDbError,
-  logValidationError,
-} from './logger';
