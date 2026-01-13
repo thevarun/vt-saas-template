@@ -1,0 +1,75 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      # Production dependency groups
+      react-ecosystem:
+        patterns:
+          - react
+          - react-dom
+          - next
+          - 'next-*'
+          - '@next/*'
+      supabase:
+        patterns:
+          - '@supabase/*'
+      ui-components:
+        patterns:
+          - '@radix-ui/*'
+          - lucide-react
+          - '@assistant-ui/*'
+      # Dev dependency groups
+      testing:
+        patterns:
+          - '@playwright/*'
+          - playwright
+          - vitest
+          - '@vitest/*'
+          - '@testing-library/*'
+      linting:
+        patterns:
+          - eslint
+          - 'eslint-*'
+          - '@eslint*'
+          - '@antfu/eslint-config'
+          - typescript
+      storybook:
+        patterns:
+          - storybook
+          - '@storybook/*'
+          - '@chromatic-com/*'
+      release-tools:
+        patterns:
+          - semantic-release
+          - '@semantic-release/*'
+          - '@commitlint/*'
+          - husky
+      # Everything else gets individual PRs (minor updates)
+    ignore:
+      # Ignore major version bumps for core framework (review manually)
+      - dependency-name: next
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: react
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: react-dom
+        update-types:
+          - 'version-update:semver-major'
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns:
+          - '*'
