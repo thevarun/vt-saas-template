@@ -27,6 +27,13 @@ qualityGateAgent: '.claude/agents/quality-gate-verifier.md'
 codeReviewAgent: '.claude/agents/principal-code-reviewer.md'
 specialistAgentsFolder: '.claude/agents/vt-bmad-dev-agents/'
 fallbackDevAgent: '_bmad/bmm/agents/dev.md'
+
+# Git workflow
+gitBranchPrefix: 'feature/epic-'
+baseBranch: 'main'
+
+# Agent creation
+agentCreatorSkill: '.claude/skills/agent-creator/SKILL.md'
 ---
 
 # Step 1: Epic Execution Initialization
@@ -93,23 +100,76 @@ First, check if a sidecar state file exists:
 - STOP here and load `{continueFile}` immediately
 - Let step-01b handle the continuation logic
 
-### 2. Get Epic File Path
+### 1.5 Git Sync Check
 
-If no existing state, prompt user for epic file:
+Before proceeding, verify git working directory status:
 
-"Welcome to the Epic Execution Orchestrator!
+**Execute checks:**
+1. `git status --porcelain` - Check for uncommitted changes
+2. `git fetch origin {baseBranch}` - Fetch latest from remote
+3. `git rev-list HEAD...origin/{baseBranch} --count` - Check commits behind/ahead
 
-I'll help you execute an entire epic autonomously, coordinating multiple specialized agents to implement each story.
+**Display results:**
+- ✅ Clean working directory, synced with remote → proceed automatically
+- ⚠️ Uncommitted changes found → list files, ask: "[C] Continue anyway | [S] Stop to commit first"
+- ⚠️ Behind remote by N commits → warn, ask: "[P] Pull first | [C] Continue anyway"
+- ⚠️ Ahead of remote → info only, proceed
 
-Please provide the path to your epic file:
-- Example: `docs/epics/epic-2-user-authentication.md`
-- Or I can search for epic files in your project"
+**If user chooses to stop:** Exit workflow, preserve no state.
 
-**Options:**
-- [P] Provide path manually
-- [S] Search for epic files
+### 2. Load Sprint Status
 
-### 3. Load and Parse Epic
+Read sprint-status.yaml at `{sprintStatus}`:
+
+1. Parse all epic entries
+2. Identify epics with status `backlog` or `in-progress`
+3. For each epic, count stories in backlog/ready-for-dev
+
+**Display:**
+```
+Welcome to the Epic Execution Orchestrator!
+
+Sprint Status Summary:
+  Epic 2: Complete Authentication (8 stories) - backlog
+  Epic 3: User Onboarding (7 stories) - backlog
+  ...
+```
+
+### 3. Select Epic to Execute
+
+**If user provided specific epic in initial message:**
+- Use that epic, confirm selection
+
+**If multiple epics available:**
+- Display list with story counts
+- Ask: "Which epic would you like to execute?"
+- Options: [1] Epic 2 | [2] Epic 3 | ... | [A] All (sequential)
+
+**Locate epic file:**
+- Search `{implementation_artifacts}` for epic-N-*.md matching selection
+- Parse and validate epic file
+
+### 3.5 Create Feature Branch
+
+Create dedicated branch for this epic's work:
+
+1. Generate branch name: `{gitBranchPrefix}{epic_number}-{sanitized_epic_name}`
+   - Sanitize: lowercase, replace spaces with hyphens, remove special chars
+   - Example: `feature/epic-2-auth-experience`
+
+2. Execute: `git checkout -b {branch_name}`
+
+3. Store in sidecar:
+```yaml
+git_workflow:
+  branch_name: "feature/epic-2-auth-experience"
+  base_branch: "main"
+  created_at: "[timestamp]"
+```
+
+**If branch creation fails:** Display error, ask user to resolve, retry.
+
+### 4. Load and Parse Epic
 
 Once epic path is confirmed:
 
@@ -129,7 +189,7 @@ Found X stories in epic:
   ...
 ```
 
-### 4. Validate Prerequisites
+### 5. Validate Prerequisites
 
 Check all required components exist:
 
@@ -165,7 +225,44 @@ Prerequisites Check:
 
 If any required prerequisite fails → display error and stop.
 
-### 5. Create Sidecar State File
+### 5.5 Create Specialist Agents
+
+Analyze epic and create specialized dev agents for the stories:
+
+**1. Analyze Epic Stories:**
+- Read each story title and description from epic file
+- Identify technical domains: frontend, backend, API, database, auth, etc.
+- Group stories by primary domain
+
+**2. Invoke Agent Creator:**
+Load and follow `{agentCreatorSkill}` steps 1-4:
+- Skip Step 0 (registry check) - always create fresh for this epic
+- Step 1: Context already gathered from epic analysis
+- Step 2: Design agents based on story domains
+- Step 3: Skip community research (use built-in patterns)
+- Step 4: Create agent files
+
+**3. Register Created Agents:**
+Add to sidecar:
+```yaml
+specialist_agents_created:
+  - name: "auth-specialist"
+    path: ".claude/agents/vt-bmad-dev-agents/auth-specialist.md"
+    stories: ["2.1", "2.3", "2.6"]
+  - name: "frontend-forms"
+    path: ".claude/agents/vt-bmad-dev-agents/frontend-forms.md"
+    stories: ["2.2", "2.4", "2.5"]
+```
+
+**4. Display Summary:**
+```
+Created X specialist agents for this epic:
+  - auth-specialist (3 stories)
+  - frontend-forms (3 stories)
+  - general-dev (2 stories - fallback)
+```
+
+### 6. Create Sidecar State File
 
 Initialize the execution state file:
 
@@ -184,6 +281,16 @@ epic_execution_state:
   started_at: "[timestamp]"
   last_updated: "[timestamp]"
 
+git_workflow:
+  branch_name: "[feature/epic-N-name]"
+  base_branch: "main"
+  created_at: "[timestamp]"
+
+specialist_agents_created:
+  - name: "[agent-name]"
+    path: "[path to agent file]"
+    stories: ["N.1", "N.2"]
+
 specialist_agents_available:
   - name: "[agent-name]"
     specialty: "[specialty]"
@@ -194,7 +301,7 @@ configuration:
   auto_commit: true
 ```
 
-### 6. Present Execution Plan
+### 7. Present Execution Plan
 
 Display the execution plan summary:
 
@@ -215,7 +322,7 @@ For each story:
 
 **Ready to begin autonomous execution?**"
 
-### 7. Present MENU OPTIONS
+### 8. Present MENU OPTIONS
 
 Display: **Select an Option:** [C] Start Epic Execution
 
