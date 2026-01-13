@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
 import type { DifyStreamEvent } from '@/libs/dify/types';

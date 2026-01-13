@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PATCH as PATCH_ARCHIVE } from '@/app/api/threads/[id]/archive/route';

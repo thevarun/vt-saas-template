@@ -12,10 +12,7 @@ export default defineConfig({
       include: ['src/**/*'],
       exclude: ['src/**/*.stories.{js,jsx,ts,tsx}', '**/*.d.ts'],
     },
-    environmentMatchGlobs: [
-      ['**/*.test.tsx', 'jsdom'],
-      ['src/hooks/**/*.test.ts', 'jsdom'],
-    ],
+    environment: 'jsdom', // Use jsdom by default for component tests
     setupFiles: ['./vitest-setup.ts'],
     env: loadEnv('', process.cwd(), ''),
   },

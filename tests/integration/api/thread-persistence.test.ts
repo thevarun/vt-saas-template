@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Integration tests for thread persistence (Story 3.2)
  * Tests that threads are created/updated when chat API is called
