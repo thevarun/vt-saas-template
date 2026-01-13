@@ -3,12 +3,12 @@
  * Run: node scripts/apply-migration.js
  */
 
-const { Pool } = require('pg');
 const fs = require('node:fs');
 const path = require('node:path');
-
 // Load DATABASE_URL from environment
 const dotenv = require('dotenv');
+
+const { Pool } = require('pg');
 
 const envPath = path.join(__dirname, '../.env.local');
 dotenv.config({ path: envPath });

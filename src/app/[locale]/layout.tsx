@@ -2,7 +2,7 @@ import '@/styles/global.css';
 
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
+import { getMessages } from 'next-intl/server';
 
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
@@ -42,7 +42,6 @@ export default async function RootLayout(props: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await props.params;
-  unstable_setRequestLocale(locale);
 
   // Using internationalization in Client Components
   const messages = await getMessages();

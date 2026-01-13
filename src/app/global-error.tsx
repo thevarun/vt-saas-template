@@ -3,6 +3,7 @@
 import '@/styles/global.css';
 
 import * as Sentry from '@sentry/nextjs';
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 /**
@@ -130,12 +131,12 @@ export default function GlobalError(props: {
               >
                 Reload Application
               </button>
-              <a
+              <Link
                 href="/"
                 className="inline-flex h-11 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 Go to Homepage
-              </a>
+              </Link>
             </div>
 
             {/* Footer */}

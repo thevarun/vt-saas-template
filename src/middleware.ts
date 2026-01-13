@@ -1,10 +1,10 @@
 /* eslint-disable simple-import-sort/imports */
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
 import {
-  type NextFetchEvent,
-  type NextRequest,
+
   NextResponse,
 } from 'next/server';
-import createMiddleware from 'next-intl/middleware';
 /* eslint-enable simple-import-sort/imports */
 
 import { createClient, updateSession } from '@/libs/supabase/middleware';

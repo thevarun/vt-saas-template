@@ -1,4 +1,4 @@
-import { getTranslations, unstable_setRequestLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 
 import { CTA } from '@/templates/CTA';
 import { FAQ } from '@/templates/FAQ';
@@ -24,8 +24,7 @@ export async function generateMetadata(props: { params: Promise<{ locale: string
 }
 
 const IndexPage = async (props: { params: Promise<{ locale: string }> }) => {
-  const { locale } = await props.params;
-  unstable_setRequestLocale(locale);
+  const { locale: _locale } = await props.params;
 
   // AC #4: Auth state is now checked client-side for better performance
   // Landing page is statically generated for fast load times and SEO

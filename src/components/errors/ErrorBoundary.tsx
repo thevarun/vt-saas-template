@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import { Component } from 'react';
 
 import { CardErrorFallback } from './ErrorFallback';
 import type { ErrorBoundaryProps, ErrorBoundaryState } from './types';
