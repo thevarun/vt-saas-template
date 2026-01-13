@@ -63,6 +63,13 @@ export default antfu({
   ...playwright.configs['flat/recommended'],
 }, {
   rules: {
+    // Allow shadcn/ui custom class names used for group targeting
+    'tailwindcss/no-custom-classname': ['warn', {
+      whitelist: ['destructive'],
+    }],
+  },
+}, {
+  rules: {
     'import/order': 'off', // Avoid conflicts with `simple-import-sort` plugin
     'sort-imports': 'off', // Avoid conflicts with `simple-import-sort` plugin
     'perfectionist/sort-imports': 'off', // Avoid conflicts with `simple-import-sort` plugin
