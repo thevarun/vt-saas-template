@@ -280,6 +280,7 @@ export function MyComponent() {
 ## CI/CD Pipeline
 
 The project uses GitHub Actions and Vercel for automated testing and deployment.
+Remote main is protected. Always start a new branch for making changes so we can create PR later. 
 
 ### Quick Reference
 
