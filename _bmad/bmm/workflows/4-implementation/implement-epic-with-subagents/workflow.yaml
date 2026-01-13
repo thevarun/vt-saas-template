@@ -38,4 +38,20 @@ coverage_threshold: 80
 max_retries: 3
 auto_commit: true
 
+# Git workflow settings
+feature_branch_prefix: "feature/epic-"
+auto_create_branch: true
+base_branch: "main"
+
+# Agent creation settings
+agent_creator_skill: ".claude/skills/agent-creator/SKILL.md"
+specialist_agents_created: []  # Populated by init step
+
+# PR settings
+auto_create_pr: true
+pr_base_branch: "main"
+
+# Retrospective settings
+retrospective_workflow: "_bmad/bmm/workflows/4-implementation/retrospective"
+
 standalone: true
