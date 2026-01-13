@@ -10,6 +10,8 @@ on:
 
 jobs:
   release:
+    # Only run if CI workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         node-version: [20.x]

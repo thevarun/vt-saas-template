@@ -308,6 +308,7 @@ npm run lint && npm run check-types && npm test && npm run build
 - `DIFY_API_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (for E2E test cleanup)
 - `SENTRY_AUTH_TOKEN` (optional)
 
 **Branch Protection:** ⚠️ NOT CONFIGURED - Recommended to enable on `main` branch

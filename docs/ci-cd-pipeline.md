@@ -48,6 +48,7 @@ Runs on every push to `main` and on all pull requests.
   2. Playwright E2E tests
 - **Environment Variables:**
   - All variables from unit tests
+  - `SUPABASE_SERVICE_ROLE_KEY` (for test account cleanup)
   - `SENTRY_AUTH_TOKEN` (optional)
 - **Caching:**
   - npm dependencies
@@ -92,6 +93,7 @@ Runs automatically after successful CI completion on `main` branch.
 - `DIFY_API_URL` ✓
 - `NEXT_PUBLIC_SUPABASE_URL` ✓
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` ✓
+- `SUPABASE_SERVICE_ROLE_KEY` ✓ (for E2E test cleanup)
 - `SENTRY_AUTH_TOKEN` (optional)
 
 ## Vercel Deployment
@@ -266,6 +268,7 @@ Settings → Secrets and variables → Actions → New repository secret
 - `DIFY_API_URL` - Dify API URL (e.g., https://api.dify.ai/v1)
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for E2E test account cleanup)
 - `SENTRY_AUTH_TOKEN` - Optional for source map uploads
 
 **List secrets:**

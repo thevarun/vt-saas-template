@@ -15,8 +15,8 @@ export class DashboardPage {
 
   // Verification methods
   async getPersonalizedGreeting() {
-    // Look for dashboard greeting that includes user email or name
-    return this.page.locator('h1, h2, [data-testid="greeting"]').first();
+    // Target greeting in main content area, not sidebar
+    return this.page.locator('main h1, main h2, [data-testid="greeting"]').first();
   }
 
   async getUserEmail() {
@@ -28,7 +28,8 @@ export class DashboardPage {
 
   // Navigation links
   getChatLink() {
-    return this.page.locator('a[href*="/chat"], button:has-text("Chat")');
+    // Use .first() to avoid strict mode violation when multiple chat links exist
+    return this.page.locator('a[href*="/chat"], button:has-text("Chat")').first();
   }
 
   getHomeLink() {

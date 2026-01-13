@@ -17,7 +17,7 @@ test.describe('Sanity', () => {
     test('should display the homepage', async ({ page, baseURL }) => {
       await page.goto(`${baseURL}/`);
 
-      await expect(page.getByText('Your AI-powered health companion for a healthier life.')).toBeVisible();
+      await expect(page.getByText('A production-ready template with authentication, AI integration, and everything you need to launch quickly.')).toBeVisible();
     });
   });
 });

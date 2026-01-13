@@ -28,6 +28,13 @@ async function globalTeardown(_config: FullConfig) {
     return;
   }
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY is required for E2E test cleanup. '
+      + 'Add it to GitHub secrets or .env.local to prevent test account accumulation.',
+    );
+  }
+
   // Create Supabase admin client using service role key
   // NOTE: Service role key has admin privileges - only use in tests
   const supabaseAdmin = createClient(
