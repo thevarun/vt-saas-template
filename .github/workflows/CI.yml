@@ -15,7 +15,40 @@ concurrency:
 
 jobs:
   # ============================================
-  # Lint & Type Check
+  # Detect Changes (denylist approach)
+  # ============================================
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v6
+
+      # Denylist approach: Define what counts as "docs only".
+      # Uses predicate-quantifier: 'every' so docs_only=true ONLY when
+      # ALL changed files match these patterns (not just "any").
+      # Any file NOT matching these patterns triggers full CI.
+      # This is safer - new files trigger CI by default.
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          predicate-quantifier: every
+          filters: |
+            docs_only:
+              - '*.md'
+              - 'docs/**'
+              - '_bmad-output/**'
+              - '.github/*.md'
+              - '.github/ISSUE_TEMPLATE/**'
+              - '.github/PULL_REQUEST_TEMPLATE/**'
+              - '.vscode/**'
+              - LICENSE
+              - .editorconfig
+
+  # ============================================
+  # Lint & Type Check (always runs)
   # ============================================
   lint:
     name: Lint & Types
@@ -42,13 +75,14 @@ jobs:
       - run: npm run check-types
 
   # ============================================
-  # Unit Tests
+  # Unit Tests (skip for docs-only changes)
   # ============================================
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.docs_only != 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -68,13 +102,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # ============================================
-  # Build & E2E Tests
+  # Build & E2E Tests (skip for docs-only changes)
   # ============================================
   e2e:
     name: Build & E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.docs_only != 'true'
 
     steps:
       - uses: actions/checkout@v6
