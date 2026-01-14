@@ -22,13 +22,12 @@ epic_file: "" # User provides or auto-discover
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
-# Output files
-sidecar_file: "{output_folder}/epic-execution-state.yaml"
+# Output files (legacy - kept for reference, see sidecar_folder below)
+# sidecar_file: "{output_folder}/epic-execution-state.yaml"  # DEPRECATED
 completion_report: "{output_folder}/epic-reports/epic-completion-{epic_name}-{date}.md"
 
 # Agent references
 story_prep_agent: ".claude/agents/story-prep-master.md"
-quality_gate_agent: ".claude/agents/quality-gate-verifier.md"
 code_review_agent: ".claude/agents/principal-code-reviewer.md"
 specialist_agents_folder: ".claude/agents/vt-bmad-dev-agents/"
 fallback_dev_agent: "_bmad/bmm/agents/dev.md"
@@ -55,3 +54,34 @@ pr_base_branch: "main"
 retrospective_workflow: "_bmad/bmm/workflows/4-implementation/retrospective"
 
 standalone: true
+
+# ═══════════════════════════════════════════
+# WORKTREE CONFIGURATION
+# ═══════════════════════════════════════════
+
+# Worktree mode: "ask" | "always" | "never"
+#   ask    - Prompt user each time (default)
+#   always - Always use worktree, skip prompt
+#   never  - Never use worktree, classic behavior
+worktree_mode: "ask"
+
+# Directory pattern for worktrees (relative to main repo parent)
+# Available variables: {project_name}, {epic_number}, {epic_name_sanitized}
+worktree_directory_pattern: "../{project_name}-epic-{epic_number}-{epic_name_sanitized}"
+
+# Branch pattern for worktree branches
+worktree_branch_pattern: "feature/epic-{epic_number}-{epic_name_sanitized}"
+
+# Dependency installation command (auto-detected if empty)
+# Examples: "npm install", "yarn", "pnpm install", "bun install"
+dependency_command: ""
+
+# ═══════════════════════════════════════════
+# SIDECAR CONFIGURATION
+# ═══════════════════════════════════════════
+
+# Sidecar storage folder (will be gitignored)
+sidecar_folder: "{output_folder}/epic-executions"
+
+# Sidecar file pattern
+sidecar_file_pattern: "epic-{epic_number}-state.yaml"

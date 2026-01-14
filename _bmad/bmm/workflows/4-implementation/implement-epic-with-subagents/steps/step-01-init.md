@@ -1,341 +1,210 @@
 ---
 name: 'step-01-init'
-description: 'Initialize epic execution by loading epic, validating prerequisites, and setting up execution state'
+description: 'Entry router - detect context and route to appropriate initialization path'
 
 # Path Definitions
 workflow_path: '{project-root}/_bmad/bmm/workflows/4-implementation/implement-epic-with-subagents'
 
 # File References
 thisStepFile: '{workflow_path}/steps/step-01-init.md'
-nextStepFile: '{workflow_path}/steps/step-02-orchestrate.md'
 continueFile: '{workflow_path}/steps/step-01b-continue.md'
+newSetupFile: '{workflow_path}/steps/step-01c-new.md'
 workflowFile: '{workflow_path}/workflow.md'
 
-# Template References
-# (none required for init step)
-
-# Task References
-# (none required for init step)
-
 # State files
-sidecarFile: '{output_folder}/epic-execution-state.yaml'
+sidecarFolder: '{output_folder}/epic-executions'
 sprintStatus: '{implementation_artifacts}/sprint-status.yaml'
-
-# Agent references
-storyPrepAgent: '.claude/agents/story-prep-master.md'
-qualityGateAgent: '.claude/agents/quality-gate-verifier.md'
-codeReviewAgent: '.claude/agents/principal-code-reviewer.md'
-specialistAgentsFolder: '.claude/agents/vt-bmad-dev-agents/'
-fallbackDevAgent: '_bmad/bmm/agents/dev.md'
-
-# Git workflow
-gitBranchPrefix: 'feature/epic-'
-baseBranch: 'main'
-
-# Agent creation
-agentCreatorSkill: '.claude/skills/agent-creator/SKILL.md'
 ---
 
-# Step 1: Epic Execution Initialization
+# Step 1: Entry Router
 
 ## STEP GOAL:
 
-To initialize the epic execution workflow by loading the epic file, validating all prerequisites (agents, MCP tools), parsing stories, and setting up the execution state for autonomous processing.
+To detect the execution context (worktree vs main repo), discover any existing epic execution state, and route to the appropriate next step.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
 ### Universal Rules:
 
-- 🛑 NEVER generate content without user input
+- 🛑 NEVER skip detection steps
 - 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step with 'C', ensure entire file is read
-- 📋 YOU ARE A FACILITATOR, not a content generator
-
-### Orchestrator-Specific Rules:
-
-- 🛑 NEVER proceed without user confirmation on epic file
-- 🔄 CRITICAL: Validate ALL prerequisites before starting execution
-- 📋 YOU ARE AN ORCHESTRATOR, coordinating sub-agents
+- 📋 YOU ARE A ROUTER, not an executor
 
 ### Role Reinforcement:
 
 - ✅ You are an Epic Execution Orchestrator
-- ✅ You coordinate multiple specialized agents to implement stories
-- ✅ You maintain execution state and handle failures gracefully
-- ✅ You communicate progress clearly and concisely
+- ✅ This step ONLY detects context and routes
+- ✅ All initialization logic is in step-01c
+- ✅ All continuation logic is in step-01b
 
 ### Step-Specific Rules:
 
-- 🎯 Focus ONLY on initialization and validation
+- 🎯 Focus ONLY on detection and routing
+- 🚫 FORBIDDEN to start epic setup in this step
 - 🚫 FORBIDDEN to start story execution in this step
-- 💬 Validate prerequisites thoroughly
-- 🚪 DETECT existing sidecar state and route to continuation
+- 🚪 ROUTE to appropriate step based on detection results
 
-## EXECUTION PROTOCOLS:
+## DETECTION SEQUENCE:
 
-- 🎯 Show validation results before proceeding
-- 💾 Create sidecar state file for execution tracking
-- 📖 Parse all stories from epic before execution
-- 🚫 FORBIDDEN to proceed if prerequisites fail
+### 1. Detect Worktree Context
 
-## CONTEXT BOUNDARIES:
+Execute git commands to determine if running in a worktree:
 
-- Variables from workflow.yaml are available
-- Epic file path from user or auto-discovery
-- Sprint-status.yaml provides story states
-- Sidecar file tracks execution progress
+```bash
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)
+```
 
-## INITIALIZATION SEQUENCE:
+**Interpretation:**
+- If `$GIT_DIR` != `$GIT_COMMON` → Running in a WORKTREE
+- If `$GIT_DIR` == `$GIT_COMMON` → Running in MAIN REPO
 
-### 1. Check for Existing Execution State
+**Store context:**
+```
+is_worktree: true | false
+current_path: $(pwd)
+```
 
-First, check if a sidecar state file exists:
+### 2. Discover Sidecar Files
 
-- Look for file at `{sidecarFile}`
-- If exists and has pending stories → route to step-01b-continue.md
-- If exists and all stories complete → ask about new epic
-- If not exists → proceed with fresh initialization
+Scan for existing epic execution state files:
 
-**If sidecar exists with pending work:**
-- STOP here and load `{continueFile}` immediately
-- Let step-01b handle the continuation logic
+```bash
+ls -la {sidecarFolder}/epic-*-state.yaml 2>/dev/null
+```
 
-### 1.5 Git Sync Check
+**For each sidecar found, extract:**
+- Epic number (from filename pattern)
+- `current_phase` value
+- `worktree_config.worktree_path` (if present)
+- `stories_pending` count
 
-Before proceeding, verify git working directory status:
+**Build sidecar list:**
+```
+sidecars_found:
+  - file: "epic-2-state.yaml"
+    epic_number: 2
+    phase: "executing"
+    worktree_path: "/path/to/worktree" | null
+    pending_stories: 5
+```
 
-**Execute checks:**
-1. `git status --porcelain` - Check for uncommitted changes
-2. `git fetch origin {baseBranch}` - Fetch latest from remote
-3. `git rev-list HEAD...origin/{baseBranch} --count` - Check commits behind/ahead
+### 3. Route Decision
 
-**Display results:**
-- ✅ Clean working directory, synced with remote → proceed automatically
-- ⚠️ Uncommitted changes found → list files, ask: "[C] Continue anyway | [S] Stop to commit first"
-- ⚠️ Behind remote by N commits → warn, ask: "[P] Pull first | [C] Continue anyway"
-- ⚠️ Ahead of remote → info only, proceed
+Based on detection results, determine the appropriate path:
 
-**If user chooses to stop:** Exit workflow, preserve no state.
+#### Scenario A: In Worktree with Matching Sidecar
 
-### 2. Load Sprint Status
+**Conditions:**
+- `is_worktree` = true
+- Found sidecar where `worktree_config.worktree_path` == `current_path`
+- Sidecar has `stories_pending` > 0
 
-Read sprint-status.yaml at `{sprintStatus}`:
+**Action:** Route to `{continueFile}` with matched sidecar
 
-1. Parse all epic entries
-2. Identify epics with status `backlog` or `in-progress`
-3. For each epic, count stories in backlog/ready-for-dev
+**Display:**
+```
+Detected: Running in worktree for Epic {N}
+Found matching execution state with {X} stories pending.
+
+Routing to continuation...
+```
+
+→ Load, read entire file, then execute `{continueFile}`
+
+---
+
+#### Scenario B: In Worktree, Awaiting Session Restart
+
+**Conditions:**
+- `is_worktree` = true
+- Found sidecar where `worktree_config.worktree_path` == `current_path`
+- Sidecar has `current_phase` = "awaiting_session_restart"
+
+**Action:** Update sidecar phase to "executing", route to orchestration
+
+**Display:**
+```
+Detected: Fresh session in worktree for Epic {N}
+Setup was completed in previous session.
+
+Ready to begin story execution...
+```
+
+→ Update sidecar: `current_phase: "executing"`
+→ Load, read entire file, then execute step-02-orchestrate.md
+
+---
+
+#### Scenario C: In Worktree, No Matching Sidecar
+
+**Conditions:**
+- `is_worktree` = true
+- No sidecar matches `current_path`
+
+**Action:** Error state - worktree exists but no state found
+
+**Display:**
+```
+⚠️ Warning: Running in a worktree but no matching execution state found.
+
+This worktree may have been created manually or state was lost.
+
+Options:
+[N] Start new epic setup (will use this worktree)
+[X] Exit and investigate
+```
+
+- IF N: Route to `{newSetupFile}` (skip worktree creation, use current)
+- IF X: EXIT workflow
+
+---
+
+#### Scenario D: In Main Repo with Pending Sidecars
+
+**Conditions:**
+- `is_worktree` = false
+- Found sidecars with `stories_pending` > 0
+
+**Action:** Show existing executions, ask user intent
+
+**Display:**
+```
+Found existing epic execution(s):
+
+  Epic 2: "Auth Experience" - 5 stories pending
+    └─ Worktree: ../vt-saas-template-epic-2-auth/
+  Epic 3: "User Onboarding" - 7 stories pending (main repo)
+
+Options:
+[1] Continue Epic 2 (requires: cd ../vt-saas-template-epic-2-auth/)
+[2] Continue Epic 3
+[N] Start NEW epic execution
+```
+
+- IF number selected for worktree epic: Display cd command and exit
+- IF number selected for main repo epic: Route to `{continueFile}`
+- IF N: Route to `{newSetupFile}`
+
+---
+
+#### Scenario E: In Main Repo, No Active Sidecars
+
+**Conditions:**
+- `is_worktree` = false
+- No sidecars found OR all sidecars have `current_phase` = "complete"
+
+**Action:** Fresh start - route to new epic setup
 
 **Display:**
 ```
 Welcome to the Epic Execution Orchestrator!
 
-Sprint Status Summary:
-  Epic 2: Complete Authentication (8 stories) - backlog
-  Epic 3: User Onboarding (7 stories) - backlog
-  ...
+No active epic executions found.
+Starting new epic setup...
 ```
 
-### 3. Select Epic to Execute
-
-**If user provided specific epic in initial message:**
-- Use that epic, confirm selection
-
-**If multiple epics available:**
-- Display list with story counts
-- Ask: "Which epic would you like to execute?"
-- Options: [1] Epic 2 | [2] Epic 3 | ... | [A] All (sequential)
-
-**Locate epic file:**
-- Search `{implementation_artifacts}` for epic-N-*.md matching selection
-- Parse and validate epic file
-
-### 3.5 Create Feature Branch
-
-Create dedicated branch for this epic's work:
-
-1. Generate branch name: `{gitBranchPrefix}{epic_number}-{sanitized_epic_name}`
-   - Sanitize: lowercase, replace spaces with hyphens, remove special chars
-   - Example: `feature/epic-2-auth-experience`
-
-2. Execute: `git checkout -b {branch_name}`
-
-3. Store in sidecar:
-```yaml
-git_workflow:
-  branch_name: "feature/epic-2-auth-experience"
-  base_branch: "main"
-  created_at: "[timestamp]"
-```
-
-**If branch creation fails:** Display error, ask user to resolve, retry.
-
-### 4. Load and Parse Epic
-
-Once epic path is confirmed:
-
-1. Read the complete epic file
-2. Parse all stories using pattern: `### Story N.M:`
-3. Extract for each story:
-   - Story number (N.M)
-   - Story title
-   - Acceptance criteria summary
-4. Build story execution list
-
-**Display parsed stories:**
-```
-Found X stories in epic:
-  - Story N.1: [title]
-  - Story N.2: [title]
-  ...
-```
-
-### 5. Validate Prerequisites
-
-Check all required components exist:
-
-**Agents:**
-- [ ] story-prep-master agent at `{storyPrepAgent}`
-- [ ] quality-gate-verifier agent at `{qualityGateAgent}`
-- [ ] principal-code-reviewer agent at `{codeReviewAgent}`
-- [ ] Fallback dev agent at `{fallbackDevAgent}`
-
-**Specialist Agents (Optional):**
-- [ ] Check `{specialistAgentsFolder}` for available specialists
-- List found specialists with their specialties
-
-**MCP Tools:**
-- [ ] Context-7 MCP available (check via tool availability)
-
-**Files:**
-- [ ] Sprint-status.yaml exists at `{sprintStatus}`
-- [ ] Project-context.md exists (optional, search `**/project-context.md`)
-
-**Display validation results:**
-```
-Prerequisites Check:
-  ✅ story-prep-master agent
-  ✅ quality-gate-verifier agent
-  ✅ principal-code-reviewer agent
-  ✅ Fallback dev agent (Amelia)
-  ✅ Specialist agents folder (X specialists found)
-  ✅ Context-7 MCP
-  ✅ Sprint-status.yaml
-  ⚪ Project-context.md (optional, not found)
-```
-
-If any required prerequisite fails → display error and stop.
-
-### 5.5 Create Specialist Agents
-
-Analyze epic and create specialized dev agents for the stories:
-
-**1. Analyze Epic Stories:**
-- Read each story title and description from epic file
-- Identify technical domains: frontend, backend, API, database, auth, etc.
-- Group stories by primary domain
-
-**2. Invoke Agent Creator:**
-Load and follow `{agentCreatorSkill}` steps 1-4:
-- Skip Step 0 (registry check) - always create fresh for this epic
-- Step 1: Context already gathered from epic analysis
-- Step 2: Design agents based on story domains
-- Step 3: Skip community research (use built-in patterns)
-- Step 4: Create agent files
-
-**3. Register Created Agents:**
-Add to sidecar:
-```yaml
-specialist_agents_created:
-  - name: "auth-specialist"
-    path: ".claude/agents/vt-bmad-dev-agents/auth-specialist.md"
-    stories: ["2.1", "2.3", "2.6"]
-  - name: "frontend-forms"
-    path: ".claude/agents/vt-bmad-dev-agents/frontend-forms.md"
-    stories: ["2.2", "2.4", "2.5"]
-```
-
-**4. Display Summary:**
-```
-Created X specialist agents for this epic:
-  - auth-specialist (3 stories)
-  - frontend-forms (3 stories)
-  - general-dev (2 stories - fallback)
-```
-
-### 6. Create Sidecar State File
-
-Initialize the execution state file:
-
-```yaml
-epic_execution_state:
-  epic_file: "[epic path]"
-  epic_name: "[parsed epic name]"
-  total_stories: X
-  current_story: null
-  current_phase: "initialized"
-  stories_completed: []
-  stories_pending: ["N.1", "N.2", ...]
-  stories_skipped: []
-  stories_failed: []
-  execution_log: []
-  started_at: "[timestamp]"
-  last_updated: "[timestamp]"
-
-git_workflow:
-  branch_name: "[feature/epic-N-name]"
-  base_branch: "main"
-  created_at: "[timestamp]"
-
-specialist_agents_created:
-  - name: "[agent-name]"
-    path: "[path to agent file]"
-    stories: ["N.1", "N.2"]
-
-specialist_agents_available:
-  - name: "[agent-name]"
-    specialty: "[specialty]"
-
-configuration:
-  coverage_threshold: 80
-  max_retries: 3
-  auto_commit: true
-```
-
-### 7. Present Execution Plan
-
-Display the execution plan summary:
-
-"**Epic Execution Plan**
-
-**Epic:** [epic name]
-**Stories:** X total
-**Agents:** 4 orchestrated agents per story
-**Estimated Flow:**
-
-For each story:
-1. Create story file (story-prep-master)
-2. Implement (specialist or dev agent)
-3. Verify quality (quality-gate-verifier)
-4. Review code (principal-code-reviewer)
-5. Git commit
-6. Update status
-
-**Ready to begin autonomous execution?**"
-
-### 8. Present MENU OPTIONS
-
-Display: **Select an Option:** [C] Start Epic Execution
-
-#### EXECUTION RULES:
-
-- ALWAYS halt and wait for user confirmation
-- User must explicitly approve execution start
-- Display brief reminder about escalation behavior
-
-#### Menu Handling Logic:
-
-- IF C: Update sidecar with `current_phase: "executing"`, then load, read entire file, then execute `{nextStepFile}`
-- IF Any questions: Respond and redisplay menu
+→ Load, read entire file, then execute `{newSetupFile}`
 
 ---
 
@@ -343,23 +212,17 @@ Display: **Select an Option:** [C] Start Epic Execution
 
 ### ✅ SUCCESS:
 
-- Epic file loaded and parsed successfully
-- All required prerequisites validated
-- Sidecar state file created
-- Story list extracted and ready
-- User confirmed execution start
-- Routed to step-02 OR step-01b as appropriate
+- Correctly detected worktree vs main repo context
+- Found and parsed all existing sidecar files
+- Routed to appropriate step based on scenario
+- User given clear options when multiple paths exist
 
 ### ❌ SYSTEM FAILURE:
 
-- Proceeding without epic file validation
-- Not checking for existing sidecar state
-- Skipping prerequisite validation
-- Starting execution without user confirmation
-- Not creating sidecar state file
+- Starting epic setup directly (that's step-01c's job)
+- Starting continuation directly (that's step-01b's job)
+- Not detecting worktree context
+- Not scanning for existing sidecars
+- Making assumptions without detection
 
-**Master Rule:** Skipping steps, optimizing sequences, or not following exact instructions is FORBIDDEN and constitutes SYSTEM FAILURE.
-
-## CRITICAL STEP COMPLETION NOTE
-
-ONLY WHEN [C] is selected and sidecar state is initialized, will you then load, read entire file, then execute `{nextStepFile}` to begin story orchestration.
+**Master Rule:** This step ONLY detects and routes. All execution logic belongs in subsequent steps.

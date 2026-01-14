@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VT SaaS Template is a production-ready SaaS template for building web applications. The project includes:
+VT SaaS Template is a production-ready foundation for building SaaS web applications, designed for a solo developer who prioritizes productivity and efficiency. 
 
+The project includes:
 1. **Supabase Authentication** - Custom authentication with SSR support
 2. **Dify AI Integration** - Chat-based AI assistant via proxy API
 3. **Assistant UI** (@assistant-ui/react) - Modern chat interface with streaming support

@@ -11,14 +11,8 @@ nextStepFile: '{workflow_path}/steps/step-02-orchestrate.md'
 completionStepFile: '{workflow_path}/steps/step-03-complete.md'
 workflowFile: '{workflow_path}/workflow.md'
 
-# Template References
-# (none required for continuation step)
-
-# Task References
-# (none required for continuation step)
-
 # State files
-sidecarFile: '{output_folder}/epic-execution-state.yaml'
+sidecarFolder: '{output_folder}/epic-executions'
 sprintStatus: '{implementation_artifacts}/sprint-status.yaml'
 ---
 
@@ -70,102 +64,193 @@ To resume epic execution from a previous session by loading the sidecar state, d
 - Previous stories may be completed, in-progress, or pending
 - Current phase indicates where to resume within a story
 - Sprint-status.yaml reflects actual story states
+- Worktree context affects where execution continues
 
 ## CONTINUATION SEQUENCE:
 
+### 0. Context Awareness
+
+**Note:** This step is routed from step-01-init which already detected:
+- Whether we're in a worktree or main repo
+- Which sidecar file to use (passed as context)
+
+If sidecar was NOT specified by router (edge case):
+
+```bash
+# Detect worktree context
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)
+CURRENT_PATH=$(pwd)
+
+# If in worktree, find matching sidecar
+if [ "$GIT_DIR" != "$GIT_COMMON" ]; then
+  # Search for sidecar with matching worktree_path
+  # Parse each epic-*-state.yaml and match worktree_config.worktree_path
+fi
+```
+
+**Worktree-specific notes:**
+- Sidecar files are ALWAYS in main repo's `{sidecarFolder}`
+- When in worktree, sidecar is accessed via the shared git history
+- `worktree_config.worktree_path` in sidecar identifies the worktree
+
 ### 1. Load Sidecar State
 
-Read the complete sidecar file at `{sidecarFile}`:
+Read the sidecar file at `{sidecarFolder}/epic-{N}-state.yaml`:
 
 Extract:
-- `epic_file`: Path to epic being executed
-- `epic_name`: Name of the epic
-- `current_story`: Story that was being processed (may be null)
-- `current_phase`: Phase within story (create/dev/quality/review/commit)
-- `stories_completed`: List of finished stories
-- `stories_pending`: List of remaining stories
-- `stories_skipped`: List of skipped stories
-- `stories_failed`: List of failed stories
-- `started_at`: Original start timestamp
-- `last_updated`: Last activity timestamp
+- `epic_execution_state.epic_file`: Path to epic being executed
+- `epic_execution_state.epic_name`: Name of the epic
+- `epic_execution_state.epic_number`: Epic number
+- `epic_execution_state.current_story`: Story that was being processed (may be null)
+- `epic_execution_state.current_phase`: Phase within story (create/dev/visual/review/commit)
+- `epic_execution_state.stories_completed`: List of finished stories
+- `epic_execution_state.stories_pending`: List of remaining stories
+- `epic_execution_state.stories_skipped`: List of skipped stories
+- `epic_execution_state.stories_failed`: List of failed stories
+- `epic_execution_state.started_at`: Original start timestamp
+- `epic_execution_state.last_updated`: Last activity timestamp
+- `execution_mode.type`: "worktree" | "main"
+- `worktree_config` (if worktree mode):
+  - `worktree_path`: Absolute path to worktree
+  - `branch_name`: Feature branch name
+  - `main_repo_path`: Path to main repository
 
-### 2. Analyze Execution State
+### 2. Validate Execution Context
+
+**If sidecar indicates worktree mode:**
+
+Check current working directory matches expected worktree:
+
+```bash
+EXPECTED_PATH=$(grep 'worktree_path:' sidecar.yaml | awk '{print $2}')
+CURRENT_PATH=$(pwd)
+
+if [ "$CURRENT_PATH" != "$EXPECTED_PATH" ]; then
+  # Wrong directory - warn user
+fi
+```
+
+**If mismatch detected:**
+```
+⚠️ Context Mismatch
+
+This epic execution was configured for worktree mode:
+  Expected: {worktree_path}
+  Current:  {current_path}
+
+Options:
+[P] Proceed anyway (may cause issues)
+[X] Exit and navigate to correct directory
+```
+
+### 3. Analyze Execution State
 
 Determine resume scenario:
 
 **Scenario A: Mid-Story Resume**
-If `current_story` is set and `current_phase` is not null:
+If `current_story` is set and `current_phase` is not "between_stories":
 - Resume at the specific phase of that story
 - Example: Story 2.3 was in "dev" phase → resume dev
 
 **Scenario B: Between Stories**
-If `current_story` is null or phase is "complete":
+If `current_story` is null or phase is "between_stories":
 - Start next story from `stories_pending[0]`
 
 **Scenario C: All Stories Complete**
 If `stories_pending` is empty:
-- Route to step-03-complete for report generation
+- Route to step-03-complete for report generation and cleanup
 
-### 3. Display Resume Summary
+### 4. Display Resume Summary
 
-"**Welcome Back!**
+```
+**Welcome Back!**
 
-**Epic:** [epic_name]
-**Started:** [started_at]
-**Last Activity:** [last_updated]
+**Epic:** {epic_name} (Epic {epic_number})
+**Mode:** {execution_mode.type}
+**Started:** {started_at}
+**Last Activity:** {last_updated}
+
+**Location:**
+{If worktree: "Worktree: {worktree_path}"}
+{If main: "Main repository"}
 
 **Progress:**
-- ✅ Completed: [X] stories
-- ⏸️ Skipped: [X] stories
-- ❌ Failed: [X] stories
-- ⏳ Pending: [X] stories
+- ✅ Completed: {X} stories
+- ⏸️ Skipped: {X} stories
+- ❌ Failed: {X} stories
+- ⏳ Pending: {X} stories
 
 **Resume Point:**
-[Based on scenario - describe where we'll resume]
+{Based on scenario - describe where we'll resume}
 
 Example outputs:
 - 'Resuming Story 2.3 at development phase'
 - 'Starting Story 2.4 (previous story completed)'
-- 'All stories complete - ready to generate report'"
+- 'All stories complete - ready to generate report'
+```
 
-### 4. Validate Resume Readiness
+### 5. Validate Resume Readiness
 
 Quick prerequisite check:
 - Epic file still exists and readable
 - Sprint-status.yaml accessible
 - Required agents still available
+- If worktree: worktree still exists and is valid
 
 If any critical issue → report and ask user how to proceed.
 
-### 5. Confirm Continuation Intent
+### 6. Confirm Continuation Intent
 
-"**Ready to continue?**
+```
+**Ready to continue?**
 
-Would you like to:
-- [C] Continue from [resume point]
-- [R] Restart epic from beginning (will lose progress)
-- [S] Show detailed execution log"
+Options:
+[C] Continue from {resume point}
+[R] Restart epic from beginning (will lose progress)
+[S] Show detailed execution log
+```
 
-### 6. Handle Menu Selection
+### 7. Handle Menu Selection
 
 #### IF C (Continue):
-1. Update sidecar: add `resumed_at: [timestamp]` to execution_log
-2. Set `current_phase` appropriately for resume
-3. Route based on scenario:
-   - Scenario A/B → load step-02-orchestrate.md
-   - Scenario C → load step-03-complete.md
+1. Update sidecar:
+   ```yaml
+   execution_log:
+     - event: "session_resumed"
+       timestamp: "{current_timestamp}"
+       from_phase: "{current_phase}"
+   last_updated: "{current_timestamp}"
+   ```
+2. Route based on scenario:
+   - Scenario A/B → load, read entire file, then execute `{nextStepFile}`
+   - Scenario C → load, read entire file, then execute `{completionStepFile}`
 
 #### IF R (Restart):
 1. Confirm: "This will clear all progress. Are you sure? [Y/N]"
-2. If Y: Delete sidecar, route to step-01-init.md
+2. If Y:
+   - If worktree mode: Also ask about worktree cleanup
+   - Delete sidecar file
+   - Route to step-01-init.md (will go to step-01c for new setup)
 3. If N: Redisplay menu
 
 #### IF S (Show Log):
-1. Display execution_log entries
-2. Show per-story details
+1. Display execution_log entries with timestamps
+2. Show per-story details:
+   ```
+   Execution Log:
+
+   [timestamp] Session started
+   [timestamp] Story 2.1 - create phase completed
+   [timestamp] Story 2.1 - dev phase completed (auth-specialist)
+   [timestamp] Story 2.1 - review approved
+   [timestamp] Story 2.1 - committed
+   [timestamp] Session interrupted
+   [timestamp] Session resumed ← current
+   ```
 3. Redisplay menu
 
-### 7. Present MENU OPTIONS
+### 8. Present MENU OPTIONS
 
 Display: **Select an Option:** [C] Continue | [R] Restart | [S] Show Log
 
@@ -191,6 +276,7 @@ Display: **Select an Option:** [C] Continue | [R] Restart | [S] Show Log
 ### ✅ SUCCESS:
 
 - Sidecar state loaded and analyzed correctly
+- Worktree context validated (if applicable)
 - Resume point determined accurately
 - User confirmed continuation
 - Proper routing to next step
@@ -199,6 +285,7 @@ Display: **Select an Option:** [C] Continue | [R] Restart | [S] Show Log
 ### ❌ SYSTEM FAILURE:
 
 - Not loading complete sidecar state
+- Not validating worktree context
 - Incorrect resume point determination
 - Re-executing completed stories
 - Not confirming with user before resuming

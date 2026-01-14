@@ -1,6 +1,6 @@
 ---
 name: principal-code-reviewer
-description: Use this agent when you need a thorough, expert-level code review after completing a coding task or story. This agent should be launched immediately after finishing a logical chunk of code, implementing a feature, or completing a story to validate quality, correctness, and adherence to best practices.\n\nExamples:\n\n<example>\nContext: User has just finished implementing a new feature\nuser: "I've finished implementing the user authentication flow"\nassistant: "Great! Let me launch the principal-code-reviewer agent to review your implementation."\n<Task tool call to principal-code-reviewer>\n</example>\n\n<example>\nContext: User has completed a story and wants verification\nuser: "The payment integration story is complete, can you check it?"\nassistant: "I'll use the principal-code-reviewer agent to conduct a thorough review of your payment integration."\n<Task tool call to principal-code-reviewer>\n</example>
+description: Use this agent when you need a thorough, expert-level code review after completing a coding task or story. This agent should be launched immediately after finishing a logical chunk of code, implementing a feature, or completing a story to validate quality, correctness, and adherence to best practices.
 model: sonnet
 ---
 

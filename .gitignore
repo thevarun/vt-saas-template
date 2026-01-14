@@ -49,3 +49,6 @@ local
 
 # vercel
 .vercel
+
+# BMAD epic execution state (ephemeral, not versioned)
+_bmad-output/epic-executions/

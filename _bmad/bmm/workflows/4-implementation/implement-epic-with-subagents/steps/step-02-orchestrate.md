@@ -13,19 +13,17 @@ workflowFile: '{workflow_path}/workflow.md'
 # Template References
 spawnStoryPrepTemplate: '{workflow_path}/templates/spawn-story-prep.md'
 spawnDevAgentTemplate: '{workflow_path}/templates/spawn-dev-agent.md'
-spawnQualityGateTemplate: '{workflow_path}/templates/spawn-quality-gate.md'
 spawnCodeReviewTemplate: '{workflow_path}/templates/spawn-code-review.md'
 
 # Task References
 # (orchestration uses sub-agents, not BMAD tasks)
 
 # State files
-sidecarFile: '{output_folder}/epic-execution-state.yaml'
+sidecarFolder: '{output_folder}/epic-executions'
 sprintStatus: '{implementation_artifacts}/sprint-status.yaml'
 
 # Agent references
 storyPrepAgent: '.claude/agents/story-prep-master.md'
-qualityGateAgent: '.claude/agents/quality-gate-verifier.md'
 codeReviewAgent: '.claude/agents/principal-code-reviewer.md'
 specialistAgentsFolder: '.claude/agents/vt-bmad-dev-agents/'
 fallbackDevAgent: '_bmad/bmm/agents/dev.md'
@@ -39,7 +37,7 @@ maxRetries: 3
 
 ## STEP GOAL:
 
-To autonomously execute all pending stories in the epic by orchestrating specialized sub-agents through the complete implementation pipeline: create → develop → quality-gate → review → commit → finalize.
+To autonomously execute all pending stories in the epic by orchestrating specialized sub-agents through the complete implementation pipeline: create → develop → visual-check (UI only) → review → commit → finalize.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
@@ -77,7 +75,7 @@ To autonomously execute all pending stories in the epic by orchestrating special
 - 🎯 Update sidecar before each phase starts
 - 💾 Parse agent handoff messages for status
 - 📖 Verify sprint-status matches sidecar state
-- 🚫 NEVER proceed if quality gate fails without retry/escalate
+- 🚫 NEVER proceed if code review rejected without retry/escalate
 
 ## CONTEXT BOUNDARIES:
 
@@ -168,6 +166,10 @@ Task tool:
     Write tests first (red-green-refactor).
     Mark tasks complete as you finish them.
 
+    Available MCP Tools (use if available):
+    - Serena MCP: Code intelligence for navigation, refactoring
+    - Context7 MCP: Documentation lookup
+
     When complete, output handoff in this format:
     === AGENT HANDOFF ===
     agent: [agent_name]
@@ -179,6 +181,8 @@ Task tool:
     tests_run: [count]
     tests_failed: [count]
     coverage: [percentage]
+    has_ui_changes: true | false
+    ui_routes_affected: [list of routes or "none"]
     blockers: none | [list]
     next_action: proceed | escalate | retry
     error_summary: null | [description]
@@ -186,65 +190,50 @@ Task tool:
 ```
 
 **Parse handoff:**
-- If status=completed, tests_passed=true → proceed to Phase C
+- If status=completed, tests_passed=true → proceed to Phase B.5 (if has_ui_changes) or Phase C
 - If status=failed, blockers contains critical → escalate to user
 - If tests_passed=false → retry (up to maxRetries)
 
 ---
 
-### PHASE C: Quality Gate
+### PHASE B.5: Visual Inspection (Conditional)
+
+**Skip this phase if:**
+- `has_ui_changes` is false AND no UI-related files in `files_changed`
+- Chrome extension MCP tools are not available
 
 **Update sidecar:**
 ```yaml
-current_phase: "quality"
+current_phase: "visual"
 last_updated: "[timestamp]"
 ```
 
-**Spawn agent:**
+**Execute visual inspection using Chrome extension MCP:**
+
+1. Ensure dev server is running (`npm run dev` or equivalent)
+2. For each route in `ui_routes_affected`:
+
 ```
-Task tool:
-  subagent_type: "general-purpose"
-  description: "Verify story N.M"
-  prompt: |
-    You are the quality-gate-verifier agent.
-    Load and embody: {qualityGateAgent}
-
-    Task: Independently verify implementation quality for story N.M.
-    Story file: [story_path]
-
-    1. Run test suite independently (npm test or equivalent)
-    2. Check coverage meets threshold ({coverageThreshold}%)
-    3. Verify no skipped/pending tests
-    4. Check for TODO/FIXME in changed files
-    5. Compare with dev agent's reported results
-
-    When complete, output handoff in this format:
-    === QUALITY GATE HANDOFF ===
-    agent: quality-gate-verifier
-    story: N.M
-    verification_status: passed | failed | suspicious
-    tests_run: [count]
-    tests_passed: [count]
-    tests_failed: [count]
-    tests_skipped: [count]
-    coverage: [percentage]
-    dev_handoff_match: true | false
-    issues_found:
-      - [list or none]
-    recommendation: proceed | retry | escalate
-    notes: [optional notes]
-    === END HANDOFF ===
+mcp__claude-in-chrome__navigate({ url: "http://localhost:3000{route}", tabId: [tab] })
+mcp__claude-in-chrome__computer({ action: "wait", duration: 2, tabId: [tab] })
+mcp__claude-in-chrome__computer({ action: "screenshot", tabId: [tab] })
+mcp__claude-in-chrome__read_console_messages({ tabId: [tab], onlyErrors: true })
 ```
 
-**Parse handoff:**
-- If verification_status=passed → proceed to Phase D
-- If verification_status=failed, recommendation=retry → go back to Phase B (track retry count)
-- If verification_status=suspicious → escalate to user
-- If retry count >= maxRetries → escalate to user
+3. Check for:
+   - Visual rendering issues (obvious layout breaks)
+   - Console errors related to the changes
+   - Basic functionality working
+
+**If issues found:**
+- Log issues but don't block (visual issues are noted in code review)
+- Add to handoff: `visual_issues: [list]`
+
+**Proceed to Phase C** (Code Review)
 
 ---
 
-### PHASE D: Code Review
+### PHASE C: Code Review
 
 **Update sidecar:**
 ```yaml
@@ -288,13 +277,13 @@ Task tool:
 ```
 
 **Parse handoff:**
-- If review_status=approved → proceed to Phase E
+- If review_status=approved → proceed to Phase D
 - If review_status=changes_requested → go back to Phase B (with review feedback)
 - If review_status=rejected → escalate to user
 
 ---
 
-### PHASE E: Git Commit
+### PHASE D: Git Commit
 
 **Update sidecar:**
 ```yaml
@@ -319,7 +308,7 @@ Co-Authored-By: [agent_name] <noreply@anthropic.com>"
 
 ---
 
-### PHASE F: Finalize Story
+### PHASE E: Finalize Story
 
 **Update sidecar:**
 ```yaml
@@ -441,7 +430,7 @@ Proceeding to generate completion report...
 
 - Skipping phases within a story
 - Not updating sidecar state
-- Proceeding after quality gate failure without retry/escalate
+- Proceeding after code review rejection without retry/escalate
 - Not parsing handoff messages
 - Silent failures without user notification
 

@@ -1,6 +1,6 @@
 ---
 name: 'step-03-complete'
-description: 'Generate epic completion report and finalize execution'
+description: 'Generate epic completion report, create PR, and handle worktree cleanup'
 
 # Path Definitions
 workflow_path: '{project-root}/_bmad/bmm/workflows/4-implementation/implement-epic-with-subagents'
@@ -10,11 +10,10 @@ thisStepFile: '{workflow_path}/steps/step-03-complete.md'
 workflowFile: '{workflow_path}/workflow.md'
 
 # Task References
-# (none required for completion step)
 reportTemplate: '{workflow_path}/templates/epic-completion-report.md'
 
 # State files
-sidecarFile: '{output_folder}/epic-execution-state.yaml'
+sidecarFolder: '{output_folder}/epic-executions'
 sprintStatus: '{implementation_artifacts}/sprint-status.yaml'
 
 # Output
@@ -34,7 +33,7 @@ baseBranch: 'main'
 
 ## STEP GOAL:
 
-To generate the Epic Completion Report, update final status, and gracefully conclude the epic execution workflow.
+To generate the Epic Completion Report, create a Pull Request, handle worktree cleanup, update final status, and gracefully conclude the epic execution workflow.
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
@@ -64,6 +63,7 @@ To generate the Epic Completion Report, update final status, and gracefully conc
 - 🚫 FORBIDDEN to execute additional stories
 - 💬 Present clear summary to user
 - 🚪 Archive or preserve sidecar as appropriate
+- 🧹 Handle worktree cleanup with user confirmation
 
 ## EXECUTION PROTOCOLS:
 
@@ -78,6 +78,7 @@ To generate the Epic Completion Report, update final status, and gracefully conc
 - All story outcomes recorded in execution_log
 - Sprint-status reflects final story states
 - Report is the primary output of this step
+- Worktree cleanup requires user confirmation
 
 ---
 
@@ -85,17 +86,23 @@ To generate the Epic Completion Report, update final status, and gracefully conc
 
 ### 1. Load Execution Data
 
-Read the complete sidecar file at `{sidecarFile}`:
+Read the sidecar file at `{sidecarFolder}/epic-{N}-state.yaml`:
 
 Gather:
-- `epic_file`, `epic_name`
-- `total_stories`
-- `stories_completed` - count and list
-- `stories_skipped` - count and list
-- `stories_failed` - count and list
-- `execution_log` - per-story details
-- `started_at`, `completed_at`
+- `epic_execution_state.epic_file`, `epic_execution_state.epic_name`
+- `epic_execution_state.epic_number`
+- `epic_execution_state.total_stories`
+- `epic_execution_state.stories_completed` - count and list
+- `epic_execution_state.stories_skipped` - count and list
+- `epic_execution_state.stories_failed` - count and list
+- `epic_execution_state.execution_log` - per-story details
+- `epic_execution_state.started_at`, `epic_execution_state.completed_at`
 - `specialist_agents_available` - agents used
+- `execution_mode.type` - "worktree" | "main"
+- `worktree_config` (if worktree mode):
+  - `worktree_path`
+  - `branch_name`
+  - `main_repo_path`
 
 Calculate:
 - Total duration
@@ -130,6 +137,10 @@ Use template structure:
 | Field | Value |
 |-------|-------|
 | **Epic File** | {epic_file} |
+| **Epic Number** | {epic_number} |
+| **Execution Mode** | {execution_mode.type} |
+| **Worktree Path** | {worktree_path or "N/A"} |
+| **Branch** | {branch_name} |
 | **Started** | {started_at} |
 | **Completed** | {completed_at} |
 | **Duration** | {total_duration} |
@@ -318,6 +329,71 @@ Pull Request Created
 - Created: [timestamp]
 ```
 
+### 6.5 Worktree Cleanup (Conditional)
+
+**Skip this section if:**
+- `execution_mode.type` = "main" (not using worktree)
+
+**If worktree mode:**
+
+Mark sidecar for cleanup (but don't delete yet):
+```yaml
+cleanup:
+  marked_for_removal: true
+  agents_cleaned: true
+  pr_created: true
+  pr_number: {pr_number}
+```
+
+**Display cleanup instructions:**
+```
+═══════════════════════════════════════════════════════════════
+                    WORKTREE CLEANUP
+═══════════════════════════════════════════════════════════════
+
+Your epic work is complete and PR #{pr_number} has been created!
+
+The worktree at:
+  {worktree_path}
+
+Can now be removed. Since you cannot remove a worktree from inside it,
+run these commands from your MAIN repository:
+
+  cd {main_repo_path}
+  git worktree remove {worktree_relative_path}
+
+Or to force removal if there are uncommitted changes:
+  git worktree remove --force {worktree_relative_path}
+
+After removal, you can also clean up the sidecar file:
+  rm {sidecarFolder}/epic-{epic_number}-state.yaml
+
+═══════════════════════════════════════════════════════════════
+
+Would you like me to add these commands to your clipboard?
+[Y] Yes, copy commands | [N] No, I'll handle it manually
+```
+
+**If user selects Y:**
+- Output the commands in a code block for easy copying
+- Note: Cannot execute removal from inside worktree
+
+**Update report with cleanup info:**
+```markdown
+## Worktree Cleanup
+
+- **Worktree Path:** {worktree_path}
+- **Status:** Marked for removal
+- **Cleanup Commands Provided:** Yes
+
+**To remove worktree (run from main repo):**
+```bash
+cd {main_repo_path}
+git worktree remove {worktree_relative_path}
+rm {sidecarFolder}/epic-{epic_number}-state.yaml
+```
+```
+
 ### 7. Present Final Summary
 
 Display to user:
@@ -327,21 +403,20 @@ Display to user:
                     EPIC EXECUTION COMPLETE
 ═══════════════════════════════════════════════════════════════
 
-📊 Results Summary
-
 Epic: {epic_name}
 Status: {completion_status}
 Duration: {total_duration}
+Mode: {execution_mode.type}
 
 Stories:
-  ✅ Completed: {completed_count}
-  ⏸️ Skipped: {skipped_count}
-  ❌ Failed: {failed_count}
+  Completed: {completed_count}
+  Skipped: {skipped_count}
+  Failed: {failed_count}
 
 Quality:
-  📈 Average Coverage: {avg_coverage}%
-  🧪 Tests: {passed_tests}/{total_tests} passed
-  📝 Git Commits: {commit_count}
+  Average Coverage: {avg_coverage}%
+  Tests: {passed_tests}/{total_tests} passed
+  Git Commits: {commit_count}
 
 Report saved to:
   {report_path}
@@ -349,11 +424,16 @@ Report saved to:
 Pull Request: #{pr_number}
    {pr_url}
 
+{If worktree mode:}
+Worktree Cleanup:
+  Commands provided above. Run from main repo when ready.
+
 ═══════════════════════════════════════════════════════════════
 
 Next Steps:
 - Review PR and request changes if needed
 - Merge when ready
+{If worktree: "- Remove worktree using commands above"}
 - Continue with next epic: [N] Start Epic {next_epic} | [E] Exit
 
 Thank you for using the Epic Execution Orchestrator!
@@ -375,6 +455,8 @@ If user has questions, respond helpfully and remind them the report contains ful
 - All execution data preserved in report
 - Sprint-status updated with epic completion
 - Sidecar handled per user preference
+- PR created successfully
+- Worktree cleanup instructions provided (if applicable)
 - Clear summary presented to user
 - Workflow concluded gracefully
 
@@ -385,5 +467,7 @@ If user has questions, respond helpfully and remind them the report contains ful
 - Losing execution history
 - Attempting to execute more stories
 - Not presenting clear summary
+- Not providing worktree cleanup instructions (when applicable)
+- Attempting to remove worktree from inside it
 
 **Master Rule:** Skipping steps, optimizing sequences, or not following exact instructions is FORBIDDEN and constitutes SYSTEM FAILURE.

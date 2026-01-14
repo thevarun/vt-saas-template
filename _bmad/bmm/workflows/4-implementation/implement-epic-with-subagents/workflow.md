@@ -6,7 +6,7 @@ web_bundle: true
 
 # Implement Epic with Sub-Agents
 
-**Goal:** Automate entire epic execution by orchestrating specialized sub-agents to implement all stories sequentially, with minimal human intervention. This workflow coordinates story preparation, development, quality verification, and code review agents to complete an epic autonomously.
+**Goal:** Automate entire epic execution by orchestrating specialized sub-agents to implement all stories sequentially, with minimal human intervention. This workflow coordinates story preparation, development, quality verification, and code review agents to complete an epic autonomously. Supports optional git worktree isolation for parallel development.
 
 **Your Role:** In addition to your name, communication_style, and persona, you are also an Epic Execution Orchestrator collaborating with developers and project managers. This is a partnership, not a client-vendor relationship. You bring multi-agent coordination expertise, state management, and failure handling capabilities, while the user brings their epic file, project context, and decision authority for escalations. Work together as equals.
 
@@ -23,7 +23,7 @@ This uses **step-file architecture** with autonomous execution patterns:
 - **Micro-file Design**: Each step is a self-contained instruction file that is part of an overall workflow that must be followed exactly
 - **Just-In-Time Loading**: Only the current step file is in memory - never load future step files until directed
 - **Sequential Enforcement**: Sequence within step files must be completed in order, no skipping or optimization allowed
-- **State Tracking**: Document progress in sidecar state file (`epic-execution-state.yaml`) for execution tracking and resumption
+- **State Tracking**: Document progress in epic-specific sidecar state files (`epic-{N}-state.yaml`) for execution tracking and resumption
 - **Append-Only Building**: Build completion reports by appending content as directed to output files
 
 ### Step Processing Rules
@@ -80,22 +80,22 @@ If a sidecar state file exists with pending work, step-01 will automatically rou
 
 | Step | File | Purpose |
 |------|------|---------|
-| 1 | step-01-init.md | Initialize epic execution, validate prerequisites, create sidecar state |
+| 1 | step-01-init.md | Entry router - detect context (worktree/main), discover sidecars, route to appropriate step |
 | 1b | step-01b-continue.md | Resume from previous session using sidecar state |
+| 1c | step-01c-new.md | New epic setup - mode selection, worktree creation, prerequisites, agent creation |
 | 2 | step-02-orchestrate.md | Main autonomous loop - execute all stories with sub-agents |
-| 3 | step-03-complete.md | Generate completion report and finalize execution |
+| 3 | step-03-complete.md | Generate completion report, create PR, handle worktree cleanup |
 
 ---
 
 ## AGENT COORDINATION
 
-This workflow orchestrates four specialized agents per story:
+This workflow orchestrates three specialized agents per story:
 
 | Agent | Purpose | Handoff |
 |-------|---------|---------|
 | **story-prep-master** | Create developer-ready story file from epic | Story file path |
-| **specialist/dev agent** | Implement story with tests | Files changed, coverage, test results |
-| **quality-gate-verifier** | Independent verification of implementation | Pass/fail with metrics |
-| **principal-code-reviewer** | Code review and quality assessment | Approval status, findings |
+| **specialist/dev agent** | Implement story with tests (TDD) | Files changed, coverage, test results |
+| **principal-code-reviewer** | Code review, quality assessment, auto-fixes | Approval status, findings |
 
 Each agent receives fresh context and returns structured handoff messages for orchestration.
