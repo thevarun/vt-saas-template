@@ -37,7 +37,12 @@ Gather comprehensive information about all branches:
 1. Run `git fetch <remote>` to get latest remote state
 2. Run `git branch -a` to list all branches
 3. Run `git branch -a --merged <remote>/<default-branch>` to identify merged branches
-4. Run `gh pr list --state merged --limit 50` to detect squash-merged branches
+4. Detect squash-merged branches:
+   - Get merged PR branch names: `gh pr list --state merged --limit 50 --json headRefName,number,mergedAt -q '.[].headRefName'`
+   - For each local branch, check if its name matches a merged PR's `headRefName`
+   - For matches, verify the local branch doesn't have unmerged commits:
+     `git rev-list <default-branch>..<branch> --count` (if 0, it's truly merged)
+   - Mark these as "squash-merged" in the analysis
 5. Run `git branch -vv` and look for `: gone]` to find orphaned tracking branches
 6. For each local branch with a remote, run `git rev-list --left-right --count <remote>/<branch>...<branch>` to detect sync status
 7. Run `gh pr list --state open` to check for open PRs
@@ -118,16 +123,24 @@ For branches that are NOT marked as WIP:
 
 ## Phase 5: Create PRs
 
-For branches that:
+Identify eligible branches:
 - Have commits ahead of the default branch
 - Don't already have an open PR
 - Are NOT marked as WIP
-- For branches >30 days old, ask user before creating PR
 
-For each eligible branch:
+**Before creating PRs:**
+1. Build a summary table of all PRs to be created:
+   | Branch | Proposed Title | # Commits | Age |
+2. Show the table to user
+3. Use `AskUserQuestion` to ask: "Create all X PRs?", "Let me select which ones", "Skip PR creation"
+4. If "select", present branches as multi-select options
+5. Proceed only with confirmed branches
+
+For each confirmed branch:
 1. Check divergence: `git rev-list --left-right --count <default-branch>...<branch>`
-2. If behind default branch, warn user rebase may be needed
-3. Create PR: `gh pr create --head <branch> --title "<conventional commit title based on commits>" --body "<summary of changes>"`
+2. If behind default branch, warn user rebase may be needed after PR creation
+3. For branches >30 days old, add note in PR body about age
+4. Create PR: `gh pr create --head <branch> --title "<conventional commit title based on commits>" --body "<summary of changes>"`
 
 ---
 
@@ -148,14 +161,26 @@ For each open PR (including newly created ones):
    - Re-check (up to 5 minutes total)
 3. If CI passes: Mark PR as ready for merge, proceed to Phase 7
 4. If CI fails:
-   - Analyze the failure output
-   - Attempt to fix the issue
-   - Push the fix
-   - Decrement retry counter
-   - Re-run CI check
+   - Fetch and display the failure output
+   - Categorize the failure:
+     - **Lint/Formatting errors**: Offer to run `npm run lint -- --fix` automatically
+     - **Type errors**: Show errors, ask user: "Skip this PR", "I'll fix manually"
+     - **Test failures**: Show test output, ask user: "Skip this PR", "I'll fix manually"
+     - **Build errors**: Show error, ask user: "Skip this PR", "I'll fix manually"
+   - If auto-fix chosen (lint only):
+     - Run the fix command
+     - Show the diff to user
+     - Ask for confirmation before committing
+     - Commit with message: "fix: auto-fix lint errors"
+     - Push and decrement retry counter
+   - If manual fix chosen:
+     - Inform user and pause for this PR
+     - Ask: "Continue with other PRs?" or "Wait for manual fix?"
 5. If max retries exceeded:
-   - Ask user: "Skip this PR", "Abort workflow", or "Manual fix"
+   - Ask user: "Skip this PR", "Abort workflow", or "I'll fix manually"
    - Handle accordingly
+
+**IMPORTANT**: NEVER auto-fix test failures or type errors. Only lint/formatting issues are safe to auto-fix.
 
 ---
 
