@@ -158,15 +158,42 @@ Instrumentation and insights infrastructure.
 ## Epic 10: AI Chat Integration (Example Module)
 **Goal:** Template users see production-quality streaming patterns they can learn from or remove
 
-Already exists from HealthCompanion - needs cleanup and documentation as example code.
+Already exists from HealthCompanion - needs cleanup and documentation as example code. Route renamed to `/chat/dify`.
 
 **FRs covered:** FR-CHAT-001, FR-CHAT-002
 
 **Key Deliverables:**
 - Clean up existing chat interface code
+- Rename route to `/chat/dify`
 - Document SSE streaming patterns
 - Document API proxy pattern
 - Clear removal instructions
 - Mark as "example code" in documentation
+
+---
+
+## Epic 11: Vercel AI SDK Chat with Observability & Memory
+**Goal:** Template users have an alternative chat implementation with full local control, observability, and optional persistent memory
+
+Second chat implementation using Vercel AI SDK, giving downstream developers stack flexibility:
+- **Dify** (`/chat/dify`) - Simple, managed, minimal setup
+- **Vercel AI SDK** (`/chat/vercel`) - Full control, observable, extensible
+
+**Key Deliverables:**
+- Vercel AI SDK integration with OpenAI (provider-swappable)
+- LangFuse integration for LLM observability
+- Mem0 integration for persistent memory (opt-in, async extraction)
+- Local PostgreSQL storage for conversations/messages
+- Conversation history UI with sidebar navigation
+- Comprehensive developer documentation
+- Clear removal instructions
+
+**New Database Tables:**
+- `vercel_conversations` - Chat session metadata
+- `vercel_messages` - Individual messages with token tracking
+- `mem0_memories` - Extracted user memories
+- `memory_extraction_jobs` - Async processing queue
+
+**Dependencies:** ai, @ai-sdk/openai, langfuse, mem0ai (optional)
 
 ---

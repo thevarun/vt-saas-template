@@ -138,3 +138,16 @@ development_status:
   10-3-document-api-proxy-pattern: backlog
   10-4-feature-removal-guide: backlog
   epic-10-retrospective: optional
+
+  # Epic 11: Vercel AI SDK Chat with Observability & Memory
+  epic-11: backlog
+  11-1-rename-existing-chat-route: backlog
+  11-2-database-schema-consolidation: backlog
+  11-3-vercel-ai-sdk-chat-api: backlog
+  11-4-langfuse-integration: backlog
+  11-5-mem0-memory-integration: backlog
+  11-6-vercel-chat-ui: backlog
+  11-7-conversation-management-api: backlog
+  11-8-navigation-and-showcase-update: backlog
+  11-9-developer-documentation: backlog
+  epic-11-retrospective: optional
