@@ -15,31 +15,37 @@ concurrency:
 
 jobs:
   # ============================================
-  # Detect Changes
+  # Detect Changes (denylist approach)
   # ============================================
   changes:
     name: Detect Changes
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      code: ${{ steps.filter.outputs.code }}
+      docs_only: ${{ steps.filter.outputs.docs_only }}
     steps:
       - uses: actions/checkout@v6
 
+      # Denylist approach: Define what counts as "docs only".
+      # Uses predicate-quantifier: 'every' so docs_only=true ONLY when
+      # ALL changed files match these patterns (not just "any").
+      # Any file NOT matching these patterns triggers full CI.
+      # This is safer - new files trigger CI by default.
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          predicate-quantifier: every
           filters: |
-            code:
-              - src/**
-              - tests/**
-              - package.json
-              - package-lock.json
-              - tsconfig.json
-              - next.config.mjs
-              - vitest.config.ts
-              - playwright.config.ts
-              - .github/workflows/**
+            docs_only:
+              - '*.md'
+              - 'docs/**'
+              - '_bmad-output/**'
+              - '.github/*.md'
+              - '.github/ISSUE_TEMPLATE/**'
+              - '.github/PULL_REQUEST_TEMPLATE/**'
+              - '.vscode/**'
+              - LICENSE
+              - .editorconfig
 
   # ============================================
   # Lint & Type Check (always runs)
@@ -76,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [changes, lint]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.docs_only != 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -103,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [changes, lint]
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.docs_only != 'true'
 
     steps:
       - uses: actions/checkout@v6
