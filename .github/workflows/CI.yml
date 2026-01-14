@@ -3,20 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '*.md'
-      - docs/**
-      - _bmad-output/**
-      - .github/*.md
-      - LICENSE
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '*.md'
-      - docs/**
-      - _bmad-output/**
-      - .github/*.md
-      - LICENSE
 
 env:
   PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
@@ -27,7 +15,34 @@ concurrency:
 
 jobs:
   # ============================================
-  # Lint & Type Check
+  # Detect Changes
+  # ============================================
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - src/**
+              - tests/**
+              - package.json
+              - package-lock.json
+              - tsconfig.json
+              - next.config.mjs
+              - vitest.config.ts
+              - playwright.config.ts
+              - .github/workflows/**
+
+  # ============================================
+  # Lint & Type Check (always runs)
   # ============================================
   lint:
     name: Lint & Types
@@ -54,13 +69,14 @@ jobs:
       - run: npm run check-types
 
   # ============================================
-  # Unit Tests
+  # Unit Tests (skip for docs-only changes)
   # ============================================
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.code == 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -80,13 +96,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # ============================================
-  # Build & E2E Tests
+  # Build & E2E Tests (skip for docs-only changes)
   # ============================================
   e2e:
     name: Build & E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.code == 'true'
 
     steps:
       - uses: actions/checkout@v6
