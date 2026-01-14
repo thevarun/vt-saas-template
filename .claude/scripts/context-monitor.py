@@ -123,27 +123,22 @@ def get_directory_display(workspace_data):
     else:
         return "unknown"
 
-def get_session_metrics(cost_data):
-    """Get session metrics display."""
-    if not cost_data:
-        return ""
-    
-    metrics = []
-    
-    # Cost
-    cost_usd = cost_data.get('total_cost_usd', 0)
-    if cost_usd > 0:
-        if cost_usd >= 0.10:
-            cost_color = "\033[31m"  # Red for expensive
-        elif cost_usd >= 0.05:
-            cost_color = "\033[33m"  # Yellow for moderate
-        else:
-            cost_color = "\033[32m"  # Green for cheap
-        
-        cost_str = f"{cost_usd*100:.0f}¢" if cost_usd < 0.01 else f"${cost_usd:.3f}"
-        metrics.append(f"{cost_color}💰 {cost_str}\033[0m")
-    
-    return f" \033[90m|\033[0m {' '.join(metrics)}" if metrics else ""
+def get_git_branch():
+    """Get the current git branch name by reading .git/HEAD directly."""
+    try:
+        git_dir = ".git"
+        if os.path.isdir(git_dir):
+            head_file = os.path.join(git_dir, "HEAD")
+            if os.path.isfile(head_file):
+                with open(head_file, 'r') as f:
+                    ref = f.read().strip()
+                    if ref.startswith('ref: refs/heads/'):
+                        return ref.replace('ref: refs/heads/', '')
+                    # Detached HEAD state
+                    return ref[:8]
+        return None
+    except Exception:
+        return None
 
 def main():
     try:
@@ -156,21 +151,19 @@ def main():
         model_id = model_data.get('id') or model_data.get('name') or model_name
 
         workspace = data.get('workspace', {})
-        cost_data = data.get('cost', {})
         context_window = data.get('context_window') or {}
 
-        
         # Build status components
-        context_info = context_window_info(context_window)        
+        context_info = context_window_info(context_window)
         context_display = get_context_display(context_info)
         directory = get_directory_display(workspace)
-        session_metrics = get_session_metrics(cost_data)
-        
+        git_branch = get_git_branch()
+        git_display = f" \033[96m🌿 {git_branch}\033[0m" if git_branch else ""
 
         model_display = f"\033[94m[{model_name}]\033[0m"
-        
+
         # Combine all components
-        status_line = f"{model_display} \033[93m📁 {directory}\033[0m 🧠 {context_display}{session_metrics}"
+        status_line = f"{model_display} \033[93m📁 {directory}\033[0m{git_display} 🧠 {context_display}"
         
         print(status_line)
         
