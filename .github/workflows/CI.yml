@@ -5,18 +5,18 @@ on:
     branches: [main]
     paths-ignore:
       - '*.md'
-      - 'docs/**'
-      - '_bmad-output/**'
-      - '.github/*.md'
-      - 'LICENSE'
+      - docs/**
+      - _bmad-output/**
+      - .github/*.md
+      - LICENSE
   pull_request:
     branches: [main]
     paths-ignore:
       - '*.md'
-      - 'docs/**'
-      - '_bmad-output/**'
-      - '.github/*.md'
-      - 'LICENSE'
+      - docs/**
+      - _bmad-output/**
+      - .github/*.md
+      - LICENSE
 
 env:
   PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
