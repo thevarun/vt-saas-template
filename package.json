@@ -98,7 +98,7 @@
     "autoprefixer": "^10.4.20",
     "checkly": "^4.9.0",
     "commitizen": "^4.3.1",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "cssnano": "^7.0.6",
     "dotenv-cli": "^7.4.2",
     "drizzle-kit": "^0.26.2",
