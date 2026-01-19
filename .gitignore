@@ -52,3 +52,7 @@ local
 
 # BMAD epic execution state (ephemeral, not versioned)
 _bmad-output/epic-executions/
+
+# Claude auto-approve decisions
+.claude/auto_approve_safe.decisions.archived.jsonl
+.claude/auto_approve_safe.decisions.jsonl
