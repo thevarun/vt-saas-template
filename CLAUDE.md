@@ -201,7 +201,7 @@ After implementing front-end changes, use Playwright MCP tools to navigate to af
 
 ## Code Style
 
-- **Commits**: Use Conventional Commits format via `npm run commit`
+- **Commits**: Use Conventional Commits format. Keep messages succinct (one line). Do not add "Co-Authored-By" lines.
 - **ESLint**: Antfu config (no semicolons, single quotes for JSX attributes)
 - **Formatting**: Prettier + ESLint with auto-fix on save
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
