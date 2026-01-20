@@ -23,6 +23,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       docs_only: ${{ steps.filter.outputs.docs_only }}
+      is_dependabot: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -94,15 +95,18 @@ jobs:
 
       - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
+      # Dependabot PRs don't have access to secrets, use placeholders
+      # Integration tests requiring real credentials are skipped via test config
       - run: npm run test -- --coverage
         env:
-          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
-          DIFY_API_URL: ${{ secrets.DIFY_API_URL }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
+          DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
 
   # ============================================
   # Build & E2E Tests (skip for docs-only changes)
+  # E2E skipped for Dependabot PRs (no access to secrets)
   # ============================================
   e2e:
     name: Build & E2E
@@ -121,16 +125,19 @@ jobs:
 
       - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
+      # Dependabot PRs don't have access to secrets, use placeholders for build
       - name: Build
         run: npm run build
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
-          DIFY_API_URL: ${{ secrets.DIFY_API_URL }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
+          DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
 
+      # Skip E2E tests for Dependabot PRs (require real credentials)
       - name: Cache Playwright browsers
+        if: needs.changes.outputs.is_dependabot != 'true'
         uses: actions/cache@v5
         id: playwright-cache
         with:
@@ -138,14 +145,15 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: needs.changes.outputs.is_dependabot != 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium firefox
 
       - name: Install Playwright deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        if: needs.changes.outputs.is_dependabot != 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium firefox
 
       - name: Run E2E tests
+        if: needs.changes.outputs.is_dependabot != 'true'
         run: npm run test:e2e
         env:
           CI: true
@@ -154,6 +162,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Skip E2E (Dependabot PR)
+        if: needs.changes.outputs.is_dependabot == 'true'
+        run: echo "E2E tests skipped for Dependabot PR (no access to secrets)"
 
       - name: Upload test artifacts
         if: failure()

@@ -64,7 +64,8 @@ _bmad-output/epic-executions/
 .claude/commands/optimize-auto-approve-hook.md
 
 # NPM-managed Claude Code files (@torka/claude-workflows)
-.claude/commands/git-cleanup-and-merge.md
+.claude/commands/git-local-cleanup-push-pr.md
+.claude/commands/github-pr-resolve.md
 .claude/commands/plan-parallelization.md
 .claude/commands/implement-epic-with-subagents.md
 .claude/agents/principal-code-reviewer.md
