@@ -14,7 +14,7 @@ jobs:
       - name: Comment to trigger Codex task
         if: >-
           github.event.review.state == 'changes_requested' &&
-          github.event.review.user.login == 'chatgpt-codex-connector'
+          github.event.review.user.login == 'chatgpt-codex-connector[bot]'
         uses: actions/github-script@v7
         with:
           script: |
