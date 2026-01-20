@@ -27,9 +27,17 @@
     "^uv\\s+--version$",
 
     "^git\\s+(status|diff|log|show|branch|remote|stash\\s+list)(\\s+.*)?$",
+    "^git\\s+-C\\s+[^|;&]+\\s+(status|diff|log|show|branch)(\\s+.*)?$",
+    "^git\\s+-C\\s+[^|;&]+\\s+(add|commit|checkout|fetch|pull|push)(\\s+.*)?$",
+    "^git\\s+rm\\s+[^|;&]+$",
 
     "^pnpm\\s+(test|run\\s+(test|lint|typecheck|type-check|check|build|dev|start)|install|i|add|remove)(\\s+.*)?$",
     "^npm\\s+(test|run\\s+(test|lint|typecheck|type-check|check|build|dev|start)|install|i|ci)(\\s+.*)?$",
+    "^npm\\s+whoami$",
+    "^npm\\s+list(\\s+(-g|--global))?(\\s+[\\w@/-]+)?$",
+    "^npm\\s+ls(\\s+[\\w@/-]+)*$",
+    "^npm\\s+view\\s+[\\w@/-]+(\\s+.*)?$",
+    "^npm\\s+pack\\s+[\\w@/-]+\\s+--dry-run",
     "^yarn\\s+(test|lint|typecheck|type-check|check|build|dev|start|install|add|remove)(\\s+.*)?$",
     "^npx\\s+(tsc|eslint|prettier|vitest|jest)(\\s+.*)?$",
     "^npx\\s+tsx\\s+[^|;&]+$",
@@ -73,10 +81,16 @@
     "^touch\\s+",
     "^cp\\s+",
     "^mv\\s+",
+    "^rmdir\\s+[^|;&]+$",
 
     "^git\\s+(add|commit|checkout|fetch|pull|push|worktree|merge|rebase|stash\\s+(push|pop|drop|apply)|tag|switch|restore)(\\s+.*)?$",
 
-    "^gh\\s+(pr|issue|repo|release|workflow|run|api)(\\s+.*)?$",
+    "^gh\\s+(pr|issue|repo|release|workflow|run|api|auth)(\\s+.*)?$",
+
+    "^git\\s+rev-parse(\\s+.*)?$",
+    "^git\\s+stash(\\s+--include-untracked|\\s+--all|\\s+-u|\\s+-a)?(\\s+-m\\s+.*)?$",
+
+    "^sleep\\s+\\d+$",
 
     "^chmod\\s+[0-6][0-7][0-7]\\s+"
   ],
