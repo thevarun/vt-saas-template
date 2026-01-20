@@ -85,7 +85,7 @@
     "@storybook/test-runner": "^0.24.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.1",
-    "@testing-library/react": "^16.0.1",
+    "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.5.2",
     "@torka/claude-qol": "^0.1.2",
     "@torka/claude-workflows": "^0.5.0",
