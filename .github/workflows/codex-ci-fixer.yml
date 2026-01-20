@@ -5,6 +5,9 @@ on:
     workflows: [CI]
     types: [completed]
 
+env:
+  MAX_CODEX_ATTEMPTS: 3
+
 jobs:
   spawn_fixer:
     if: github.event.workflow_run.conclusion == 'failure'
@@ -14,17 +17,52 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - name: Comment to trigger Codex task
+      - name: Check if should trigger Codex
+        id: check
         uses: actions/github-script@v7
         with:
           script: |
+            const MAX_ATTEMPTS = parseInt(process.env.MAX_CODEX_ATTEMPTS) || 3;
+
             const pullRequests = context.payload.workflow_run.pull_requests;
             if (!pullRequests || pullRequests.length === 0) {
-              core.info('No pull requests found for this workflow run.');
+              core.info('No pull requests found.');
+              core.setOutput('should_trigger', 'false');
               return;
             }
 
             const prNumber = pullRequests[0].number;
+            core.setOutput('pr_number', prNumber);
+
+            // Count existing Codex fix attempts on this PR (using unique marker)
+            const ATTEMPT_MARKER = '<!-- codex-ci-fixer-attempt -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const codexAttempts = comments.filter(c =>
+              c.body.includes(ATTEMPT_MARKER)
+            ).length;
+
+            if (codexAttempts >= MAX_ATTEMPTS) {
+              core.info(`Skipping: already ${codexAttempts} Codex attempts (max: ${MAX_ATTEMPTS})`);
+              core.setOutput('should_trigger', 'false');
+              return;
+            }
+
+            core.info(`Attempt ${codexAttempts + 1} of ${MAX_ATTEMPTS}`);
+            core.setOutput('should_trigger', 'true');
+
+      - name: Comment to trigger Codex task
+        if: steps.check.outputs.should_trigger == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.CODEX_TRIGGER_PAT }}
+          script: |
+            const prNumber = ${{ steps.check.outputs.pr_number }};
+
             const { data } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -44,5 +82,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: `@codex please fix the CI failures for this PR.\n\n${summary}\n\nKeep changes minimal; update tests if needed; summarize changes.`,
+              body: `<!-- codex-ci-fixer-attempt -->\n@codex please fix the CI failures for this PR.\n\n${summary}\n\nKeep changes minimal; update tests if needed; summarize changes.`,
             });
