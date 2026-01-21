@@ -1,43 +1,81 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PasswordInput } from '@/components/ui/password-input';
 import { createClient } from '@/libs/supabase/client';
 
+const createSignUpSchema = (t: ReturnType<typeof useTranslations<'SignUp'>>) =>
+  z.object({
+    email: z.string().email(t('validation_email_invalid')),
+    password: z
+      .string()
+      .min(8, t('validation_password_min'))
+      .regex(/[A-Z]/, t('validation_password_uppercase'))
+      .regex(/[a-z]/, t('validation_password_lowercase'))
+      .regex(/\d/, t('validation_password_number')),
+  });
+
 export default function SignUpPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const t = useTranslations('SignUp');
+  const params = useParams();
+  const locale = params.locale as string;
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const signUpSchema = createSignUpSchema(t);
+  type SignUpFormData = z.infer<typeof signUpSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    mode: 'onBlur',
+  });
+
+  const email = watch('email');
+
+  const onSubmit = async (data: SignUpFormData) => {
+    setServerError(null);
     setLoading(true);
 
     try {
       const supabase = createClient();
       const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
+        email: data.email,
+        password: data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
       if (signUpError) {
-        setError(signUpError.message);
+        // Map Supabase errors to user-friendly messages
+        if (signUpError.message.includes('already registered') || signUpError.message.includes('already exists')) {
+          setServerError(t('error_email_exists'));
+        } else {
+          setServerError(signUpError.message);
+        }
         setLoading(false);
         return;
       }
 
       setSuccess(true);
       setLoading(false);
-    } catch (error) {
-      console.error('Sign up failed', error);
-      setError('An unexpected error occurred');
+    } catch {
+      setServerError(t('error_unexpected'));
       setLoading(false);
     }
   };
@@ -45,9 +83,8 @@ export default function SignUpPage() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:px-6 lg:px-8">
-        {/* AC #9: Back to Home link */}
         <Link
-          href="/"
+          href={`/${locale}`}
           className="absolute left-4 top-4 flex items-center text-sm font-medium text-gray-600 transition hover:text-gray-900 sm:left-8 sm:top-8"
         >
           <svg
@@ -62,13 +99,13 @@ export default function SignUpPage() {
               clipRule="evenodd"
             />
           </svg>
-          Back to Home
+          {t('back_to_home')}
         </Link>
 
         <div className="w-full max-w-md">
-          <div className="rounded-2xl bg-white p-8 shadow-xl sm:p-10">
-            <div className="text-center">
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-emerald-500">
+          <Card className="bg-white/80 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-emerald-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="size-8 text-white"
@@ -79,27 +116,28 @@ export default function SignUpPage() {
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
               </div>
-              <h1 className="mb-2 bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-                Check your email!
-              </h1>
-              <p className="mb-2 text-sm text-gray-600 sm:text-base">
-                We sent a verification email to
-              </p>
-              <p className="mb-6 text-sm font-semibold text-gray-900 sm:text-base">
+              <CardTitle className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                {t('success_title')}
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                {t('success_subtitle')}
+              </CardDescription>
+              <p className="text-sm font-semibold text-gray-900 sm:text-base">
                 {email}
               </p>
-              <p className="text-sm text-gray-600">
-                Please click the link in the email to verify your account and get started.
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="mb-6 text-sm text-gray-600">
+                {t('success_message')}
               </p>
-
               <Link
-                href="/sign-in"
-                className="mt-8 inline-block rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg"
+                href={`/${locale}/sign-in`}
+                className="inline-block rounded-lg bg-slate-900 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-slate-800 hover:shadow-lg"
               >
-                Go to Sign In
+                {t('success_button')}
               </Link>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -107,9 +145,8 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:px-6 lg:px-8">
-      {/* AC #9: Back to Home link */}
       <Link
-        href="/"
+        href={`/${locale}`}
         className="absolute left-4 top-4 flex items-center text-sm font-medium text-gray-600 transition hover:text-gray-900 sm:left-8 sm:top-8"
       >
         <svg
@@ -124,109 +161,121 @@ export default function SignUpPage() {
             clipRule="evenodd"
           />
         </svg>
-        Back to Home
+        {t('back_to_home')}
       </Link>
 
-      {/* AC #8, #10: Professional design matching sign-in page with mobile responsiveness */}
       <div className="w-full max-w-md">
-        <div className="rounded-2xl bg-white p-8 shadow-xl sm:p-10">
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-              Create Account
-            </h1>
-            <p className="text-sm text-gray-600 sm:text-base">
-              Create your account to get started
-            </p>
-          </div>
+        <Card className="bg-white/80 backdrop-blur-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-slate-900 sm:text-4xl">
+              {t('title')}
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              {t('subtitle')}
+            </CardDescription>
+          </CardHeader>
 
-          <form onSubmit={handleSignUp} className="space-y-5">
-            {error && (
-              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 shrink-0 text-red-600"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {serverError && (
+                <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="size-5 shrink-0 text-red-600"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-800">{serverError}</p>
+                    {serverError === t('error_email_exists') && (
+                      <Link
+                        href={`/${locale}/sign-in`}
+                        className="mt-1 text-sm font-semibold text-red-900 underline hover:text-red-700"
+                      >
+                        {t('error_email_exists_action')}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t('email_label')}
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder={t('email_placeholder')}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-invalid={!!errors.email}
+                    {...register('email')}
                   />
-                </svg>
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email.message}</p>
+                  )}
+                </div>
 
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
-                >
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                  placeholder="you@example.com"
-                />
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t('password_label')}
+                  </label>
+                  <PasswordInput
+                    id="password"
+                    placeholder={t('password_placeholder')}
+                    aria-invalid={!!errors.password}
+                    {...register('password')}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password.message}</p>
+                  )}
+                  <div className="text-xs text-gray-600">
+                    <p className="font-semibold">{t('password_requirements')}</p>
+                    <ul className="mt-1 list-inside list-disc space-y-0.5">
+                      <li>{t('password_min_chars')}</li>
+                      <li>{t('password_uppercase')}</li>
+                      <li>{t('password_lowercase')}</li>
+                      <li>{t('password_number')}</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                  placeholder="••••••••"
-                  minLength={6}
-                />
-                <p className="mt-1.5 text-xs text-gray-500">
-                  Minimum 6 characters
-                </p>
-              </div>
-            </div>
+              <button
+                type="submit"
+                disabled={loading || !isValid}
+                className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white shadow-md transition hover:bg-slate-800 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? t('submit_loading') : t('submit_button')}
+              </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-3 font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-4 text-gray-500">
+                    {t('already_have_account')}
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-gray-500">Already have an account?</span>
-              </div>
-            </div>
 
-            <Link
-              href="/sign-in"
-              className="block w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-center font-semibold text-gray-700 transition hover:border-purple-500 hover:bg-purple-50"
-            >
-              Sign In
-            </Link>
-          </form>
-        </div>
+              <Link
+                href={`/${locale}/sign-in`}
+                className="block w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-center font-semibold text-gray-700 transition hover:border-slate-900 hover:bg-slate-50"
+              >
+                {t('sign_in_link')}
+              </Link>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
