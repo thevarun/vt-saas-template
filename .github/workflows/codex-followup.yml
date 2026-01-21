@@ -4,24 +4,57 @@ on:
   pull_request_review:
     types: [submitted]
 
+env:
+  MAX_CODEX_ATTEMPTS: 3
+
 jobs:
   spawn_fixer:
+    if: >-
+      github.event.review.state == 'changes_requested' &&
+      github.event.review.user.login == 'chatgpt-codex-connector[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       issues: write
     steps:
-      - name: Comment to trigger Codex task
-        if: >-
-          github.event.review.state == 'changes_requested' &&
-          github.event.review.user.login == 'chatgpt-codex-connector[bot]'
+      - name: Check if should trigger Codex
+        id: check
         uses: actions/github-script@v8
         with:
+          script: |
+            const MAX_ATTEMPTS = parseInt(process.env.MAX_CODEX_ATTEMPTS) || 3;
+            const prNumber = context.payload.pull_request.number;
+
+            const ATTEMPT_MARKER = '<!-- codex-followup-attempt -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const codexAttempts = comments.filter(c =>
+              c.body.includes(ATTEMPT_MARKER)
+            ).length;
+
+            if (codexAttempts >= MAX_ATTEMPTS) {
+              core.info(`Skipping: already ${codexAttempts} Codex follow-up attempts (max: ${MAX_ATTEMPTS})`);
+              core.setOutput('should_trigger', 'false');
+              return;
+            }
+
+            core.info(`Follow-up attempt ${codexAttempts + 1} of ${MAX_ATTEMPTS}`);
+            core.setOutput('should_trigger', 'true');
+
+      - name: Comment to trigger Codex task
+        if: steps.check.outputs.should_trigger == 'true'
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.CODEX_TRIGGER_PAT }}
           script: |
             const pr = context.payload.pull_request.number;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr,
-              body: "@codex please implement fixes for the issues raised in the latest Codex review. Keep changes minimal; update tests if needed; summarize changes.",
+              body: "<!-- codex-followup-attempt -->\n@codex please implement fixes for the issues raised in the latest Codex review. Keep changes minimal; update tests if needed; summarize changes.",
             });
