@@ -76,7 +76,7 @@ describe('reset password page', () => {
     expect(passwordLabel).toBeInTheDocument();
   });
 
-  it('renders password requirements', async () => {
+  it('renders password requirement hint', async () => {
     mockGetSession.mockResolvedValue({
       data: {
         session: {
@@ -88,11 +88,10 @@ describe('reset password page', () => {
 
     renderWithIntl(<ResetPasswordPage />);
 
-    const requirements = await screen.findByText(/password requirements/i, {}, { timeout: 1000 });
+    // MagicPatterns design uses hint text instead of requirements list
+    const hint = await screen.findByText(/must be at least 8 characters/i, {}, { timeout: 1000 });
 
-    expect(requirements).toBeInTheDocument();
-    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
-    expect(screen.getByText(/one uppercase letter/i)).toBeInTheDocument();
+    expect(hint).toBeInTheDocument();
   });
 
   it('renders invalid state when session is missing', async () => {
@@ -103,7 +102,8 @@ describe('reset password page', () => {
 
     renderWithIntl(<ResetPasswordPage />);
 
-    const invalidTitle = await screen.findByText(/invalid reset link/i, {}, { timeout: 1000 });
+    // Updated translation: "Invalid Link" instead of "Invalid Reset Link"
+    const invalidTitle = await screen.findByText(/invalid link/i, {}, { timeout: 1000 });
 
     expect(invalidTitle).toBeInTheDocument();
   });
@@ -120,7 +120,8 @@ describe('reset password page', () => {
 
     renderWithIntl(<ResetPasswordPage />);
 
-    const invalidTitle = await screen.findByText(/invalid reset link/i, {}, { timeout: 1000 });
+    // Updated translation: "Invalid Link" instead of "Invalid Reset Link"
+    const invalidTitle = await screen.findByText(/invalid link/i, {}, { timeout: 1000 });
 
     expect(invalidTitle).toBeInTheDocument();
   });
@@ -133,7 +134,8 @@ describe('reset password page', () => {
 
     renderWithIntl(<ResetPasswordPage />);
 
-    const expiredTitle = await screen.findByText(/reset link expired/i, {}, { timeout: 1000 });
+    // Updated translation: "Link Expired" instead of "Reset Link Expired"
+    const expiredTitle = await screen.findByText(/link expired/i, {}, { timeout: 1000 });
 
     expect(expiredTitle).toBeInTheDocument();
   });
@@ -149,6 +151,23 @@ describe('reset password page', () => {
     const link = await screen.findByRole('link', { name: /request a new reset link/i }, { timeout: 1000 });
 
     expect(link).toHaveAttribute('href', '/en/forgot-password');
+  });
+
+  it('renders back to home link on form', async () => {
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          user: { aud: 'recovery' },
+        },
+      },
+      error: null,
+    });
+
+    renderWithIntl(<ResetPasswordPage />);
+
+    const backLink = await screen.findByRole('link', { name: /back to home/i }, { timeout: 1000 });
+
+    expect(backLink).toHaveAttribute('href', '/en');
   });
 
   describe('password validation', () => {
@@ -239,7 +258,8 @@ describe('reset password page', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/passwords don't match/i)).toBeInTheDocument();
+        // Updated translation: "Passwords do not match" instead of "Passwords don't match"
+        expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
       });
     });
   });
@@ -256,7 +276,7 @@ describe('reset password page', () => {
       });
     });
 
-    it('successfully updates password and redirects', async () => {
+    it('successfully updates password and shows success state', async () => {
       const user = userEvent.setup({ delay: null });
       mockUpdateUser.mockResolvedValue({ error: null });
       mockSignOut.mockResolvedValue({ error: null });
@@ -281,17 +301,18 @@ describe('reset password page', () => {
 
       await waitFor(() => {
         expect(mockToast).toHaveBeenCalledWith({
-          title: 'Password Reset Successful!',
-          description: 'Your password has been updated. Redirecting to sign-in...',
+          title: 'Password Reset',
+          description: 'Your password has been successfully updated. You can now sign in with your new password.',
         });
       });
 
+      // Updated: Success title is now "Password Reset" (from MagicPatterns design)
       await waitFor(() => {
-        expect(screen.getByText(/password reset successful!/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /password reset/i })).toBeInTheDocument();
       });
 
-      // Note: Not testing the actual redirect timing since it uses setTimeout
-      // The redirect itself is tested by checking that the success state is shown
+      // Verify "Back to Sign In" button exists
+      expect(screen.getByRole('link', { name: /back to sign in/i })).toHaveAttribute('href', '/en/sign-in');
     });
 
     it('shows loading state during submission', async () => {
@@ -369,7 +390,7 @@ describe('reset password page', () => {
       });
     });
 
-    it('renders success state with correct message', async () => {
+    it('renders success state with updated message', async () => {
       const user = userEvent.setup({ delay: null });
       mockUpdateUser.mockResolvedValue({ error: null });
       mockSignOut.mockResolvedValue({ error: null });
@@ -384,14 +405,9 @@ describe('reset password page', () => {
       await user.type(confirmInput, 'NewPassword123');
       await user.click(submitButton);
 
+      // Updated: Success message now matches MagicPatterns
       await waitFor(() => {
-        expect(screen.getByText(/password reset successful!/i)).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
-        const messages = screen.getAllByText(/your password has been updated/i);
-
-        expect(messages.length).toBeGreaterThan(0);
+        expect(screen.getByText(/your password has been successfully updated/i)).toBeInTheDocument();
       });
     });
   });

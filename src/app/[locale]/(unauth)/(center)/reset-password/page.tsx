@@ -1,7 +1,21 @@
 'use client';
 
+/**
+ * Reset Password Page
+ * Adapted from MagicPatterns design: https://www.magicpatterns.com/c/mvjem6dcsdqzubf6kpavmg
+ *
+ * Adaptations made:
+ * - Added Supabase authentication integration (token verification, password update)
+ * - Added i18n with next-intl
+ * - Added password validation (8+ chars, uppercase, lowercase, number) per project requirements
+ * - Added security features (session invalidation after password update)
+ * - Added toast notifications for feedback
+ * - Added loading/error/expired token states
+ * - Used project's PasswordInput component
+ */
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, KeyRound, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -146,15 +160,8 @@ export default function ResetPasswordPage() {
   // Loading state
   if (tokenState === 'loading') {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
-        </div>
-
-        {/* Main Card */}
-        <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
           <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <Loader2 className="size-8 animate-spin text-blue-600" />
             <p className="text-slate-600">{t('verifying_token')}</p>
@@ -164,41 +171,30 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Invalid token state
+  // Invalid/Expired token state
   if (tokenState === 'invalid' || tokenState === 'expired') {
     const isExpired = tokenState === 'expired';
 
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
-        </div>
-
-        {/* Main Card */}
-        <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-xl">
           {/* Icon */}
-          <div className="mb-8 flex justify-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-red-100 shadow-lg shadow-red-100/20">
-              <KeyRound className="size-6 text-red-600" />
-            </div>
+          <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-red-100 text-red-600">
+            <Lock className="size-6" />
           </div>
 
           {/* Header */}
-          <div className="mb-8 text-center">
-            <h1 className="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">
-              {t(isExpired ? 'expired_title' : 'invalid_title')}
-            </h1>
-            <p className="text-sm leading-relaxed text-slate-500 md:text-base">
-              {t(isExpired ? 'expired_message' : 'invalid_message')}
-            </p>
-          </div>
+          <h2 className="mb-2 text-2xl font-semibold text-slate-900">
+            {t(isExpired ? 'expired_title' : 'invalid_title')}
+          </h2>
+          <p className="mb-8 text-slate-600">
+            {t(isExpired ? 'expired_message' : 'invalid_message')}
+          </p>
 
           {/* Action Button */}
           <Link
             href={`/${locale}/forgot-password`}
-            className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 active:scale-[0.98]"
+            className="block w-full rounded-lg bg-slate-900 py-2.5 font-medium text-white transition-colors duration-200 hover:bg-slate-800"
           >
             {t(isExpired ? 'expired_action' : 'invalid_action')}
           </Link>
@@ -207,165 +203,148 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Success state
+  // Success state (matches MagicPatterns design)
   if (isSuccess) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
-        </div>
-
-        {/* Main Card */}
-        <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-xl">
           {/* Icon */}
-          <div className="mb-8 flex justify-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-green-100 shadow-lg shadow-green-100/20">
-              <Check className="size-6 text-green-600" />
-            </div>
+          <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
+            <CheckCircle2 className="size-6" />
           </div>
 
           {/* Header */}
-          <div className="mb-8 text-center">
-            <h1 className="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">
-              {t('success_title')}
-            </h1>
-            <p className="text-sm leading-relaxed text-slate-500 md:text-base">
-              {t('success_message')}
-            </p>
-          </div>
-
-          {/* Success Message */}
-          <div className="rounded-lg border border-green-100 bg-green-50 p-4 text-center text-sm text-green-700">
+          <h2 className="mb-2 text-2xl font-semibold text-slate-900">
+            {t('success_title')}
+          </h2>
+          <p className="mb-8 text-slate-600">
             {t('success_message')}
-          </div>
+          </p>
+
+          {/* Back to Sign In Button */}
+          <Link
+            href={`/${locale}/sign-in`}
+            className="block w-full rounded-lg bg-slate-900 py-2.5 font-medium text-white transition-colors duration-200 hover:bg-slate-800"
+          >
+            {t('back_to_signin')}
+          </Link>
         </div>
       </div>
     );
   }
 
-  // Form UI (valid token)
+  // Form UI (valid token) - Adapted from MagicPatterns
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-      {/* Background Gradients */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
+    <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
+      {/* Back Link - Positioned at top left */}
+      <div className="absolute left-6 top-6 md:left-8 md:top-8">
+        <Link
+          href={`/${locale}`}
+          className="group flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+        >
+          <ArrowLeft className="mr-2 size-4 transition-transform group-hover:-translate-x-1" />
+          {t('back_to_home')}
+        </Link>
       </div>
 
-      {/* Main Card */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
-        {/* Icon */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/20">
-            <KeyRound className="size-6 text-white" />
+      {/* Main Content */}
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+          {/* Header Icon */}
+          <div className="mb-6 flex size-12 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/20">
+            <Lock className="size-6 text-white" />
           </div>
-        </div>
 
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">
+          {/* Text Content */}
+          <h1 className="mb-2 text-2xl font-semibold text-slate-900">
             {t('title')}
           </h1>
-          <p className="text-sm leading-relaxed text-slate-500 md:text-base">
+          <p className="mb-8 text-sm leading-relaxed text-slate-600">
             {t('subtitle')}
           </p>
-        </div>
 
-        {/* Password Requirements */}
-        <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-2 text-sm font-medium text-slate-700">{t('requirements_title')}</p>
-          <ul className="space-y-1 text-sm text-slate-600">
-            <li className="flex items-center gap-2">
-              <Check className="size-4 text-slate-400" />
-              {t('requirement_min_length')}
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="size-4 text-slate-400" />
-              {t('requirement_uppercase')}
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="size-4 text-slate-400" />
-              {t('requirement_lowercase')}
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="size-4 text-slate-400" />
-              {t('requirement_number')}
-            </li>
-          </ul>
-        </div>
-
-        {serverError && (
-          <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="size-5 shrink-0 text-red-600"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div className="flex-1">
+          {/* Server Error */}
+          {serverError && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
               <p className="text-sm font-medium text-red-800">{serverError}</p>
             </div>
-          </div>
-        )}
+          )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-              {t('password_label')}
-            </label>
-            <PasswordInput
-              id="password"
-              placeholder={t('password_placeholder')}
-              aria-invalid={!!errors.password}
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* New Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                {t('password_label')}
+              </label>
+              <PasswordInput
+                id="password"
+                placeholder="••••••••"
+                aria-invalid={!!errors.password}
+                disabled={loading}
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register('password')}
+              />
+              {errors.password
+                ? (
+                    <p className="mt-1.5 text-xs font-medium text-red-600">
+                      {errors.password.message}
+                    </p>
+                  )
+                : (
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      {t('requirement_hint')}
+                    </p>
+                  )}
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                {t('confirm_password_label')}
+              </label>
+              <PasswordInput
+                id="confirmPassword"
+                placeholder="••••••••"
+                aria-invalid={!!errors.confirmPassword}
+                disabled={loading}
+                className={`w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  errors.confirmPassword
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
+                    : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/10'
+                }`}
+                {...register('confirmPassword')}
+              />
+              {errors.confirmPassword && (
+                <p className="mt-1.5 text-xs font-medium text-red-600">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
               disabled={loading}
-              className="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-              {...register('password')}
-            />
-            {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700">
-              {t('confirm_password_label')}
-            </label>
-            <PasswordInput
-              id="confirmPassword"
-              placeholder={t('confirm_password_placeholder')}
-              aria-invalid={!!errors.confirmPassword}
-              disabled={loading}
-              className="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-              {...register('confirmPassword')}
-            />
-            {errors.confirmPassword && (
-              <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {loading
-              ? (
-                  <>
-                    <Loader2 className="size-5 animate-spin" />
-                    <span>{t('resetting')}</span>
-                  </>
-                )
-              : t('submit_button')}
-          </button>
-        </form>
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 font-medium text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:bg-blue-700 hover:shadow-blue-600/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading
+                ? (
+                    <>
+                      <Loader2 className="size-5 animate-spin" />
+                      <span>{t('resetting')}</span>
+                    </>
+                  )
+                : t('submit_button')}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
