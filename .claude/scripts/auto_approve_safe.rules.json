@@ -32,7 +32,7 @@
     "^git\\s+rm\\s+[^|;&]+$",
 
     "^pnpm\\s+(test|run\\s+(test|lint|typecheck|type-check|check|build|dev|start)|install|i|add|remove)(\\s+.*)?$",
-    "^npm\\s+(test|run\\s+(test|lint|typecheck|type-check|check|build|dev|start)|install|i|ci)(\\s+.*)?$",
+    "^npm\\s+(test|run\\s+(test|lint|lint:fix|typecheck|type-check|check|check-types|build|dev|dev:next|start)|install|i|ci)(\\s+.*)?$",
     "^npm\\s+whoami$",
     "^npm\\s+list(\\s+(-g|--global))?(\\s+[\\w@/-]+)?$",
     "^npm\\s+ls(\\s+[\\w@/-]+)*$",
@@ -41,6 +41,7 @@
     "^yarn\\s+(test|lint|typecheck|type-check|check|build|dev|start|install|add|remove)(\\s+.*)?$",
     "^npx\\s+(tsc|eslint|prettier|vitest|jest)(\\s+.*)?$",
     "^npx\\s+tsx\\s+[^|;&]+$",
+    "^npx\\s+shadcn@latest\\s+(add|init)(\\s+[\\w@/-]+)*(\\s+--yes)?$",
 
     "^pytest(\\s+.*)?$",
     "^python(3)?\\s+-m\\s+pytest(\\s+.*)?$",
@@ -92,7 +93,13 @@
 
     "^sleep\\s+\\d+$",
 
-    "^chmod\\s+[0-6][0-7][0-7]\\s+"
+    "^chmod\\s+[0-6][0-7][0-7]\\s+",
+
+    "^lsof\\s+(-[a-zA-Z]+\\s+)*-?i\\s*[:\\d]+",
+    "^npm\\s+run\\s+clean(\\s+.*)?$",
+    "^npm\\s+(dedupe|cache\\s+clean)(\\s+.*)?$",
+    "^curl\\s+(-[sIo]+\\s+)*https?://localhost[:/][^|;&]*$",
+    "^pgrep\\s+"
   ],
 
   "deny_patterns": [
@@ -143,7 +150,7 @@
     "\\.pypirc$",
     "\\.netrc$",
     "\\bsecrets?\\b",
-    "\\bpassw",
+    "\\bpassw(?:ord)?s?\\.(txt|json|env|yaml|yml|ini|conf|cfg)$",
     "\\btoken"
   ]
 }
