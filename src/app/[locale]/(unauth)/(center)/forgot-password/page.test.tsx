@@ -20,18 +20,18 @@ vi.mock('next/navigation', () => ({
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => {
     const translations: Record<string, string> = {
-      title: 'Forgot Password',
-      subtitle: 'Enter your email address and we\'ll send you a link to reset your password',
-      email_label: 'Email',
-      email_placeholder: 'Enter your email',
-      submit_button: 'Send Reset Link',
+      title: 'Forgot password?',
+      subtitle: 'No worries, we\'ll send you reset instructions.',
+      email_label: 'Email address',
+      email_placeholder: 'name@company.com',
+      submit_button: 'Send reset link',
       sending: 'Sending...',
+      back: 'Back',
       back_to_sign_in: 'Back to sign in',
-      remembered_password: 'Remember your password?',
-      success_title: 'Check your email',
-      success_message: 'If an account exists with that email, you\'ll receive instructions to reset your password within a few minutes.',
-      success_email_sent_to: 'Email sent to:',
-      success_note: 'Didn\'t receive an email? Check your spam folder or try requesting a new reset link.',
+      success_title: 'Check your email!',
+      success_message: 'We\'ve sent a password reset link to your email address.',
+      success_email_sent_to: 'Check your email! We\'ve sent a reset link to',
+      try_another_email: 'Try another email',
       validation_email_invalid: 'Please enter a valid email address',
       validation_email_required: 'Email is required',
       error_rate_limit: 'Too many password reset requests. Please try again in a few minutes.',
@@ -62,9 +62,9 @@ describe('ForgotPasswordPage', () => {
   it('renders the forgot password form', () => {
     render(<ForgotPasswordPage />);
 
-    expect(screen.getByText('Forgot Password')).toBeInTheDocument();
-    expect(screen.getByText('Enter your email address and we\'ll send you a link to reset your password')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByText('Forgot password?')).toBeInTheDocument();
+    expect(screen.getByText('No worries, we\'ll send you reset instructions.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe('ForgotPasswordPage', () => {
     const user = userEvent.setup();
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'invalid-email');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -101,7 +101,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -118,8 +118,8 @@ describe('ForgotPasswordPage', () => {
 
     // Check success state is shown
     await waitFor(() => {
-      expect(screen.getByText('Check your email')).toBeInTheDocument();
-      expect(screen.getByText('If an account exists with that email, you\'ll receive instructions to reset your password within a few minutes.')).toBeInTheDocument();
+      expect(screen.getByText('Check your email!')).toBeInTheDocument();
+      expect(screen.getByText('We\'ve sent a password reset link to your email address.')).toBeInTheDocument();
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
   });
@@ -131,15 +131,15 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'nonexistent@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Check your email')).toBeInTheDocument();
-      expect(screen.getByText('If an account exists with that email, you\'ll receive instructions to reset your password within a few minutes.')).toBeInTheDocument();
+      expect(screen.getByText('Check your email!')).toBeInTheDocument();
+      expect(screen.getByText('We\'ve sent a password reset link to your email address.')).toBeInTheDocument();
     });
   });
 
@@ -151,7 +151,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -170,7 +170,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -188,7 +188,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -207,7 +207,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -219,7 +219,7 @@ describe('ForgotPasswordPage', () => {
     expect(screen.getByText('Sending...')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText('Check your email')).toBeInTheDocument();
+      expect(screen.getByText('Check your email!')).toBeInTheDocument();
     });
   });
 
@@ -238,7 +238,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -252,20 +252,28 @@ describe('ForgotPasswordPage', () => {
     });
   });
 
-  it('shows success note about spam folder', async () => {
+  it('shows try another email option in success state', async () => {
     const user = userEvent.setup();
     mockResetPasswordForEmail.mockResolvedValue({ error: null });
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Didn\'t receive an email? Check your spam folder or try requesting a new reset link.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /try another email/i })).toBeInTheDocument();
+    });
+
+    // Clicking "try another email" should return to form
+    const tryAnotherButton = screen.getByRole('button', { name: /try another email/i });
+    await user.click(tryAnotherButton);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     });
   });
 
@@ -277,7 +285,7 @@ describe('ForgotPasswordPage', () => {
 
     render(<ForgotPasswordPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Email address');
     await user.type(emailInput, 'test@example.com');
 
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
@@ -294,7 +302,7 @@ describe('ForgotPasswordPage', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Network error. Please check your connection and try again.')).not.toBeInTheDocument();
-      expect(screen.getByText('Check your email')).toBeInTheDocument();
+      expect(screen.getByText('Check your email!')).toBeInTheDocument();
     });
   });
 });

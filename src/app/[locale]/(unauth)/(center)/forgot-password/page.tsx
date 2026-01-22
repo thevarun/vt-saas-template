@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Loader2, Mail } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, KeyRound, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -79,59 +79,69 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  // Reset form to try another email
+  const handleTryAnother = () => {
+    setIsSubmitted(false);
+    setSubmittedEmail('');
+  };
+
   // Success state UI
   if (isSubmitted) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-slate-50 p-4">
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
         {/* Background Gradients */}
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100/50 opacity-60 blur-3xl" />
-          <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-blue-100/50 opacity-60 blur-3xl" />
+          <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
         </div>
 
         {/* Main Card */}
-        <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
-          <div className="p-8 sm:p-10">
-            {/* Success Icon */}
-            <div className="mb-6 flex justify-center">
-              <div className="rounded-full bg-green-100 p-3">
-                <Mail className="size-8 text-green-600" />
-              </div>
+        <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+          {/* Icon */}
+          <div className="mb-8 flex justify-center">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/20">
+              <KeyRound className="size-6 text-white" />
             </div>
+          </div>
 
-            {/* Header */}
-            <div className="mb-6 text-center">
-              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                {t('success_title')}
-              </h1>
-              <p className="mt-3 text-slate-600">
-                {t('success_message')}
-              </p>
-              <p className="mt-2 text-sm text-slate-500">
-                {t('success_email_sent_to')}
-                {' '}
-                <span className="font-medium text-slate-700">{submittedEmail}</span>
-              </p>
-            </div>
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1 className="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">
+              {t('success_title')}
+            </h1>
+            <p className="text-sm leading-relaxed text-slate-500 md:text-base">
+              {t('success_message')}
+            </p>
+          </div>
 
-            {/* Additional Note */}
-            <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4">
-              <p className="text-sm text-blue-900">
-                {t('success_note')}
-              </p>
-            </div>
+          {/* Success Message */}
+          <div className="mb-6 rounded-lg border border-green-100 bg-green-50 p-4 text-center text-sm text-green-700">
+            {t('success_email_sent_to')}
+            {' '}
+            <span className="font-semibold">{submittedEmail}</span>
+          </div>
 
-            {/* Back to Sign In */}
+          {/* Try Another Email */}
+          <div className="mb-8 text-center">
+            <button
+              type="button"
+              onClick={handleTryAnother}
+              className="text-sm font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900"
+            >
+              {t('try_another_email')}
+            </button>
+          </div>
+
+          {/* Back to Sign In */}
+          <div className="text-center">
             <Link
               href={`/${locale}/sign-in`}
-              className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="group inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-900"
             >
+              <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
               {t('back_to_sign_in')}
             </Link>
           </div>
-
-          {/* Decorative bottom bar */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 opacity-80" />
         </div>
       </div>
     );
@@ -139,115 +149,119 @@ export default function ForgotPasswordPage() {
 
   // Form UI
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-slate-50 p-4">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       {/* Background Gradients */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100/50 opacity-60 blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-blue-100/50 opacity-60 blur-3xl" />
+        <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] size-2/5 rounded-full bg-slate-200 opacity-50 blur-[100px]" />
       </div>
 
-      {/* Back to Sign In Link */}
-      <div className="absolute left-6 top-6 z-10">
+      {/* Back to Sign In Link - Desktop */}
+      <div className="absolute left-8 top-8 z-10 hidden md:block">
         <Link
           href={`/${locale}/sign-in`}
-          className="group flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+          className="flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
         >
-          <div className="mr-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-sm transition-all group-hover:border-slate-300">
-            <ArrowLeft className="size-4" />
-          </div>
+          <ChevronLeft className="size-4" />
           {t('back_to_sign_in')}
         </Link>
       </div>
 
       {/* Main Card */}
-      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
-        <div className="p-8 sm:p-10">
-          {/* Header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-              {t('title')}
-            </h1>
-            <p className="mt-2 text-slate-600">
-              {t('subtitle')}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {serverError && (
-              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 shrink-0 text-red-600"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">{serverError}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium leading-none text-slate-700">
-                {t('email_label')}
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder={t('email_placeholder')}
-                className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                aria-invalid={!!errors.email}
-                disabled={loading}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {loading
-                ? (
-                    <span className="flex items-center justify-center">
-                      <Loader2 className="-ml-1 mr-2 size-5 animate-spin" />
-                      {t('sending')}
-                    </span>
-                  )
-                : t('submit_button')}
-            </button>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-slate-500">
-                  {t('remembered_password')}
-                </span>
-              </div>
-            </div>
-
-            <Link
-              href={`/${locale}/sign-in`}
-              className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50"
-            >
-              {t('back_to_sign_in')}
-            </Link>
-          </form>
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl md:p-10">
+        {/* Mobile Back Link */}
+        <div className="mb-8 md:hidden">
+          <Link
+            href={`/${locale}/sign-in`}
+            className="flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+          >
+            <ChevronLeft className="size-4" />
+            {t('back')}
+          </Link>
         </div>
 
-        {/* Decorative bottom bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 opacity-80" />
+        {/* Icon */}
+        <div className="mb-8 flex justify-center">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-slate-900 shadow-lg shadow-slate-900/20">
+            <KeyRound className="size-6 text-white" />
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">
+            {t('title')}
+          </h1>
+          <p className="text-sm leading-relaxed text-slate-500 md:text-base">
+            {t('subtitle')}
+          </p>
+        </div>
+
+        {serverError && (
+          <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="size-5 shrink-0 text-red-600"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">{serverError}</p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+              {t('email_label')}
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder={t('email_placeholder')}
+              className="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!!errors.email}
+              disabled={loading}
+              {...register('email')}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-600">{errors.email.message}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {loading
+              ? (
+                  <>
+                    <Loader2 className="size-5 animate-spin" />
+                    <span>{t('sending')}</span>
+                  </>
+                )
+              : t('submit_button')}
+          </button>
+        </form>
+
+        {/* Footer Link */}
+        <div className="mt-8 text-center">
+          <Link
+            href={`/${locale}/sign-in`}
+            className="group inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-900"
+          >
+            <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
+            {t('back_to_sign_in')}
+          </Link>
+        </div>
       </div>
     </div>
   );
