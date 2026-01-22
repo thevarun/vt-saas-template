@@ -151,35 +151,27 @@ export default function SignUpPage() {
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
         <div className="p-8 sm:p-10">
           {/* Header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-6 flex size-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xl shadow-slate-900/20">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                className="size-6"
+              >
+                <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+              </svg>
+            </div>
+            <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900">
               {t('title')}
             </h1>
-            <p className="mt-2 text-slate-600">
+            <p className="text-sm text-slate-500">
               {t('subtitle')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Social Auth Buttons */}
-            <SocialAuthButtons
-              onGoogleClick={handleGoogleSignUp}
-              onGitHubClick={handleGitHubSignUp}
-              loading={oauthLoading}
-              disabled={loading || oauthLoading}
-            />
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-slate-500">
-                  {t('or_sign_up_with_email')}
-                </span>
-              </div>
-            </div>
-
             {serverError && (
               <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
                 <svg
@@ -268,23 +260,37 @@ export default function SignUpPage() {
                 : t('submit_button')}
             </button>
 
+            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200" />
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-slate-500">
-                  {t('already_have_account')}
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-500">
+                  {t('or_continue_with')}
                 </span>
               </div>
             </div>
 
-            <Link
-              href={`/${locale}/sign-in`}
-              className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50"
-            >
-              {t('sign_in_link')}
-            </Link>
+            {/* Social Auth Buttons */}
+            <SocialAuthButtons
+              onGoogleClick={handleGoogleSignUp}
+              onGitHubClick={handleGitHubSignUp}
+              loading={oauthLoading}
+              disabled={loading || oauthLoading}
+            />
+
+            {/* Footer Link */}
+            <p className="mt-8 text-center text-sm text-slate-600">
+              {t('already_have_account')}
+              {' '}
+              <Link
+                href={`/${locale}/sign-in`}
+                className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+              >
+                {t('sign_in_link')}
+              </Link>
+            </p>
           </form>
         </div>
 

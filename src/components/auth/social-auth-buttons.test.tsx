@@ -7,6 +7,8 @@ import { SocialAuthButtons } from './social-auth-buttons';
 
 const messages = {
   SocialAuth: {
+    google: 'Google',
+    github: 'GitHub',
     continue_with_google: 'Continue with Google',
     continue_with_github: 'Continue with GitHub',
   },
@@ -32,8 +34,8 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    expect(screen.getByText('Continue with Google')).toBeInTheDocument();
-    expect(screen.getByText('Continue with GitHub')).toBeInTheDocument();
+    expect(screen.getByText('Google')).toBeInTheDocument();
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
   });
 
   it('calls onGoogleClick when Google button is clicked', async () => {
@@ -48,7 +50,7 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    const googleButton = screen.getByText('Continue with Google');
+    const googleButton = screen.getByText('Google');
     await user.click(googleButton);
 
     expect(mockGoogleClick).toHaveBeenCalledTimes(1);
@@ -67,7 +69,7 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    const githubButton = screen.getByText('Continue with GitHub');
+    const githubButton = screen.getByText('GitHub');
     await user.click(githubButton);
 
     expect(mockGitHubClick).toHaveBeenCalledTimes(1);
@@ -86,8 +88,8 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    const googleButton = screen.getByText('Continue with Google').closest('button');
-    const githubButton = screen.getByText('Continue with GitHub').closest('button');
+    const googleButton = screen.getByText('Google').closest('button');
+    const githubButton = screen.getByText('GitHub').closest('button');
 
     expect(googleButton).toBeDisabled();
     expect(githubButton).toBeDisabled();
@@ -105,8 +107,8 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    const googleButton = screen.getByText('Continue with Google').closest('button');
-    const githubButton = screen.getByText('Continue with GitHub').closest('button');
+    const googleButton = screen.getByText('Google').closest('button');
+    const githubButton = screen.getByText('GitHub').closest('button');
 
     expect(googleButton).toBeDisabled();
     expect(githubButton).toBeDisabled();
@@ -143,7 +145,7 @@ describe('socialAuthButtons', () => {
     );
 
     // Check for Google SVG icon (has multiple paths with fill colors)
-    const googleIcon = container.querySelector('svg g path[fill="#4285F4"]');
+    const googleIcon = container.querySelector('svg path[fill="#4285F4"]');
 
     expect(googleIcon).toBeInTheDocument();
   });
@@ -162,7 +164,7 @@ describe('socialAuthButtons', () => {
 
     // Lucide Github icon should be present
     // Check for presence by finding the button and checking it has an svg
-    const githubButton = screen.getByText('Continue with GitHub').closest('button');
+    const githubButton = screen.getByText('GitHub').closest('button');
     const svg = githubButton?.querySelector('svg');
 
     expect(svg).toBeInTheDocument();
@@ -179,9 +181,9 @@ describe('socialAuthButtons', () => {
       />,
     );
 
-    const googleButton = screen.getByText('Continue with Google').closest('button');
+    const googleButton = screen.getByText('Google').closest('button');
     const gridContainer = googleButton?.parentElement;
 
-    expect(gridContainer).toHaveClass('grid', 'grid-cols-1', 'sm:grid-cols-2');
+    expect(gridContainer).toHaveClass('grid', 'grid-cols-2');
   });
 });

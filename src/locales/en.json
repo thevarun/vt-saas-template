@@ -101,9 +101,12 @@
     "validation_password_required": "Password is required",
     "error_oauth_google": "Failed to sign in with Google. Please try again.",
     "error_oauth_github": "Failed to sign in with GitHub. Please try again.",
-    "or_continue_with_email": "Or continue with email"
+    "or_continue_with_email": "Or continue with email",
+    "or_continue_with": "Or continue with"
   },
   "SocialAuth": {
+    "google": "Google",
+    "github": "GitHub",
     "continue_with_google": "Continue with Google",
     "continue_with_github": "Continue with GitHub"
   },
@@ -145,7 +148,8 @@
     "validation_password_number": "Must contain at least one number",
     "error_oauth_google": "Failed to sign up with Google. Please try again.",
     "error_oauth_github": "Failed to sign up with GitHub. Please try again.",
-    "or_sign_up_with_email": "Or sign up with email"
+    "or_sign_up_with_email": "Or sign up with email",
+    "or_continue_with": "Or continue with"
   },
   "DashboardLayout": {
     "home": "Home",
