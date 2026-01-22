@@ -9,8 +9,10 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
+import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/libs/supabase/client';
 
 const createSignInSchema = (t: ReturnType<typeof useTranslations<'SignIn'>>) =>
@@ -25,8 +27,10 @@ export default function SignInFormClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = params.locale as string;
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOAuthLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -60,6 +64,56 @@ export default function SignInFormClient() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('remember_me', checked.toString());
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setOAuthLoading(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: t('error_oauth_google'),
+        variant: 'destructive',
+      });
+      setOAuthLoading(false);
+    }
+    // Note: If no error, user will be redirected to OAuth provider
+    // Loading state persists until redirect completes
+  };
+
+  const handleGitHubSignIn = async () => {
+    setOAuthLoading(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: t('error_oauth_github'),
+        variant: 'destructive',
+      });
+      setOAuthLoading(false);
+    }
+    // Note: If no error, user will be redirected to OAuth provider
+    // Loading state persists until redirect completes
   };
 
   const onSubmit = async (data: SignInFormData) => {
@@ -138,6 +192,25 @@ export default function SignInFormClient() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Social Auth Buttons */}
+            <SocialAuthButtons
+              onGoogleClick={handleGoogleSignIn}
+              onGitHubClick={handleGitHubSignIn}
+              loading={oauthLoading}
+              disabled={loading || oauthLoading}
+            />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-4 text-slate-500">
+                  {t('or_continue_with_email')}
+                </span>
+              </div>
+            </div>
+
             {serverError && (
               <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
                 <svg
@@ -169,7 +242,7 @@ export default function SignInFormClient() {
                   placeholder={t('email_placeholder')}
                   className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!errors.email}
-                  disabled={loading}
+                  disabled={loading || oauthLoading}
                   {...register('email')}
                 />
                 {errors.email && (
@@ -186,7 +259,7 @@ export default function SignInFormClient() {
                   placeholder={t('password_placeholder')}
                   className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!errors.password}
-                  disabled={loading}
+                  disabled={loading || oauthLoading}
                   {...register('password')}
                 />
                 {errors.password && (
@@ -202,7 +275,7 @@ export default function SignInFormClient() {
                   id="remember-me"
                   checked={rememberMe}
                   onCheckedChange={handleRememberMeChange}
-                  disabled={loading}
+                  disabled={loading || oauthLoading}
                 />
                 <label
                   htmlFor="remember-me"
@@ -221,7 +294,7 @@ export default function SignInFormClient() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || oauthLoading}
               className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading

@@ -9,7 +9,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { PasswordInput } from '@/components/ui/password-input';
+import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/libs/supabase/client';
 
 const createSignUpSchema = (t: ReturnType<typeof useTranslations<'SignUp'>>) =>
@@ -27,8 +29,10 @@ export default function SignUpPage() {
   const t = useTranslations('SignUp');
   const params = useParams();
   const locale = params.locale as string;
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOAuthLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const signUpSchema = createSignUpSchema(t);
@@ -42,6 +46,52 @@ export default function SignUpPage() {
     resolver: zodResolver(signUpSchema),
     mode: 'onBlur',
   });
+
+  const handleGoogleSignUp = async () => {
+    setOAuthLoading(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: t('error_oauth_google'),
+        variant: 'destructive',
+      });
+      setOAuthLoading(false);
+    }
+  };
+
+  const handleGitHubSignUp = async () => {
+    setOAuthLoading(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: t('error_oauth_github'),
+        variant: 'destructive',
+      });
+      setOAuthLoading(false);
+    }
+  };
 
   const onSubmit = async (data: SignUpFormData) => {
     setServerError(null);
@@ -111,6 +161,25 @@ export default function SignUpPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Social Auth Buttons */}
+            <SocialAuthButtons
+              onGoogleClick={handleGoogleSignUp}
+              onGitHubClick={handleGitHubSignUp}
+              loading={oauthLoading}
+              disabled={loading || oauthLoading}
+            />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-4 text-slate-500">
+                  {t('or_sign_up_with_email')}
+                </span>
+              </div>
+            </div>
+
             {serverError && (
               <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
                 <svg
@@ -150,6 +219,7 @@ export default function SignUpPage() {
                   placeholder={t('email_placeholder')}
                   className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!errors.email}
+                  disabled={loading || oauthLoading}
                   {...register('email')}
                 />
                 {errors.email && (
@@ -165,6 +235,7 @@ export default function SignUpPage() {
                   id="password"
                   placeholder={t('password_placeholder')}
                   aria-invalid={!!errors.password}
+                  disabled={loading || oauthLoading}
                   {...register('password')}
                 />
                 {errors.password && (
@@ -184,7 +255,7 @@ export default function SignUpPage() {
 
             <button
               type="submit"
-              disabled={loading || !isValid}
+              disabled={loading || oauthLoading || !isValid}
               className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading

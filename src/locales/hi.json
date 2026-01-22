@@ -98,7 +98,19 @@
     "error_too_many_requests": "Too many sign-in attempts. Please wait a few minutes and try again.",
     "validation_email_invalid": "Invalid email address",
     "validation_email_required": "Email is required",
-    "validation_password_required": "Password is required"
+    "validation_password_required": "Password is required",
+    "error_oauth_google": "Failed to sign in with Google. Please try again.",
+    "error_oauth_github": "Failed to sign in with GitHub. Please try again.",
+    "or_continue_with_email": "Or continue with email"
+  },
+  "SocialAuth": {
+    "continue_with_google": "Continue with Google",
+    "continue_with_github": "Continue with GitHub"
+  },
+  "AuthError": {
+    "oauth_error_title": "Authentication Error",
+    "oauth_error_message": "Something went wrong during sign-in. Please try again.",
+    "back_to_sign_in": "Back to Sign In"
   },
   "SignUp": {
     "meta_title": "Sign up",
@@ -130,7 +142,10 @@
     "validation_password_min": "Password must be at least 8 characters",
     "validation_password_uppercase": "Must contain at least one uppercase letter",
     "validation_password_lowercase": "Must contain at least one lowercase letter",
-    "validation_password_number": "Must contain at least one number"
+    "validation_password_number": "Must contain at least one number",
+    "error_oauth_google": "Failed to sign up with Google. Please try again.",
+    "error_oauth_github": "Failed to sign up with GitHub. Please try again.",
+    "or_sign_up_with_email": "Or sign up with email"
   },
   "DashboardLayout": {
     "home": "Home",
