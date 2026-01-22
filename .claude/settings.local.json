@@ -1,0 +1,207 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(npm install:*)",
+      "Bash(xargs sed:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npm run check-types:*)",
+      "Bash(npm run test:e2e:*)",
+      "WebFetch(domain:www.assistant-ui.com)",
+      "WebFetch(domain:docs.dify.ai)",
+      "WebFetch(domain:github.com)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(curl:*)",
+      "Bash(npm test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(lsof -ti:3000)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(tree:*)",
+      "Bash(npx @kayvan/markdown-tree-parser:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run lint:fix)",
+      "Bash(npx eslint:*)",
+      "mcp__playwright__playwright_navigate",
+      "Bash(gh run view:*)",
+      "Bash(npm outdated:*)",
+      "Bash(npm run storybook:build:*)",
+      "Bash(npm view:*)",
+      "WebSearch",
+      "Bash(npm run test-storybook:ci:*)",
+      "Bash(node --version:*)",
+      "Bash(git add:*)",
+      "Bash(gh run list:*)",
+      "Bash(git commit:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(grep:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"===== {} =====\"\"\"\" && head -5 {}')",
+      "Bash(npx next-intl:*)",
+      "Bash(for file in project-overview.md development-guide.md deployment-guide.md backlog.md)",
+      "Bash(do test -f \"/Users/varuntorka/Coding/HealthCompanion/docs/$file\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(npm run:*)",
+      "Bash(gh run watch:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "WebFetch(domain:supabase.com)",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_fill",
+      "mcp__playwright__playwright_click",
+      "mcp__playwright__playwright_evaluate",
+      "mcp__playwright__playwright_get_visible_html",
+      "mcp__playwright__playwright_console_logs",
+      "mcp__context7__query-docs",
+      "mcp__playwright__playwright_close",
+      "mcp__playwright__playwright_resize",
+      "Bash(wc:*)",
+      "Bash(.claude/hooks/play-tts.sh:*)",
+      "Skill(bmad:bmm:workflows:workflow-init)",
+      "mcp__Notion__notion-fetch",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__list_memories",
+      "mcp__serena__list_dir",
+      "mcp__serena__onboarding",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__find_symbol",
+      "mcp__serena__think_about_collected_information",
+      "Skill(bmad:bmb:workflows:edit-workflow)",
+      "Bash(chmod:*)",
+      "Skill(agent-creator)",
+      "Bash(timeout 15 npm run dev:next:*)",
+      "Skill(bmad:bmm:workflows:create-story)",
+      "Bash(git show:*)",
+      "Bash(node -p:*)",
+      "Bash(git log:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm info:*)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template log --oneline -10)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template show 41816b1 --stat --format=\"commit: %H%nAuthor: %an%nDate: %ad%nMessage: %s%n%n\")",
+      "Bash(timeout 30 npm run dev:next:*)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template log --oneline -5)",
+      "Bash(timeout 180 npm run build:*)",
+      "Bash(jq:*)",
+      "Bash(gh secret:*)",
+      "Bash(git checkout:*)",
+      "Bash(gh pr create:*)",
+      "Skill(bmad:bmm:workflows:retrospective)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:vercel.com)",
+      "Bash(git restore:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh pr list:*)",
+      "Bash(for pr in 3 5 6 7 8 9 10 11 12 13 15)",
+      "Bash(do)",
+      "Bash(git pull:*)",
+      "Bash(gh pr checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(xargs:*)",
+      "Bash(ping:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm ls:*)",
+      "WebFetch(domain:www.notion.so)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template status:*)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template diff CLAUDE.md)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template add CLAUDE.md)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template commit -m \"$\\(cat <<''EOF''\ndocs: optimize CLAUDE.md for conciseness\n\nReduce file from 405 to 211 lines \\(48%\\) while preserving all critical\ninformation. Add documentation map linking to detailed docs, condense\nerror handling and commands sections, remove duplicate Next.js 15\npattern, and inline routing structure.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)",
+      "Skill(bmad:bmm:agents:architect)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template diff --stat)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template add _bmad-output/planning-artifacts/architecture/vercel-ai-sdk-chat-architecture.md _bmad-output/planning-artifacts/epics/epic-11-vercel-ai-sdk-chat.md _bmad-output/planning-artifacts/epics/epic-list.md _bmad-output/implementation-artifacts/sprint-status.yaml)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template commit:*)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template push -u origin docs/epic-11-vercel-ai-sdk-chat)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template diff _bmad-output/planning-artifacts/bmm-workflow-status.yaml)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template add _bmad-output/planning-artifacts/bmm-workflow-status.yaml)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template push)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template checkout main)",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template branch -vv)",
+      "Bash(git rev-list:*)",
+      "Bash(git diff:*)",
+      "Bash(head:*)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:incident.io)",
+      "Skill(bmad:core:workflows:party-mode)",
+      "Bash(npm whoami:*)",
+      "WebFetch(domain:www.magicpatterns.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(node:*)",
+      "Bash(npx prettier:*)",
+      "WebFetch(domain:developers.openai.com)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Skill(bmad:bmm:workflows:designer-founder)",
+      "Skill(designer-founder)",
+      "WebFetch(domain:www.authgear.com)",
+      "mcp__magic-patterns__create_design",
+      "mcp__magic-patterns__get_design",
+      "mcp__magic-patterns__read_files",
+      "mcp__shadcn__get_project_registries"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Grep|Glob|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/scripts/auto_approve_safe.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.js || \"$CLAUDE_TOOL_FILE_PATH\" == *.ts || \"$CLAUDE_TOOL_FILE_PATH\" == *.jsx || \"$CLAUDE_TOOL_FILE_PATH\" == *.tsx ]]; then npx eslint \"$CLAUDE_TOOL_FILE_PATH\" --fix 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.py ]]; then pylint \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.rb ]]; then rubocop \"$CLAUDE_TOOL_FILE_PATH\" --auto-correct 2>/dev/null || true; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.js || \"$CLAUDE_TOOL_FILE_PATH\" == *.ts || \"$CLAUDE_TOOL_FILE_PATH\" == *.jsx || \"$CLAUDE_TOOL_FILE_PATH\" == *.tsx || \"$CLAUDE_TOOL_FILE_PATH\" == *.json || \"$CLAUDE_TOOL_FILE_PATH\" == *.css || \"$CLAUDE_TOOL_FILE_PATH\" == *.html ]]; then npx prettier --write \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.py ]]; then black \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.go ]]; then gofmt -w \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.rs ]]; then rustfmt \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_TOOL_FILE_PATH\" == *.php ]]; then php-cs-fixer fix \"$CLAUDE_TOOL_FILE_PATH\" 2>/dev/null || true; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v osascript >/dev/null 2>&1; then osascript -e 'display notification \"Tool: Operation completed\" with title \"Claude Code\"'; elif command -v notify-send >/dev/null 2>&1; then notify-send 'Claude Code' \"Tool: $CLAUDE_TOOL_NAME completed\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 .claude/scripts/context-monitor.py"
+  }
+}

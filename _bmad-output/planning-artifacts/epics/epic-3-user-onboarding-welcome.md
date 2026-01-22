@@ -2,6 +2,11 @@
 
 **Goal:** New users feel guided and welcomed, not dumped on empty dashboard
 
+**UX Design Artifacts:**
+- [Design Brief](../ux-design/epic-3-onboarding-design-brief.md)
+- [Component Strategy](../ux-design/epic-3-onboarding-component-strategy.md)
+- [User Journeys](../ux-design/epic-3-onboarding-user-journeys.md)
+
 ## Story 3.1: Onboarding Wizard - Step 1 (Username)
 
 As a **new user who just verified my email**,
@@ -38,6 +43,10 @@ So that **I have a unique identity in the application**.
 **Then** I see a progress indicator showing 1 of 3
 **And** the UI is clean and focused on the single task
 
+**UX Design:**
+- **Prototype:** [Onboarding Step 1](https://www.magicpatterns.com/c/8dywtcpmne2a3vzohcewiu)
+- **Components:** `UsernameInput.tsx`, `ProgressIndicator.tsx`, `OnboardingUsername.tsx`
+
 ---
 
 ## Story 3.2: Onboarding Wizard - Step 2 (Feature Tour)
@@ -70,6 +79,10 @@ So that **I understand what I can do with the application**.
 **Then** features stack vertically
 **And** layout is optimized for smaller screens
 **And** all content is readable without horizontal scrolling
+
+**UX Design:**
+- **Prototype:** [Onboarding Step 2](https://www.magicpatterns.com/c/5imgbchlrja7tknmvtvken)
+- **Components:** `OnboardingFeatureTour.tsx`, `FeatureCard` (custom)
 
 ---
 
@@ -108,6 +121,10 @@ So that **the app is configured to my liking from the start**.
 **When** I land on the dashboard
 **Then** my selected language is active
 **And** notification preferences are saved to my profile
+
+**UX Design:**
+- **Prototype:** [Onboarding Step 3](https://www.magicpatterns.com/c/1urfca8jgldest2yvquw6l)
+- **Components:** `OnboardingPreferences.tsx`, shadcn `Switch`, shadcn `Select`
 
 ---
 
@@ -148,6 +165,11 @@ So that **I feel in control of my experience**.
 **And** completed steps are not repeated
 **And** I can complete the remaining steps
 
+**UX Design:**
+- **Prototype:** Progress indicator present in all 3 step designs
+- **Components:** `ProgressIndicator.tsx` (extract from Step 1 design)
+- **Flow:** See [User Journeys](../ux-design/epic-3-onboarding-user-journeys.md) for skip/resume logic
+
 ---
 
 ## Story 3.5: Dashboard Welcome State
@@ -186,6 +208,10 @@ So that **I know what to do next and feel oriented**.
 **Then** layout is optimized for mobile
 **And** CTAs are touch-friendly
 **And** content is scannable
+
+**UX Design:**
+- **Prototype:** [Dashboard Welcome State](https://www.magicpatterns.com/c/n5z2nuwsc58wh1grcqascq)
+- **Components:** `WelcomeDashboard.tsx`, `ActionCard.tsx`, `Sidebar.tsx`, `DashboardLayout.tsx`
 
 ---
 
@@ -226,6 +252,11 @@ So that **I understand what to do and don't feel confused**.
 **Then** they are properly sized and centered
 **And** CTAs are full-width and touch-friendly
 **And** text is readable
+
+**UX Design:**
+- **Prototype:** [EmptyState Component](https://www.magicpatterns.com/c/767wxut5smepk5irxbwjqa)
+- **Components:** `EmptyState.tsx` (reusable, goes in `src/components/ui/`)
+- **Variants:** default, search (no results), error (with retry)
 
 ---
 
@@ -273,5 +304,11 @@ So that **I know the app is working and what to expect**.
 **Then** loading indicator remains visible
 **And** user is not left wondering if app is frozen
 **And** timeout handling shows appropriate message if needed
+
+**UX Design:**
+- **Prototype:** [Loading/Skeleton Patterns](https://www.magicpatterns.com/c/1xvtzkylt6kgbfkv8sc9rn)
+- **Components:** `Skeleton.tsx`, `Spinner.tsx`, `LoadingCard.tsx` (go in `src/components/ui/`)
+- **Skeleton Variants:** text, card, avatar, table row
+- **Spinner Sizes:** sm (16px), md (24px), lg (48px)
 
 ---
