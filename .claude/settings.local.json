@@ -143,7 +143,11 @@
       "mcp__magic-patterns__create_design",
       "mcp__magic-patterns__get_design",
       "mcp__magic-patterns__read_files",
-      "mcp__shadcn__get_project_registries"
+      "mcp__shadcn__get_project_registries",
+      "Bash(git status:*)",
+      "mcp__serena__find_file",
+      "Bash(git -C /Users/varuntorka/Coding/vt-saas-template-epic-2-complete-authentication-experience log --oneline -5)",
+      "Skill(bmad:bmm:workflows:dev-story)"
     ],
     "deny": [],
     "ask": []
