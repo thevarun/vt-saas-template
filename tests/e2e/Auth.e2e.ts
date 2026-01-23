@@ -13,7 +13,7 @@ test.describe('Authentication', () => {
   test('should display sign in page', async ({ page }) => {
     await page.goto('/sign-in');
 
-    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
   });
 
   test('should redirect unauthenticated user from dashboard to sign-in', async ({ page }) => {
