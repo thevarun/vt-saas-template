@@ -155,6 +155,7 @@ See [docs/error-handling-guide.md](docs/error-handling-guide.md) for complete pa
 ## CI/CD Pipeline
 
 Remote main is protected. Always start a new branch for making changes so we can create PR later.
+When fixing CI issues, run all tests locally before pushing new commits to get a faster feedback loop.
 
 **Run all CI checks locally:**
 ```bash
