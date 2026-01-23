@@ -332,5 +332,15 @@
       "modal_message": "An error occurred in this dialog.",
       "dismiss": "Dismiss"
     }
+  },
+  "AuthCodeError": {
+    "meta_title": "Verification Error",
+    "meta_description": "There was a problem verifying your email address.",
+    "title": "Verification Failed",
+    "message": "The verification link is invalid or has expired.",
+    "help_text": "This can happen if you've already verified your email, or if the link has expired. Please try signing up again to receive a new verification email.",
+    "back_to_home": "Back to Home",
+    "try_again": "Sign Up Again",
+    "sign_in": "Go to Sign In"
   }
 }

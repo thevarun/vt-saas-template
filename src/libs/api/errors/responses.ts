@@ -275,3 +275,28 @@ export function difyError(
     details,
   );
 }
+
+/**
+ * Returns 503 Service Unavailable error
+ *
+ * Use when a required service is not configured or temporarily unavailable.
+ *
+ * @param message - Optional custom message (default: "Service temporarily unavailable")
+ * @returns NextResponse with 503 status
+ *
+ * @example
+ * ```typescript
+ * if (!serviceRoleKey) {
+ *   return serviceUnavailableError('Account deletion service is not configured');
+ * }
+ * ```
+ */
+export function serviceUnavailableError(
+  message = 'Service temporarily unavailable',
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'SERVICE_UNAVAILABLE',
+    HTTP_STATUS.SERVICE_UNAVAILABLE,
+  );
+}

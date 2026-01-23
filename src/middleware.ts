@@ -96,7 +96,8 @@ export async function middleware(
 }
 
 export const config = {
-  // Important: exclude API routes so they aren't run through locale middleware.
+  // Important: exclude API routes and auth callback so they aren't run through locale middleware.
   // The chat API already validates auth server-side and doesn't need locale prefixes.
-  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring|api|trpc).*)', '/'],
+  // Auth callback handles locale via query param to support email verification links.
+  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring|api|auth|trpc).*)', '/'],
 };
