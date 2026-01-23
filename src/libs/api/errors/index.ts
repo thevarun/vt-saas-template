@@ -35,6 +35,7 @@ export {
   internalError,
   invalidRequestError,
   notFoundError,
+  serviceUnavailableError,
   unauthorizedError,
   validationError,
 } from './responses';

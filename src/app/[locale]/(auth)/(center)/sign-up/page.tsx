@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
 import { createClient } from '@/libs/supabase/client';
 
 export default function SignUpPage() {
+  const params = useParams();
+  const locale = (params.locale as string) || 'en';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +26,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?locale=${locale}`,
         },
       });
 

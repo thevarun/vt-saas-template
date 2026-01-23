@@ -22,6 +22,7 @@
  * - MESSAGE_TOO_LONG: Message exceeds maximum length
  * - INVALID_CONVERSATION_ID: Conversation ID is invalid or malformed
  * - DUPLICATE_CONVERSATION_ID: Conversation ID already exists
+ * - SERVICE_UNAVAILABLE: Required service is not configured or unavailable
  */
 export type ApiErrorCode
   = | 'AUTH_REQUIRED'
@@ -35,7 +36,8 @@ export type ApiErrorCode
     | 'DIFY_ERROR'
     | 'MESSAGE_TOO_LONG'
     | 'INVALID_CONVERSATION_ID'
-    | 'DUPLICATE_CONVERSATION_ID';
+    | 'DUPLICATE_CONVERSATION_ID'
+    | 'SERVICE_UNAVAILABLE';
 
 /**
  * Standard API error response format
@@ -96,4 +98,5 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
 } as const;

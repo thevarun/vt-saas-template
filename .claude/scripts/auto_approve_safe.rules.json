@@ -89,6 +89,13 @@
 
     "^git\\s+rev-parse(\\s+.*)?$",
     "^git\\s+stash(\\s+--include-untracked|\\s+--all|\\s+-u|\\s+-a)?(\\s+-m\\s+.*)?$",
+    "^git\\s+rev-list\\s+[^|;&]+$",
+    "^git\\s+ls-files(\\s+.*)?$",
+    "^git\\s+check-ignore(\\s+.*)?$",
+    "^git\\s+update-index(\\s+.*)?$",
+
+    "^test\\s+(-[dfeL])\\s+[^|;&]+\\s+(&&|\\|\\|)\\s+echo\\s+",
+    "^npm\\s+update\\s+[@\\w/-]+$",
 
     "^sleep\\s+\\d+$",
 
@@ -98,8 +105,8 @@
   "deny_patterns": [
     "^sudo\\b",
     "^doas\\b",
-    "\\brm\\s+.*(-r|-rf|-fr|--recursive)",
-    "\\brm\\s+-[^\\s]*r",
+    "(?<!git\\s)\\brm\\s+.*(-r|-rf|-fr|--recursive)",
+    "(?<!git\\s)\\brm\\s+-[^\\s]*r",
     "^rm\\s+/",
     "\\bmkfs\\.",
     "\\bdd\\b.*\\bof=",
