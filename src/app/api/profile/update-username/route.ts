@@ -7,7 +7,7 @@ import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { userProfiles } from '@/models/Schema';
 
-const usernameSchema = z.object({
+const updateUsernameSchema = z.object({
   username: z
     .string()
     .min(3, 'Username must be at least 3 characters')
@@ -15,7 +15,7 @@ const usernameSchema = z.object({
     .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
 });
 
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Validate username format
-    const validation = usernameSchema.safeParse(body);
+    const validation = updateUsernameSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -46,24 +46,51 @@ export async function POST(request: Request) {
 
     const { username } = validation.data;
 
-    // Check if username exists in database
+    // Check if username is already taken by another user
     const existingProfile = await db
       .select()
       .from(userProfiles)
       .where(eq(userProfiles.username, username))
       .limit(1);
 
-    // If username exists and belongs to current user, it's available
     const existingUser = existingProfile[0];
-    if (existingUser) {
-      const isCurrentUser = existingUser.userId === user.id;
-      return NextResponse.json({ available: isCurrentUser });
+    if (existingUser && existingUser.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Username is already taken', code: 'USERNAME_TAKEN' },
+        { status: 409 },
+      );
     }
 
-    // Username doesn't exist, it's available
-    return NextResponse.json({ available: true });
+    // Get current user profile
+    const currentProfile = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, user.id))
+      .limit(1);
+
+    const profile = currentProfile[0];
+    if (profile) {
+      // Update existing profile
+      await db
+        .update(userProfiles)
+        .set({
+          username,
+          onboardingStep: 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(userProfiles.userId, user.id));
+    } else {
+      // Create new profile
+      await db.insert(userProfiles).values({
+        userId: user.id,
+        username,
+        onboardingStep: 1,
+      });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Username check error:', error);
+    console.error('Update username error:', error);
     return NextResponse.json(
       { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },

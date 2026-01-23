@@ -11,11 +11,36 @@
 import {
   boolean,
   index,
+  integer,
   pgSchema,
+  pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+// User profiles table in the public schema
+export const userProfiles = pgTable(
+  'user_profiles',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').notNull().unique(),
+    username: text('username').unique(),
+    displayName: text('display_name'),
+    onboardingCompletedAt: timestamp('onboarding_completed_at', { withTimezone: true }),
+    onboardingStep: integer('onboarding_step').default(0).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    userIdIdx: index('idx_user_profiles_user_id').on(table.userId),
+    usernameIdx: index('idx_user_profiles_username').on(table.username),
+  }),
+);
 
 // Create dedicated health_companion schema
 export const healthCompanionSchema = pgSchema('health_companion');

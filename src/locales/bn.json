@@ -338,5 +338,21 @@
     "back_to_home": "হোমে ফিরে যান",
     "try_again": "আবার সাইন আপ করুন",
     "sign_in": "সাইন ইনে যান"
+  },
+  "Onboarding": {
+    "meta_title": "VT SaaS Template এ স্বাগতম",
+    "meta_description": "শুরু করতে আপনার প্রোফাইল সম্পূর্ণ করুন",
+    "step1Title": "আপনার ব্যবহারকারীর নাম চয়ন করুন",
+    "step1Description": "এটি আপনার অনন্য পরিচয় হবে",
+    "usernameLabel": "ব্যবহারকারীর নাম",
+    "usernamePlaceholder": "উদাহরণ, john_doe_123",
+    "usernameAvailable": "উপলব্ধ",
+    "usernameTaken": "ব্যবহারকারীর নাম নেওয়া হয়েছে",
+    "usernameInvalid": "৩-২০ অক্ষর, শুধুমাত্র ছোট হাতের অক্ষর, সংখ্যা, আন্ডারস্কোর",
+    "usernameChecking": "উপলব্ধতা পরীক্ষা করা হচ্ছে...",
+    "continue": "চালিয়ে যান",
+    "progressStep": "ধাপ {current} এর {total}",
+    "errorSaving": "সংরক্ষণ ব্যর্থ। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    "errorNetwork": "নেটওয়ার্ক ত্রুটি। অনুগ্রহ করে আপনার সংযোগ পরীক্ষা করুন।"
   }
 }

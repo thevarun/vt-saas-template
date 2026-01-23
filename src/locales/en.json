@@ -342,5 +342,21 @@
     "back_to_home": "Back to Home",
     "try_again": "Sign Up Again",
     "sign_in": "Go to Sign In"
+  },
+  "Onboarding": {
+    "meta_title": "Welcome to VT SaaS Template",
+    "meta_description": "Complete your profile to get started",
+    "step1Title": "Choose your username",
+    "step1Description": "This will be your unique identity",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "e.g., john_doe_123",
+    "usernameAvailable": "Available",
+    "usernameTaken": "Username taken",
+    "usernameInvalid": "3-20 characters, lowercase letters, numbers, underscores only",
+    "usernameChecking": "Checking availability...",
+    "continue": "Continue",
+    "progressStep": "Step {current} of {total}",
+    "errorSaving": "Failed to save. Please try again.",
+    "errorNetwork": "Network error. Please check your connection."
   }
 }

@@ -338,5 +338,21 @@
     "back_to_home": "होम पर वापस जाएं",
     "try_again": "फिर से साइन अप करें",
     "sign_in": "साइन इन पर जाएं"
+  },
+  "Onboarding": {
+    "meta_title": "VT SaaS Template में आपका स्वागत है",
+    "meta_description": "शुरू करने के लिए अपनी प्रोफ़ाइल पूरी करें",
+    "step1Title": "अपना उपयोगकर्ता नाम चुनें",
+    "step1Description": "यह आपकी विशिष्ट पहचान होगी",
+    "usernameLabel": "उपयोगकर्ता नाम",
+    "usernamePlaceholder": "उदाहरण, john_doe_123",
+    "usernameAvailable": "उपलब्ध",
+    "usernameTaken": "उपयोगकर्ता नाम लिया गया",
+    "usernameInvalid": "3-20 अक्षर, केवल छोटे अक्षर, संख्या, अंडरस्कोर",
+    "usernameChecking": "उपलब्धता जांच रहे हैं...",
+    "continue": "जारी रखें",
+    "progressStep": "चरण {current} का {total}",
+    "errorSaving": "सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "errorNetwork": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।"
   }
 }
