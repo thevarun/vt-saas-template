@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Bell, Check, Globe } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bell, Check, Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -98,12 +98,9 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
     }
   };
 
-  const handleSkip = async () => {
-    // Use current values as defaults
-    await onSubmit({
-      emailNotifications: form.getValues('emailNotifications'),
-      language: form.getValues('language'),
-    });
+  const handleGoBack = () => {
+    // Use hard navigation for server component page with query params
+    window.location.href = '/onboarding?step=2';
   };
 
   if (isComplete) {
@@ -207,24 +204,25 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
                 </p>
               </div>
 
-              <div className="mt-10 space-y-4">
+              <div className="mt-10 flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={handleGoBack}
+                  disabled={isSubmitting}
+                >
+                  <ArrowLeft className="size-4" />
+                  <span>{t('goBack')}</span>
+                </Button>
+
                 <Button
                   type="submit"
-                  className="w-full gap-2 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  className="flex-1 gap-2 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                   disabled={isSubmitting}
                 >
                   <span>{isSubmitting ? t('saving') : t('completeSetup')}</span>
                   {!isSubmitting && <ArrowRight className="size-4" />}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full text-sm text-muted-foreground hover:text-foreground"
-                  onClick={handleSkip}
-                  disabled={isSubmitting}
-                >
-                  {t('skipForNow')}
                 </Button>
               </div>
             </form>

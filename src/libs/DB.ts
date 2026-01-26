@@ -8,7 +8,7 @@ import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
 import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator';
 import { PHASE_PRODUCTION_BUILD } from 'next/dist/shared/lib/constants';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 
 import * as schema from '@/models/Schema';
 
@@ -18,7 +18,7 @@ let drizzle;
 
 // Stores the db connection in the global scope to prevent multiple instances due to hot reloading with Next.js
 const globalForDb = globalThis as unknown as {
-  pgClient: Client;
+  pgPool: Pool;
   pgDrizzle: NodePgDatabase<typeof schema>;
   pgliteClient: PGlite;
   pgliteDrizzle: PgliteDatabase<typeof schema>;
@@ -27,13 +27,14 @@ const globalForDb = globalThis as unknown as {
 // Need a database for production? Check out https://www.prisma.io/?via=saasboilerplatesrc
 // Tested and compatible with Next.js Boilerplate
 if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
-  if (!globalForDb.pgClient) {
-    globalForDb.pgClient = new Client({
+  // Check both pool AND drizzle instance exist (drizzle could be undefined if previous init failed)
+  if (!globalForDb.pgPool || !globalForDb.pgDrizzle) {
+    globalForDb.pgPool = new Pool({
       connectionString: Env.DATABASE_URL,
+      max: 1, // Limit to single connection for serverless/dev environments
     });
-    await globalForDb.pgClient.connect();
 
-    globalForDb.pgDrizzle = drizzlePg(globalForDb.pgClient, { schema });
+    globalForDb.pgDrizzle = drizzlePg(globalForDb.pgPool, { schema });
     await migratePg(globalForDb.pgDrizzle, {
       migrationsFolder: path.join(process.cwd(), 'migrations'),
     });
@@ -41,7 +42,8 @@ if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
 
   drizzle = globalForDb.pgDrizzle;
 } else {
-  if (!globalForDb.pgliteClient) {
+  // Check both client AND drizzle instance exist
+  if (!globalForDb.pgliteClient || !globalForDb.pgliteDrizzle) {
     globalForDb.pgliteClient = new PGlite();
     await globalForDb.pgliteClient.waitReady;
 

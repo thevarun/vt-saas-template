@@ -354,6 +354,7 @@
     "continue": "চালিয়ে যান",
     "saving": "সংরক্ষণ করা হচ্ছে...",
     "skipForNow": "এখনকার জন্য এড়িয়ে যান",
+    "goBack": "ফিরে যান",
     "progressStep": "ধাপ {current} এর {total}",
     "stepAriaLabel": "ধাপ {step}{isCurrent, select, true { (বর্তমান)} other {}}",
     "errorSaving": "সংরক্ষণ ব্যর্থ। অনুগ্রহ করে আবার চেষ্টা করুন।",

@@ -358,6 +358,7 @@
     "continue": "Continue",
     "saving": "Saving...",
     "skipForNow": "Skip for now",
+    "goBack": "Go back",
     "progressStep": "Step {current} of {total}",
     "stepAriaLabel": "Step {step}{isCurrent, select, true { (Current)} other {}}",
     "errorSaving": "Failed to save. Please try again.",

@@ -110,11 +110,6 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   // - Either username is unchanged (skipAvailabilityCheck) OR it's available
   const isFormValid = isZodValid && (skipAvailabilityCheck || (validation.isValid && validation.isAvailable && !validation.isChecking));
 
-  const handleSkip = () => {
-    // Use hard navigation for server component page with query params
-    window.location.href = '/onboarding?step=2';
-  };
-
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-md rounded-2xl border border-slate-100/50 bg-white p-8 shadow-xl dark:border-slate-800/50 dark:bg-slate-900 md:p-10">
@@ -142,7 +137,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
             isChecking={skipAvailabilityCheck ? false : validation.isChecking}
           />
 
-          <div className="space-y-4 pt-4">
+          <div className="pt-4">
             <Button
               type="submit"
               className="w-full gap-2 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
@@ -150,15 +145,6 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
             >
               <span>{isSubmitting ? t('saving') : t('continue')}</span>
               <ArrowRight className="size-4" />
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full text-sm text-muted-foreground hover:text-foreground"
-              onClick={handleSkip}
-            >
-              {t('skipForNow')}
             </Button>
           </div>
         </form>

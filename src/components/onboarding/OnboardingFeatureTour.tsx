@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Globe, MessageSquare, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Globe, MessageSquare, Shield, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,9 @@ export function OnboardingFeatureTour() {
     window.location.href = '/onboarding?step=3';
   };
 
-  const handleSkip = () => {
+  const handleGoBack = () => {
     // Use hard navigation for server component page with query params
-    window.location.href = '/onboarding?step=3';
+    window.location.href = '/onboarding?step=1';
   };
 
   const features = [
@@ -94,23 +94,24 @@ export function OnboardingFeatureTour() {
         </div>
 
         {/* Actions */}
-        <div className="space-y-4 pt-4">
+        <div className="flex gap-3 pt-4">
           <Button
             type="button"
-            className="w-full gap-2 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-            onClick={handleContinue}
+            variant="outline"
+            className="gap-2"
+            onClick={handleGoBack}
           >
-            <span>{t('continue')}</span>
-            <ArrowRight className="size-4" />
+            <ArrowLeft className="size-4" />
+            <span>{t('goBack')}</span>
           </Button>
 
           <Button
             type="button"
-            variant="ghost"
-            className="w-full text-sm text-muted-foreground hover:text-foreground"
-            onClick={handleSkip}
+            className="flex-1 gap-2 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            onClick={handleContinue}
           >
-            {t('skipForNow')}
+            <span>{t('continue')}</span>
+            <ArrowRight className="size-4" />
           </Button>
         </div>
       </div>

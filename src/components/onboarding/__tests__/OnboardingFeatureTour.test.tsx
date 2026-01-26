@@ -23,7 +23,7 @@ describe('OnboardingFeatureTour', () => {
     feature4Title: 'Fast & Responsive',
     feature4Description: 'Lightning-fast performance optimized for all devices',
     continue: 'Continue',
-    skipForNow: 'Skip for now',
+    goBack: 'Go back',
     progressStep: 'Step 2 of 3',
   };
 
@@ -78,11 +78,11 @@ describe('OnboardingFeatureTour', () => {
     expect(screen.getByText(/Lightning-fast performance optimized for all devices/)).toBeInTheDocument();
   });
 
-  it('renders Continue and Skip buttons', () => {
+  it('renders Continue and Go back buttons', () => {
     render(<OnboardingFeatureTour />);
 
     expect(screen.getByRole('button', { name: /Continue/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Skip for now/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Go back/i })).toBeInTheDocument();
   });
 
   it('navigates to step 3 when Continue button is clicked', async () => {
@@ -95,14 +95,14 @@ describe('OnboardingFeatureTour', () => {
     expect(window.location.href).toBe('/onboarding?step=3');
   });
 
-  it('navigates to step 3 when Skip button is clicked', async () => {
+  it('navigates to step 1 when Go back button is clicked', async () => {
     const user = userEvent.setup();
     render(<OnboardingFeatureTour />);
 
-    const skipButton = screen.getByRole('button', { name: /Skip for now/i });
-    await user.click(skipButton);
+    const goBackButton = screen.getByRole('button', { name: /Go back/i });
+    await user.click(goBackButton);
 
-    expect(window.location.href).toBe('/onboarding?step=3');
+    expect(window.location.href).toBe('/onboarding?step=1');
   });
 
   it('has correct grid layout classes for responsive design', () => {

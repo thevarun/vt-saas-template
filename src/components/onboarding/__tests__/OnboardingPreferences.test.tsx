@@ -99,10 +99,10 @@ describe('OnboardingPreferences', () => {
     expect(screen.getByText('completeSetup')).toBeInTheDocument();
   });
 
-  it('renders skip button', () => {
+  it('renders Go back button', () => {
     render(<OnboardingPreferences initialData={defaultInitialData} />);
 
-    expect(screen.getByText('skipForNow')).toBeInTheDocument();
+    expect(screen.getByText('goBack')).toBeInTheDocument();
   });
 
   it('toggles notification preference when switch is clicked', async () => {
@@ -225,35 +225,19 @@ describe('OnboardingPreferences', () => {
     });
   });
 
-  it('handles skip button correctly', async () => {
+  it('handles Go back button correctly', async () => {
     const user = userEvent.setup();
-    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: { emailNotifications: true, language: 'en' },
-      }),
-    } as Response);
+
+    // Mock window.location.href
+    delete (window as any).location;
+    window.location = { href: '' } as any;
 
     render(<OnboardingPreferences initialData={defaultInitialData} />);
 
-    const skipButton = screen.getByText('skipForNow');
-    await user.click(skipButton);
+    const goBackButton = screen.getByText('goBack');
+    await user.click(goBackButton);
 
-    await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        '/api/profile/update-preferences',
-        expect.objectContaining({
-          method: 'PATCH',
-          body: JSON.stringify({
-            emailNotifications: true,
-            language: 'en',
-            username: 'testuser',
-            isNewUser: true,
-          }),
-        }),
-      );
-    });
+    expect(window.location.href).toBe('/onboarding?step=2');
   });
 
   it('uses language from initialData', () => {

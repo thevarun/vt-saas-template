@@ -354,6 +354,7 @@
     "continue": "जारी रखें",
     "saving": "सहेज रहे हैं...",
     "skipForNow": "अभी के लिए छोड़ें",
+    "goBack": "वापस जाएं",
     "progressStep": "चरण {current} का {total}",
     "stepAriaLabel": "चरण {step}{isCurrent, select, true { (वर्तमान)} other {}}",
     "errorSaving": "सहेजने में विफल। कृपया पुनः प्रयास करें।",
