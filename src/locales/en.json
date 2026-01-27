@@ -453,5 +453,13 @@
       "searchHint": "Search variant: Use when search or filter returns no matching results",
       "errorHint": "Error variant: Use when data failed to load or an operation failed"
     }
+  },
+  "Loading": {
+    "loading": "Loading...",
+    "pleaseWait": "Please wait",
+    "loadingContent": "Loading content",
+    "timeout": "Loading is taking longer than expected",
+    "retry": "Retry",
+    "slowConnection": "Slow connection detected"
   }
 }
