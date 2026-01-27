@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- test utilities don't need fast refresh */
 import * as React from 'react';
 
 /**
