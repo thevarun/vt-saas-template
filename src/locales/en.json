@@ -398,5 +398,60 @@
     "languageBn": "Bengali",
     "completeSetup": "Complete Setup",
     "successMessage": "You're all set! Redirecting to dashboard..."
+  },
+  "EmptyState": {
+    "noItemsTitle": "No items yet",
+    "noItemsDescription": "Get started by creating your first item",
+    "noResultsTitle": "No results found",
+    "noResultsDescription": "Try adjusting your search criteria",
+    "errorTitle": "Failed to load data",
+    "errorDescription": "Something went wrong. Please try again.",
+    "actionCreate": "Create Item",
+    "actionRetry": "Retry"
+  },
+  "DesignSystem": {
+    "title": "Design System",
+    "description": "Reusable UI components for consistent design across the app",
+    "emptyStates": {
+      "title": "Empty States",
+      "description": "Components for displaying empty, search, and error states throughout the application.",
+      "defaultVariant": "Default (No Items)",
+      "searchVariant": "Search (No Results)",
+      "errorVariant": "Error State",
+      "customIcon": "Custom Icon",
+      "noAction": "Without Action Button",
+      "examples": {
+        "noItems": {
+          "title": "No items yet",
+          "description": "Get started by creating your first item",
+          "action": "Create Item"
+        },
+        "noResults": {
+          "title": "No results found",
+          "description": "Try adjusting your search criteria",
+          "action": "Clear Filters"
+        },
+        "error": {
+          "title": "Failed to load data",
+          "description": "Something went wrong. Please try again.",
+          "action": "Retry"
+        },
+        "noTeam": {
+          "title": "No team members",
+          "description": "Invite colleagues to collaborate on projects",
+          "action": "Invite Team"
+        },
+        "noDocs": {
+          "title": "No documents",
+          "description": "Documents will appear here once created"
+        }
+      }
+    },
+    "usage": {
+      "title": "Usage Guidelines",
+      "defaultHint": "Default variant: Use for empty lists, first-time user states, and initial content areas",
+      "searchHint": "Search variant: Use when search or filter returns no matching results",
+      "errorHint": "Error variant: Use when data failed to load or an operation failed"
+    }
   }
 }

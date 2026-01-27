@@ -6,6 +6,7 @@ import {
   Home,
   Menu,
   MessageSquare,
+  Palette,
   Settings,
   User,
   UserPlus,
@@ -56,6 +57,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
   const navItems: NavItemConfig[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: MessageSquare, label: 'Chat', href: '/chat' },
+    { icon: Palette, label: 'Design System', href: '/dashboard/design-system' },
     { icon: CreditCard, label: 'Pricing', href: '/pricing', disabled: true },
     { icon: Settings, label: 'Settings', href: '/settings', disabled: true },
     { icon: User, label: 'Profile', href: '/profile', disabled: true },
