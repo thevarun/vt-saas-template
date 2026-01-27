@@ -1,24 +1,34 @@
 'use client';
 
 import {
-  AlertTriangle,
-  FileText,
   Inbox,
+  Loader2,
   Palette,
-  Search,
-  Users,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Separator } from '@/components/ui/separator';
-
 /**
- * Design System Showcase Page
- * Displays all reusable UI components for design consistency verification
+ * Design System Index Page
+ * Navigation hub for all pattern libraries
  */
 export default function DesignSystemPage() {
   const t = useTranslations('DesignSystem');
+
+  const patternLibraries = [
+    {
+      icon: Inbox,
+      title: 'Empty States',
+      description: 'Helpful placeholders when no data exists',
+      href: '/design-system/empty-states',
+    },
+    {
+      icon: Loader2,
+      title: 'Loading States',
+      description: 'Skeletons, spinners, and loading patterns',
+      href: '/design-system/loading',
+    },
+  ];
 
   return (
     <div className="container mx-auto max-w-5xl p-6 md:p-8">
@@ -38,115 +48,36 @@ export default function DesignSystemPage() {
         </div>
       </div>
 
-      {/* Empty States Section */}
-      <section className="mb-12">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {t('emptyStates.title')}
-        </h2>
-        <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
-          {t('emptyStates.description')}
-        </p>
-
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* Default Variant */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t('emptyStates.defaultVariant')}
-            </h3>
-            <EmptyState
-              title={t('emptyStates.examples.noItems.title')}
-              description={t('emptyStates.examples.noItems.description')}
-              action={{
-                label: t('emptyStates.examples.noItems.action'),
-                onClick: () => {},
-              }}
-            />
-          </div>
-
-          {/* Search Variant */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t('emptyStates.searchVariant')}
-            </h3>
-            <EmptyState
-              variant="search"
-              title={t('emptyStates.examples.noResults.title')}
-              description={t('emptyStates.examples.noResults.description')}
-              action={{
-                label: t('emptyStates.examples.noResults.action'),
-                onClick: () => {},
-              }}
-            />
-          </div>
-
-          {/* Error Variant */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t('emptyStates.errorVariant')}
-            </h3>
-            <EmptyState
-              variant="error"
-              title={t('emptyStates.examples.error.title')}
-              description={t('emptyStates.examples.error.description')}
-              action={{
-                label: t('emptyStates.examples.error.action'),
-                onClick: () => {},
-              }}
-            />
-          </div>
-
-          {/* Custom Icon Example */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t('emptyStates.customIcon')}
-            </h3>
-            <EmptyState
-              icon={<Users />}
-              title={t('emptyStates.examples.noTeam.title')}
-              description={t('emptyStates.examples.noTeam.description')}
-              action={{
-                label: t('emptyStates.examples.noTeam.action'),
-                onClick: () => {},
-              }}
-            />
-          </div>
-
-          {/* No Action Button Example */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
-            <h3 className="mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t('emptyStates.noAction')}
-            </h3>
-            <EmptyState
-              icon={<FileText />}
-              title={t('emptyStates.examples.noDocs.title')}
-              description={t('emptyStates.examples.noDocs.description')}
-            />
-          </div>
-        </div>
-      </section>
-
-      <Separator className="my-8" />
-
-      {/* Usage Guidelines */}
+      {/* Pattern Libraries */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {t('usage.title')}
+          Pattern Libraries
         </h2>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/50">
-          <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-            <li className="flex items-start gap-2">
-              <Inbox className="mt-0.5 size-4 text-blue-600" />
-              <span>{t('usage.defaultHint')}</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Search className="mt-0.5 size-4 text-blue-600" />
-              <span>{t('usage.searchHint')}</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 size-4 text-blue-600" />
-              <span>{t('usage.errorHint')}</span>
-            </li>
-          </ul>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {patternLibraries.map(library => (
+            <Link
+              key={library.href}
+              href={library.href}
+              className="group rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-700 dark:hover:bg-blue-950"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-blue-100 dark:bg-slate-700 dark:group-hover:bg-blue-900">
+                  <library.icon className="size-5 text-slate-600 transition-colors group-hover:text-blue-600 dark:text-slate-400 dark:group-hover:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                    {library.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {library.description}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-slate-500 group-hover:text-blue-600 dark:text-slate-400 dark:group-hover:text-blue-400">
+                Click to view →
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
     </div>
