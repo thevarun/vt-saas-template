@@ -69,9 +69,9 @@ development_status:
   epic-3: in-progress
   3-1-onboarding-wizard-step-1-username: done
   3-2-onboarding-wizard-step-2-feature-tour: done
-  3-3-onboarding-wizard-step-3-preferences: ready-for-dev
-  3-4-onboarding-progress-and-skip: backlog
-  3-5-dashboard-welcome-state: backlog
+  3-3-onboarding-wizard-step-3-preferences: done
+  3-4-onboarding-progress-and-skip: skipped
+  3-5-dashboard-welcome-state: done
   3-6-empty-states-design-system: backlog
   3-7-loading-states-pattern-library: backlog
   epic-3-retrospective: optional

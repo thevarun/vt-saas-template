@@ -97,12 +97,21 @@ export function MainAppShell({ children }: MainAppShellProps) {
 
   return (
     <div className="flex h-screen">
-      {/* AC #6: Mobile Sheet Overlay */}
+      {/* AC #6: Mobile Sheet Overlay - MagicPatterns style */}
       <div className="md:hidden">
         <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-64 border-slate-200 bg-slate-50 p-0 dark:border-slate-700 dark:bg-slate-900">
+            {/* Mobile logo area */}
+            <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-blue-600">
+                  <span className="text-lg font-bold text-white">V</span>
+                </div>
+                <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">VT SaaS</span>
+              </div>
+            </div>
             <nav
-              className="flex h-full flex-col p-4"
+              className="flex h-[calc(100%-4rem)] flex-col p-3"
               role="navigation"
               aria-label="Main navigation"
             >
@@ -121,7 +130,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
                 ))}
               </ul>
               {/* Mobile theme toggle */}
-              <div className="border-t pt-2">
+              <div className="border-t border-slate-200 pt-3 dark:border-slate-700">
                 <ThemeToggle showLabel />
               </div>
             </nav>
@@ -129,14 +138,34 @@ export function MainAppShell({ children }: MainAppShellProps) {
         </Sheet>
       </div>
 
-      {/* AC #6, #7: Desktop Sidebar - Persistent, collapsible */}
+      {/* AC #6, #7: Desktop Sidebar - Persistent, collapsible - MagicPatterns style */}
       <aside
-        className={`hidden shrink-0 flex-col border-r bg-background transition-all duration-300 md:flex ${
+        className={`hidden shrink-0 flex-col border-r border-slate-200 bg-slate-50 transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 md:flex ${
           sidebarOpen ? 'w-64' : 'w-16'
         }`}
         aria-label="Main navigation sidebar"
       >
-        <nav className="flex-1 p-2" role="navigation" aria-label="Main navigation">
+        {/* Logo area - MagicPatterns style */}
+        <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-700">
+          {sidebarOpen
+            ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-blue-600">
+                    <span className="text-lg font-bold text-white">V</span>
+                  </div>
+                  <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">VT SaaS</span>
+                </div>
+              )
+            : (
+                <div className="flex w-full justify-center">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-blue-600">
+                    <span className="text-lg font-bold text-white">V</span>
+                  </div>
+                </div>
+              )}
+        </div>
+
+        <nav className="flex-1 p-3" role="navigation" aria-label="Main navigation">
           <ul className="space-y-1">
             {navItems.map(item => (
               <NavItem
@@ -152,8 +181,8 @@ export function MainAppShell({ children }: MainAppShellProps) {
           </ul>
         </nav>
 
-        {/* Theme toggle and collapse button */}
-        <div className="space-y-1 border-t p-2">
+        {/* Theme toggle and collapse button - MagicPatterns style */}
+        <div className="space-y-1 border-t border-slate-200 p-3 dark:border-slate-700">
           {/* Dark mode toggle */}
           {sidebarOpen
             ? (
@@ -168,7 +197,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen(prev => !prev)}
-            className="w-full justify-start"
+            className="w-full justify-start text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             aria-expanded={sidebarOpen}
           >

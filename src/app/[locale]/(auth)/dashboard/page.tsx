@@ -4,8 +4,10 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import { VerificationToast } from '@/components/auth/VerificationToast';
+import { WelcomeDashboard } from '@/components/dashboard/WelcomeDashboard';
 import { MessageState } from '@/features/dashboard/MessageState';
 import { TitleBar } from '@/features/dashboard/TitleBar';
+import { isNewUser } from '@/lib/dashboard-utils';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { userPreferences } from '@/models/Schema';
@@ -34,6 +36,20 @@ const DashboardIndexPage = async () => {
   // Extract name or email for personalized greeting
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
+  // Check if user is new and should see welcome state
+  const showWelcomeState = user ? await isNewUser(user.id) : false;
+
+  // Show welcome state for new users
+  if (showWelcomeState) {
+    return (
+      <>
+        <VerificationToast />
+        <WelcomeDashboard userName={displayName} />
+      </>
+    );
+  }
+
+  // Show regular dashboard for existing users
   return (
     <>
       <VerificationToast />

@@ -164,7 +164,21 @@
   },
   "Dashboard": {
     "meta_title": "Dashboard",
-    "meta_description": "Your personal dashboard - access your account and chat with AI."
+    "meta_description": "Your personal dashboard - access your account and chat with AI.",
+    "welcomeTitle": "স্বাগতম, {name}!",
+    "welcomeDescription": "চলুন আপনার স্বাস্থ্য যাত্রা শুরু করি",
+    "gettingStartedTitle": "শুরু করুন",
+    "actionStartChat": "কথোপকথন শুরু করুন",
+    "actionStartChatDesc": "আমাদের AI স্বাস্থ্য সহচর ব্যবহার করে দেখুন",
+    "actionCompleteProfile": "আপনার প্রোফাইল সম্পূর্ণ করুন",
+    "actionCompleteProfileDesc": "আপনার সম্পর্কে আরও বিস্তারিত যোগ করুন",
+    "actionExploreFeatures": "বৈশিষ্ট্য অন্বেষণ করুন",
+    "actionExploreFeaturesDesc": "জানুন আপনি কী করতে পারেন",
+    "actionButtonLabel": "শুরু করুন",
+    "recentActivityTitle": "সাম্প্রতিক কার্যকলাপ",
+    "viewAll": "সব দেখুন",
+    "noActivityTitle": "এখনও কোনো কার্যকলাপ নেই",
+    "noActivityDescription": "অ্যাপ ব্যবহার শুরু করলে আপনার সাম্প্রতিক কার্যকলাপ এখানে দেখা যাবে।"
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",

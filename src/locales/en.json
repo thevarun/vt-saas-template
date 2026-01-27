@@ -164,7 +164,21 @@
   },
   "Dashboard": {
     "meta_title": "Dashboard",
-    "meta_description": "Your personal dashboard - access your account and chat with AI."
+    "meta_description": "Your personal dashboard - access your account and chat with AI.",
+    "welcomeTitle": "Welcome, {name}!",
+    "welcomeDescription": "Let's get you started with your health journey",
+    "gettingStartedTitle": "Getting Started",
+    "actionStartChat": "Start a Conversation",
+    "actionStartChatDesc": "Try our AI health companion",
+    "actionCompleteProfile": "Complete Your Profile",
+    "actionCompleteProfileDesc": "Add more details about yourself",
+    "actionExploreFeatures": "Explore Features",
+    "actionExploreFeaturesDesc": "Learn what you can do",
+    "actionButtonLabel": "Get Started",
+    "recentActivityTitle": "Recent Activity",
+    "viewAll": "View all",
+    "noActivityTitle": "No activity yet",
+    "noActivityDescription": "Your recent activity will appear here once you start using the app."
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",

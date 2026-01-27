@@ -164,7 +164,21 @@
   },
   "Dashboard": {
     "meta_title": "Dashboard",
-    "meta_description": "Your personal dashboard - access your account and chat with AI."
+    "meta_description": "Your personal dashboard - access your account and chat with AI.",
+    "welcomeTitle": "स्वागत है, {name}!",
+    "welcomeDescription": "आइए अपनी स्वास्थ्य यात्रा शुरू करें",
+    "gettingStartedTitle": "शुरुआत करें",
+    "actionStartChat": "बातचीत शुरू करें",
+    "actionStartChatDesc": "हमारे AI स्वास्थ्य साथी को आज़माएं",
+    "actionCompleteProfile": "अपनी प्रोफ़ाइल पूर्ण करें",
+    "actionCompleteProfileDesc": "अपने बारे में और जानकारी जोड़ें",
+    "actionExploreFeatures": "सुविधाओं का अन्वेषण करें",
+    "actionExploreFeaturesDesc": "जानें कि आप क्या कर सकते हैं",
+    "actionButtonLabel": "शुरू करें",
+    "recentActivityTitle": "हाल की गतिविधि",
+    "viewAll": "सभी देखें",
+    "noActivityTitle": "अभी तक कोई गतिविधि नहीं",
+    "noActivityDescription": "ऐप का उपयोग शुरू करने के बाद आपकी हाल की गतिविधि यहां दिखाई देगी।"
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",
