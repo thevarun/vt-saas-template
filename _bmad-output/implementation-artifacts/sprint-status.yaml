@@ -66,7 +66,7 @@ development_status:
   epic-2-retrospective: done
 
   # Epic 3: User Onboarding & Welcome
-  epic-3: in-progress
+  epic-3: done
   3-1-onboarding-wizard-step-1-username: done
   3-2-onboarding-wizard-step-2-feature-tour: done
   3-3-onboarding-wizard-step-3-preferences: done
@@ -74,7 +74,7 @@ development_status:
   3-5-dashboard-welcome-state: done
   3-6-empty-states-design-system: done
   3-7-loading-states-pattern-library: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   # Epic 4: Email Communication System
   epic-4: backlog
