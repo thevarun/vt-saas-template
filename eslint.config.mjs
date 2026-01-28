@@ -29,6 +29,8 @@ export default antfu({
     '.bmad/**/*',
     '_bmad/**/*',
     '_bmad-output/**/*',
+    '.claude/**/*',
+    '.superdesign/**/*',
     'CLAUDE.md',
     'WARP.md',
     'src/libs/dify/README.md',
