@@ -16,6 +16,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
+import { FeedbackTrigger } from '@/components/feedback';
 import { ThemeToggle } from '@/components/theme';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -160,6 +161,10 @@ export function MainAppShell({ children }: MainAppShellProps) {
                   />
                 ))}
               </ul>
+              {/* Feedback button - MagicPatterns sidebar style */}
+              <div className="border-t border-slate-200 py-3 dark:border-slate-700">
+                <FeedbackTrigger collapsed={false} />
+              </div>
               {/* Mobile footer: Theme, Language, then User profile - MagicPatterns order */}
               <div className="space-y-3 border-t border-slate-200 pt-3 dark:border-slate-700">
                 <ThemeToggle showLabel />
@@ -222,6 +227,13 @@ export function MainAppShell({ children }: MainAppShellProps) {
             </ul>
           </TooltipProvider>
         </nav>
+
+        {/* Feedback button - MagicPatterns sidebar style */}
+        <div className="border-t border-slate-200 p-3 dark:border-slate-700">
+          <TooltipProvider delayDuration={0}>
+            <FeedbackTrigger collapsed={!sidebarOpen} />
+          </TooltipProvider>
+        </div>
 
         {/* Footer: Theme, Language, then User profile at bottom - MagicPatterns order */}
         <div className="space-y-3 border-t border-slate-200 p-3 dark:border-slate-700">

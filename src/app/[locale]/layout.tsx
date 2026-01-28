@@ -3,6 +3,7 @@ import '@/styles/global.css';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import { Toaster as SonnerToaster } from 'sonner';
 
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
@@ -61,6 +62,7 @@ export default async function RootLayout(props: {
           >
             {props.children}
             <Toaster />
+            <SonnerToaster position="bottom-right" />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

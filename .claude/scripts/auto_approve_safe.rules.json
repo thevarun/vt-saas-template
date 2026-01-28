@@ -113,7 +113,19 @@
     "^npm\\s+(dedupe|cache\\s+clean)(\\s+.*)?$",
     "^curl\\s+(-[sIo]+\\s+)*https?://localhost[:/][^|;&]*$",
     "^curl\\s+[^|;&]*http://localhost[:/][^|;&]*$",
-    "^pgrep\\s+"
+    "^pgrep\\s+",
+
+    "^curl\\s+(-[sXo]+\\s+)*(POST|GET|PUT|DELETE)\\s+['\"]?https?://localhost[:/][^|;&]*$",
+    "^curl\\s+-X\\s+(POST|GET|PUT|DELETE)\\s+['\"]?https?://localhost[:/][^|;&]*$",
+    "^curl\\s+-s\\s+-o\\s+/dev/null\\s+-w\\s+[^|;&]*https?://localhost[^|;&]*$",
+
+    "^npm\\s+run\\s+dev\\s*>\\s*/tmp/[^|;&]+\\s*2>&1\\s*&$",
+    "^npm\\s+run\\s+dev\\s+--\\s+-p\\s+\\d+\\s*(&|2>&1\\s*&)$",
+    "^npm\\s+run\\s+dev\\s*>\\s*/dev/null\\s+2>&1\\s*&$",
+
+    "^echo\\s+[\"'][^\"']*[\"']\\s*&&\\s*sleep\\s+[0-9.]+$",
+    "^for\\s+i\\s+in\\s+\\{1\\.\\.[0-9]+\\};\\s+do\\s+sleep\\s+[0-9.]+;\\s*done$",
+    "^for\\s+i\\s+in\\s+\\{1\\.\\.[0-9]+\\};\\s+do\\s+curl\\s+(-[sfo]+\\s+)*https?://localhost[:/][^;|&]*;\\s*done$"
   ],
 
   "deny_patterns": [
