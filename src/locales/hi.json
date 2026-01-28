@@ -319,6 +319,10 @@
       "home": "Go to Homepage",
       "reload": "Reload Application"
     },
+    "admin": {
+      "accessDenied": "पहुंच अस्वीकृत",
+      "contactAdmin": "आपके पास एडमिन सुविधाओं तक पहुंचने की अनुमति नहीं है। यदि आपको एक्सेस चाहिए तो कृपया एक एडमिनिस्ट्रेटर से संपर्क करें।"
+    },
     "auth": {
       "title": "Dashboard Error",
       "message": "Something went wrong with your dashboard. This could be a temporary issue.",

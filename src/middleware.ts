@@ -7,6 +7,7 @@ import {
 } from 'next/server';
 /* eslint-enable simple-import-sort/imports */
 
+import { isAdmin } from '@/libs/auth/isAdmin';
 import { createClient, updateSession } from '@/libs/supabase/middleware';
 import { AllLocales, AppConfig } from './utils/AppConfig';
 
@@ -20,7 +21,11 @@ const protectedPaths = [
   '/dashboard',
   '/onboarding',
   '/chat',
+  '/admin',
 ];
+
+// Routes that require admin privileges
+const adminPaths = ['/admin'];
 
 // Routes that don't require email verification
 const verificationWhitelist = [
@@ -38,6 +43,10 @@ function isProtectedRoute(pathname: string): boolean {
 
 function requiresVerification(pathname: string): boolean {
   return !verificationWhitelist.some(path => pathname.includes(path));
+}
+
+function isAdminRoute(pathname: string): boolean {
+  return adminPaths.some(path => pathname.includes(path));
 }
 
 export async function middleware(
@@ -89,6 +98,19 @@ export async function middleware(
       const verifyUrl = new URL(`${localePrefix}/verify-email`, request.url);
       verifyUrl.searchParams.set('email', user.email || '');
       return NextResponse.redirect(verifyUrl);
+    }
+
+    // Check admin routes - redirect non-admins to dashboard
+    if (user && isAdminRoute(request.nextUrl.pathname)) {
+      if (!isAdmin(user)) {
+        const locale
+          = request.nextUrl.pathname.match(/^\/([^/]+)/)?.at(1) ?? '';
+        const isLocale = AllLocales.includes(locale as any);
+        const localePrefix = isLocale ? `/${locale}` : '';
+
+        const dashboardUrl = new URL(`${localePrefix}/dashboard?error=access_denied`, request.url);
+        return NextResponse.redirect(dashboardUrl);
+      }
     }
   }
 

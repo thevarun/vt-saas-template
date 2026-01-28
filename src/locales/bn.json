@@ -319,6 +319,10 @@
       "home": "Go to Homepage",
       "reload": "Reload Application"
     },
+    "admin": {
+      "accessDenied": "অ্যাক্সেস প্রত্যাখ্যাত",
+      "contactAdmin": "অ্যাডমিন বৈশিষ্ট্যগুলি অ্যাক্সেস করার অনুমতি আপনার নেই। যদি আপনার অ্যাক্সেস প্রয়োজন হয় তবে অনুগ্রহ করে একজন প্রশাসকের সাথে যোগাযোগ করুন।"
+    },
     "auth": {
       "title": "Dashboard Error",
       "message": "Something went wrong with your dashboard. This could be a temporary issue.",

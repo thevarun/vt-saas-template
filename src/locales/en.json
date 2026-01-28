@@ -323,6 +323,10 @@
       "home": "Go to Homepage",
       "reload": "Reload Application"
     },
+    "admin": {
+      "accessDenied": "Access Denied",
+      "contactAdmin": "You don't have permission to access admin features. Please contact an administrator if you need access."
+    },
     "auth": {
       "title": "Dashboard Error",
       "message": "Something went wrong with your dashboard. This could be a temporary issue.",

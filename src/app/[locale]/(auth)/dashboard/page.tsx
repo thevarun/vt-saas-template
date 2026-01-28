@@ -1,7 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { getLocale } from 'next-intl/server';
+import { Suspense } from 'react';
 
+import { AccessDeniedToast } from '@/components/auth/AccessDeniedToast';
 import { VerificationToast } from '@/components/auth/VerificationToast';
 import { WelcomeDashboard } from '@/components/dashboard/WelcomeDashboard';
 import { db } from '@/libs/DB';
@@ -40,6 +42,9 @@ const DashboardIndexPage = async () => {
   // Always show the WelcomeDashboard with MagicPatterns design
   return (
     <>
+      <Suspense fallback={null}>
+        <AccessDeniedToast />
+      </Suspense>
       <VerificationToast />
       <WelcomeDashboard userName={displayName} />
     </>
