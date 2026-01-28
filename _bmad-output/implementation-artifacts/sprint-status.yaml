@@ -84,10 +84,10 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: User Feedback Collection
-  epic-5: in-progress
+  epic-5: done
   5-1-feedback-database-schema: done
   5-2-feedback-widget-component: done
-  5-3-feedback-submission-api: ready-for-dev
+  5-3-feedback-submission-api: done
   epic-5-retrospective: optional
 
   # Epic 6: Admin Panel & System Management
