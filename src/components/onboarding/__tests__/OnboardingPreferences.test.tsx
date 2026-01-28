@@ -43,12 +43,21 @@ const defaultInitialData = {
 describe('OnboardingPreferences', () => {
   const mockPush = vi.fn();
   const mockTranslate = vi.fn((key: string) => key);
+  const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as any).mockReturnValue({ push: mockPush });
     (useTranslations as any).mockReturnValue(mockTranslate);
     vi.mocked(globalThis.fetch).mockClear();
+    // Reset window.location for tests that modify it
+    delete (window as any).location;
+    window.location = { href: '' } as any;
+  });
+
+  afterEach(() => {
+    // Restore original window.location
+    (window as any).location = originalLocation;
   });
 
   it('renders progress indicator showing step 3 of 3', () => {
@@ -184,10 +193,6 @@ describe('OnboardingPreferences', () => {
       }),
     } as Response);
 
-    // Mock window.location.href
-    delete (window as any).location;
-    window.location = { href: '' } as any;
-
     render(<OnboardingPreferences initialData={defaultInitialData} />);
 
     const submitButton = screen.getByText('completeSetup');
@@ -228,10 +233,6 @@ describe('OnboardingPreferences', () => {
   it('handles Go back button correctly', async () => {
     const user = userEvent.setup();
 
-    // Mock window.location.href
-    delete (window as any).location;
-    window.location = { href: '' } as any;
-
     render(<OnboardingPreferences initialData={defaultInitialData} />);
 
     const goBackButton = screen.getByText('goBack');
@@ -257,9 +258,6 @@ describe('OnboardingPreferences', () => {
         data: { emailNotifications: false, language: 'hi' },
       }),
     } as Response);
-
-    delete (window as any).location;
-    window.location = { href: '' } as any;
 
     render(<OnboardingPreferences initialData={{ ...defaultInitialData, language: 'hi' }} />);
 
