@@ -113,7 +113,9 @@
     "^npm\\s+(dedupe|cache\\s+clean)(\\s+.*)?$",
     "^curl\\s+(-[sIo]+\\s+)*https?://localhost[:/][^|;&]*$",
     "^curl\\s+[^|;&]*http://localhost[:/][^|;&]*$",
-    "^pgrep\\s+"
+    "^pgrep\\s+",
+
+    "^git\\s+commit\\s+-m\\s+\"\\$\\(cat\\s+<<'?EOF'?"
   ],
 
   "deny_patterns": [
@@ -143,7 +145,7 @@
 
   "sensitive_paths": [
     "\\.env$",
-    "\\.env\\.",
+    "\\.env\\.(?!example)",
     "\\.pem$",
     "\\.key$",
     "\\.crt$",
