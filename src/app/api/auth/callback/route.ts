@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { sendWelcomeEmail } from '@/libs/email';
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
@@ -41,6 +43,23 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Check if this is a new user and send welcome email
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // Check if this is a new user (created in last 5 minutes)
+        const createdAt = new Date(user.created_at);
+        const isNewUser = Date.now() - createdAt.getTime() < 5 * 60 * 1000;
+
+        if (isNewUser && user.email) {
+          // Send welcome email (fire and forget - don't block redirect)
+          sendWelcomeEmail(
+            user.email,
+            user.user_metadata?.name || user.user_metadata?.full_name,
+          ).catch(err => console.error('Failed to send welcome email:', err));
+        }
+      }
+
       // Successfully exchanged code for session
       return NextResponse.redirect(new URL(next, request.url));
     }

@@ -156,7 +156,7 @@ describe('signUpPage', () => {
       email: 'test@example.com',
       password: 'Password123',
       options: {
-        emailRedirectTo: expect.stringContaining('/auth/callback'),
+        emailRedirectTo: expect.stringContaining('/api/auth/verify-complete'),
       },
     });
   });
