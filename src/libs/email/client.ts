@@ -2,7 +2,29 @@ import { Resend } from 'resend';
 
 import { logger } from '../Logger';
 import { EMAIL_CONFIG, getFromAddress, isEmailEnabled } from './config';
+import {
+  createEmailTimer,
+  hashEmailForLog,
+  logEmailEvent,
+} from './emailLogger';
+import type { RetryConfig } from './retry';
+import {
+  DEFAULT_EMAIL_RETRY_CONFIG,
+  withRetry,
+} from './retry';
 import type { EmailPayload, EmailSendResult } from './types';
+
+/**
+ * Email send options
+ */
+export type EmailSendOptions = {
+  /** Email type for logging/tracking (e.g., 'welcome', 'receipt') */
+  emailType?: string;
+  /** Custom retry configuration */
+  retryConfig?: Partial<RetryConfig>;
+  /** Disable retry for this send */
+  disableRetry?: boolean;
+};
 
 /**
  * Email Client
@@ -26,33 +48,66 @@ export class EmailClient {
   }
 
   /**
-   * Send an email
+   * Send an email with optional retry logic
    * In development without API key: logs email to console
    * In production without API key: returns error
    */
-  async send(payload: EmailPayload): Promise<EmailSendResult> {
+  async send(
+    payload: EmailPayload,
+    options: EmailSendOptions = {},
+  ): Promise<EmailSendResult> {
     const from = getFromAddress();
     const replyTo = payload.replyTo || EMAIL_CONFIG.replyTo;
+    const emailType = options.emailType || 'generic';
+    const getTimer = createEmailTimer();
 
     // Development mode without API key: log to console
     if (!this.resend) {
-      return this.handleDevModeSend(payload, from, replyTo);
+      return this.handleDevModeSend(payload, from, replyTo, emailType);
     }
 
-    // Production mode: send via Resend
-    return this.handleResendSend(payload, from, replyTo);
+    // Production mode: send via Resend with retry
+    if (options.disableRetry) {
+      return this.handleResendSend(payload, from, replyTo, emailType, getTimer);
+    }
+
+    // Send with retry logic
+    const retryConfig = {
+      ...DEFAULT_EMAIL_RETRY_CONFIG,
+      ...options.retryConfig,
+    };
+
+    const { result } = await withRetry(
+      () => this.handleResendSend(payload, from, replyTo, emailType, getTimer),
+      result => result.success,
+      result => (!result.success ? result.code : undefined),
+      retryConfig,
+      { emailType, recipient: hashEmailForLog(payload.to) },
+    );
+
+    return result;
   }
 
   /**
    * Development mode: log email to console instead of sending
+   * Enhanced to show more details for debugging
    */
   private handleDevModeSend(
     payload: EmailPayload,
     from: string,
     replyTo?: string,
+    emailType: string = 'generic',
   ): EmailSendResult {
     if (!this.isDevelopment) {
-      logger.error({ payload }, 'Email sending failed: API key not configured');
+      logEmailEvent({
+        type: 'email_failed',
+        emailType,
+        recipient: hashEmailForLog(payload.to),
+        subject: payload.subject,
+        status: 'failure',
+        errorCode: 'API_KEY_MISSING',
+        errorMessage: 'Email API key not configured',
+      });
       return {
         success: false,
         error: 'Email API key not configured',
@@ -60,17 +115,45 @@ export class EmailClient {
       };
     }
 
-    // Log email details for development
-    logger.info({
+    // Enhanced dev mode logging with email content preview
+    /* eslint-disable no-console -- Intentional: Dev mode output for debugging */
+    console.log(`\n${'='.repeat(60)}`);
+    console.log('EMAIL (DEV MODE - NOT SENT)');
+    console.log('='.repeat(60));
+    console.log(`Type:     ${emailType}`);
+    console.log(`From:     ${from}`);
+    console.log(`To:       ${Array.isArray(payload.to) ? payload.to.join(', ') : payload.to}`);
+    console.log(`Subject:  ${payload.subject}`);
+    if (replyTo) {
+      console.log(`Reply-To: ${replyTo}`);
+    }
+    if (payload.cc) {
+      console.log(`CC:       ${Array.isArray(payload.cc) ? payload.cc.join(', ') : payload.cc}`);
+    }
+    if (payload.bcc) {
+      console.log(`BCC:      ${Array.isArray(payload.bcc) ? payload.bcc.join(', ') : payload.bcc}`);
+    }
+    console.log('-'.repeat(60));
+    if (payload.text) {
+      console.log('CONTENT (Plain Text):');
+      console.log(payload.text.substring(0, 500) + (payload.text.length > 500 ? '...' : ''));
+    }
+    if (payload.react) {
+      console.log('CONTENT: React Email template (render with npm run email:dev)');
+    }
+    if (payload.html) {
+      console.log('CONTENT (HTML): [HTML content truncated]');
+    }
+    console.log(`${'='.repeat(60)}\n`);
+    /* eslint-enable no-console */
+
+    logEmailEvent({
       type: 'email_dev_mode',
-      from,
-      to: payload.to,
+      emailType,
+      recipient: Array.isArray(payload.to) ? payload.to[0] || 'unknown' : payload.to,
       subject: payload.subject,
-      replyTo,
-      hasReact: !!payload.react,
-      hasHtml: !!payload.html,
-      hasText: !!payload.text,
-    }, 'Email logged (dev mode - not sent)');
+      status: 'dev_mode',
+    });
 
     // Return mock success with fake message ID
     return {
@@ -86,6 +169,8 @@ export class EmailClient {
     payload: EmailPayload,
     from: string,
     replyTo?: string,
+    emailType: string = 'generic',
+    getTimer?: () => number,
   ): Promise<EmailSendResult> {
     try {
       const { data, error } = await this.resend!.emails.send({
@@ -101,12 +186,19 @@ export class EmailClient {
         tags: payload.tags,
       });
 
+      const durationMs = getTimer?.();
+
       if (error) {
-        logger.error({
-          error,
-          to: this.hashEmail(payload.to),
+        logEmailEvent({
+          type: 'email_failed',
+          emailType,
+          recipient: hashEmailForLog(payload.to),
           subject: payload.subject,
-        }, 'Email send failed');
+          status: 'failure',
+          errorCode: error.name,
+          errorMessage: error.message,
+          durationMs,
+        });
 
         return {
           success: false,
@@ -115,12 +207,15 @@ export class EmailClient {
         };
       }
 
-      logger.info({
+      logEmailEvent({
         type: 'email_sent',
-        messageId: data?.id,
-        to: this.hashEmail(payload.to),
+        emailType,
+        recipient: hashEmailForLog(payload.to),
         subject: payload.subject,
-      }, 'Email sent successfully');
+        messageId: data?.id,
+        status: 'success',
+        durationMs,
+      });
 
       return {
         success: true,
@@ -128,12 +223,18 @@ export class EmailClient {
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const durationMs = getTimer?.();
 
-      logger.error({
-        error: errorMessage,
-        to: this.hashEmail(payload.to),
+      logEmailEvent({
+        type: 'email_failed',
+        emailType,
+        recipient: hashEmailForLog(payload.to),
         subject: payload.subject,
-      }, 'Email send exception');
+        status: 'failure',
+        errorCode: 'SEND_EXCEPTION',
+        errorMessage,
+        durationMs,
+      });
 
       return {
         success: false,
@@ -141,24 +242,6 @@ export class EmailClient {
         code: 'SEND_EXCEPTION',
       };
     }
-  }
-
-  /**
-   * Hash email for logging (privacy)
-   */
-  private hashEmail(email: string | string[]): string {
-    const addr = Array.isArray(email) ? email[0] : email;
-    if (!addr) {
-      return 'unknown';
-    }
-
-    const [local, domain] = addr.split('@');
-    if (!local || !domain) {
-      return 'invalid';
-    }
-
-    const maskedLocal = `${local.substring(0, 2)}***`;
-    return `${maskedLocal}@${domain}`;
   }
 }
 

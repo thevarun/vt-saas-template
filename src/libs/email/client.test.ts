@@ -5,6 +5,7 @@ const mockSend = vi.fn();
 const mockLoggerWarn = vi.fn();
 const mockLoggerInfo = vi.fn();
 const mockLoggerError = vi.fn();
+const mockConsoleLog = vi.fn();
 
 // Track mock config state
 let mockApiKey: string | undefined;
@@ -42,14 +43,19 @@ vi.mock('./config', () => ({
 describe('EmailClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     mockSend.mockReset();
     mockApiKey = undefined;
     mockIsEnabled = false;
+    // Mock console.log for dev mode tests
+    vi.spyOn(console, 'log').mockImplementation(mockConsoleLog);
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.resetModules();
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {
@@ -99,14 +105,11 @@ describe('EmailClient', () => {
         expect(result.messageId).toMatch(/^dev_\d+_[a-z0-9]+$/);
       }
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'email_dev_mode',
-          to: 'recipient@example.com',
-          subject: 'Test Subject',
-        }),
-        'Email logged (dev mode - not sent)',
-      );
+      // Should log email details to console
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('EMAIL (DEV MODE - NOT SENT)'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Type:     generic'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('To:       recipient@example.com'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Subject:  Test Subject'));
     });
 
     it('returns error when API key missing in production', async () => {
@@ -128,8 +131,44 @@ describe('EmailClient', () => {
         expect(result.error).toBe('Email API key not configured');
         expect(result.code).toBe('API_KEY_MISSING');
       }
+    });
 
-      expect(mockLoggerError).toHaveBeenCalled();
+    it('dev mode shows enhanced console output with emailType', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      mockApiKey = undefined;
+      mockIsEnabled = false;
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+      await client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Welcome!',
+          text: 'Welcome to our app',
+        },
+        { emailType: 'welcome' },
+      );
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Type:     welcome'));
+    });
+
+    it('dev mode shows CC and BCC fields', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      mockApiKey = undefined;
+      mockIsEnabled = false;
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+      await client.send({
+        to: 'recipient@example.com',
+        subject: 'Test',
+        text: 'Body',
+        cc: 'cc@example.com',
+        bcc: ['bcc1@example.com', 'bcc2@example.com'],
+      });
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('CC:       cc@example.com'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('BCC:      bcc1@example.com, bcc2@example.com'));
     });
   });
 
@@ -167,13 +206,6 @@ describe('EmailClient', () => {
           text: 'Test body',
         }),
       );
-      expect(mockLoggerInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'email_sent',
-          messageId: 'msg_123abc',
-        }),
-        'Email sent successfully',
-      );
     });
 
     it('returns error when Resend API returns error', async () => {
@@ -199,8 +231,6 @@ describe('EmailClient', () => {
         expect(result.error).toBe('Invalid recipient');
         expect(result.code).toBe('validation_error');
       }
-
-      expect(mockLoggerError).toHaveBeenCalled();
     });
 
     it('handles exception during send', async () => {
@@ -208,11 +238,16 @@ describe('EmailClient', () => {
 
       const { EmailClient } = await import('./client');
       const client = new EmailClient();
-      const result = await client.send({
-        to: 'recipient@example.com',
-        subject: 'Test Subject',
-        text: 'Test body',
-      });
+
+      // Use disableRetry to test exception handling without retry delays
+      const result = await client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Test Subject',
+          text: 'Test body',
+        },
+        { disableRetry: true },
+      );
 
       expect(result.success).toBe(false);
 
@@ -220,13 +255,6 @@ describe('EmailClient', () => {
         expect(result.error).toBe('Network error');
         expect(result.code).toBe('SEND_EXCEPTION');
       }
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Network error',
-        }),
-        'Email send exception',
-      );
     });
 
     it('uses payload replyTo over config replyTo', async () => {
@@ -252,45 +280,182 @@ describe('EmailClient', () => {
     });
   });
 
-  describe('hashEmail', () => {
-    it('masks email addresses correctly when logging in dev mode', async () => {
-      vi.stubEnv('NODE_ENV', 'development');
-      mockApiKey = undefined;
-      mockIsEnabled = false;
-
-      const { EmailClient } = await import('./client');
-      const client = new EmailClient();
-      await client.send({
-        to: 'john.doe@example.com',
-        subject: 'Test',
-        text: 'Body',
-      });
-
-      // In dev mode without API key, the full email is logged
-      expect(mockLoggerInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'john.doe@example.com',
-        }),
-        expect.any(String),
-      );
+  describe('send - retry logic', () => {
+    beforeEach(() => {
+      mockApiKey = 're_test_key';
+      mockIsEnabled = true;
     });
 
-    it('handles array of emails in dev mode', async () => {
-      vi.stubEnv('NODE_ENV', 'development');
-      mockApiKey = undefined;
-      mockIsEnabled = false;
+    it('retries on retryable error and succeeds', async () => {
+      mockSend
+        .mockResolvedValueOnce({
+          data: null,
+          error: { name: 'rate_limit_exceeded', message: 'Rate limited' },
+        })
+        .mockResolvedValueOnce({
+          data: { id: 'msg_123' },
+          error: null,
+        });
 
       const { EmailClient } = await import('./client');
       const client = new EmailClient();
-      await client.send({
-        to: ['first@example.com', 'second@example.com'],
+
+      const sendPromise = client.send({
+        to: 'recipient@example.com',
         subject: 'Test',
         text: 'Body',
       });
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith(
+      // Wait for retry delay
+      await vi.advanceTimersByTimeAsync(5000);
+
+      const result = await sendPromise;
+
+      expect(result.success).toBe(true);
+      expect(mockSend).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry on non-retryable error', async () => {
+      mockSend.mockResolvedValue({
+        data: null,
+        error: { name: 'validation_error', message: 'Invalid email' },
+      });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+
+      const result = await client.send({
+        to: 'invalid',
+        subject: 'Test',
+        text: 'Body',
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockSend).toHaveBeenCalledTimes(1);
+    });
+
+    it('exhausts all retries on persistent failure', async () => {
+      mockSend.mockResolvedValue({
+        data: null,
+        error: { name: 'rate_limit_exceeded', message: 'Rate limited' },
+      });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+
+      const sendPromise = client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Test',
+          text: 'Body',
+        },
+        {
+          retryConfig: {
+            maxAttempts: 3,
+            baseDelayMs: 100,
+            maxDelayMs: 1000,
+          },
+        },
+      );
+
+      // Wait for all retries
+      await vi.advanceTimersByTimeAsync(5000);
+
+      const result = await sendPromise;
+
+      expect(result.success).toBe(false);
+      expect(mockSend).toHaveBeenCalledTimes(3);
+    });
+
+    it('disableRetry option prevents retries', async () => {
+      mockSend.mockResolvedValue({
+        data: null,
+        error: { name: 'rate_limit_exceeded', message: 'Rate limited' },
+      });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+
+      const result = await client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Test',
+          text: 'Body',
+        },
+        { disableRetry: true },
+      );
+
+      expect(result.success).toBe(false);
+      expect(mockSend).toHaveBeenCalledTimes(1);
+    });
+
+    it('custom retry config is applied', async () => {
+      mockSend
+        .mockResolvedValueOnce({
+          data: null,
+          error: { name: 'internal_server_error', message: 'Server error' },
+        })
+        .mockResolvedValueOnce({
+          data: { id: 'msg_123' },
+          error: null,
+        });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+
+      const sendPromise = client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Test',
+          text: 'Body',
+        },
+        {
+          retryConfig: {
+            maxAttempts: 5,
+            baseDelayMs: 50,
+          },
+        },
+      );
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      const result = await sendPromise;
+
+      expect(result.success).toBe(true);
+      expect(mockSend).toHaveBeenCalledTimes(2);
+    });
+
+    it('passes emailType to retry context', async () => {
+      mockSend
+        .mockResolvedValueOnce({
+          data: null,
+          error: { name: 'temporarily_unavailable', message: 'Service down' },
+        })
+        .mockResolvedValueOnce({
+          data: { id: 'msg_123' },
+          error: null,
+        });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+
+      const sendPromise = client.send(
+        {
+          to: 'recipient@example.com',
+          subject: 'Test',
+          text: 'Body',
+        },
+        { emailType: 'welcome' },
+      );
+
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await sendPromise;
+
+      // Verify retry logging includes emailType
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: ['first@example.com', 'second@example.com'],
+          emailType: 'welcome',
         }),
         expect.any(String),
       );

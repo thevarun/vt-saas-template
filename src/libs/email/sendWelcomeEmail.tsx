@@ -4,6 +4,7 @@ import type { EmailSendResult } from './types';
 
 /**
  * Send welcome email to a new user
+ * Non-blocking: use fire-and-forget pattern for best UX
  *
  * @param email - Recipient email address
  * @param name - Optional user name for personalization
@@ -11,11 +12,11 @@ import type { EmailSendResult } from './types';
  *
  * @example
  * ```typescript
- * // Fire and forget (don't block user flow)
+ * // Fire and forget (recommended - don't block user flow)
  * sendWelcomeEmail(user.email, user.name)
  *   .catch(err => console.error('Failed to send welcome email:', err));
  *
- * // Await result
+ * // Await result (only if you need confirmation)
  * const result = await sendWelcomeEmail('user@example.com', 'John');
  * if (result.success) {
  *   console.log('Welcome email sent:', result.messageId);
@@ -40,6 +41,7 @@ export async function sendWelcomeEmail(
     />,
     {
       tags: [{ name: 'type', value: 'welcome' }],
+      emailType: 'welcome', // For logging
     },
   );
 }

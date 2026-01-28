@@ -71,6 +71,35 @@ The project includes:
 - **Configuration**: Environment variables for sender settings
 - **Dev Mode**: Without API key, emails are logged to console (no actual sending)
 
+### Email Error Handling
+
+**Retry Logic:**
+- Email sending automatically retries on transient failures
+- Default: 3 attempts with exponential backoff (1s, 2s, 4s)
+- Retryable errors: rate_limit_exceeded, temporarily_unavailable, internal_server_error
+- Non-retryable errors: validation_error, invalid_api_key, domain_not_verified
+
+**Logging:**
+- All email events logged with structured JSON format
+- Fields: type, emailType, recipient (hashed), status, messageId, durationMs
+- Privacy: Email addresses hashed in logs (e.g., jo***@example.com)
+
+**Non-Blocking Pattern (Critical Emails):**
+```typescript
+import { sendEmailAsync, sendWelcomeEmail } from '@/libs/email';
+
+// Fire and forget - doesn't block user flow
+sendEmailAsync(
+  () => sendWelcomeEmail(user.email, user.name),
+  { emailType: 'welcome', recipientHint: user.email }
+);
+```
+
+**Development Mode:**
+- Without RESEND_API_KEY: Emails logged to console with full details
+- Shows: type, from, to, subject, content preview
+- Returns mock success for testing
+
 ### Routing Structure
 **Routes**: `src/app/[locale]/` - `(unauth)/` public, `(auth)/` protected + dashboard, `(chat)/` chat interface, `api/chat/` Dify proxy
 

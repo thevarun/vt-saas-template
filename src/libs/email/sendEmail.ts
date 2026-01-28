@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 
+import type { EmailSendOptions } from './client';
 import { getEmailClient } from './client';
 import type { EmailSendResult, EmailTag } from './types';
 
@@ -9,7 +10,13 @@ import type { EmailSendResult, EmailTag } from './types';
  * @param to - Recipient email address(es)
  * @param subject - Email subject line
  * @param template - React Email component
- * @param options - Optional settings (replyTo, cc, bcc, tags)
+ * @param options - Optional settings
+ * @param options.replyTo - Reply-to email address
+ * @param options.cc - CC recipient(s)
+ * @param options.bcc - BCC recipient(s)
+ * @param options.tags - Email tags for analytics
+ * @param options.emailType - Email type for logging (e.g., 'welcome', 'receipt')
+ * @param options.disableRetry - Disable retry logic for this email
  * @returns Email send result
  *
  * @example
@@ -17,7 +24,8 @@ import type { EmailSendResult, EmailTag } from './types';
  * const result = await sendEmail(
  *   'user@example.com',
  *   'Welcome!',
- *   <WelcomeEmail name="John" />
+ *   <WelcomeEmail name="John" />,
+ *   { emailType: 'welcome' }
  * );
  * ```
  */
@@ -30,14 +38,21 @@ export async function sendEmail(
     cc?: string | string[];
     bcc?: string | string[];
     tags?: EmailTag[];
+    emailType?: string;
+    disableRetry?: boolean;
   },
 ): Promise<EmailSendResult> {
-  return getEmailClient().send({
-    to,
-    subject,
-    react: template,
-    ...options,
-  });
+  const { emailType, disableRetry, ...payloadOptions } = options || {};
+
+  return getEmailClient().send(
+    {
+      to,
+      subject,
+      react: template,
+      ...payloadOptions,
+    },
+    { emailType, disableRetry },
+  );
 }
 
 /**
@@ -47,6 +62,7 @@ export async function sendEmail(
  * @param subject - Email subject line
  * @param text - Plain text content
  * @param html - Optional HTML content
+ * @param options - Optional email send options
  * @returns Email send result
  */
 export async function sendPlainEmail(
@@ -54,11 +70,15 @@ export async function sendPlainEmail(
   subject: string,
   text: string,
   html?: string,
+  options?: EmailSendOptions,
 ): Promise<EmailSendResult> {
-  return getEmailClient().send({
-    to,
-    subject,
-    text,
-    html,
-  });
+  return getEmailClient().send(
+    {
+      to,
+      subject,
+      text,
+      html,
+    },
+    options,
+  );
 }
