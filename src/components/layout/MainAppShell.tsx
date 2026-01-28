@@ -4,20 +4,26 @@ import {
   ChevronLeft,
   CreditCard,
   Home,
+  Inbox,
+  Loader2,
   Menu,
   MessageSquare,
   Settings,
   User,
+  UserPlus,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ThemeToggle } from '@/components/theme';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
+import { LanguageSelector } from './LanguageSelector';
 import { NavItem } from './NavItem';
+import { UserProfileSection } from './UserProfileSection';
 
 type MainAppShellProps = {
   children: ReactNode;
@@ -52,9 +58,12 @@ export function MainAppShell({ children }: MainAppShellProps) {
   const navItems: NavItemConfig[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: MessageSquare, label: 'Chat', href: '/chat' },
+    { icon: Inbox, label: 'DS - Empty States', href: '/design-system/empty-states' },
+    { icon: Loader2, label: 'DS - Loading', href: '/design-system/loading' },
     { icon: CreditCard, label: 'Pricing', href: '/pricing', disabled: true },
     { icon: Settings, label: 'Settings', href: '/settings', disabled: true },
     { icon: User, label: 'Profile', href: '/profile', disabled: true },
+    { icon: UserPlus, label: 'Onboarding', href: '/onboarding' },
   ];
 
   // AC #3: Active state detection (handles nested routes like /chat/[threadId])
@@ -65,23 +74,47 @@ export function MainAppShell({ children }: MainAppShellProps) {
   };
 
   // AC #7: Persist sidebar collapsed state in localStorage
+  // Fix #1 & #3: Use ref to prevent race condition and renamed key for clarity
+  const isInitialized = useRef(false);
+
   useEffect(() => {
-    const stored = localStorage.getItem('main_sidebar_collapsed');
+    const stored = localStorage.getItem('sidebar_open');
     if (stored !== null) {
       setSidebarOpen(stored === 'true');
     }
+    isInitialized.current = true;
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('main_sidebar_collapsed', sidebarOpen ? 'true' : 'false');
+    if (isInitialized.current) {
+      localStorage.setItem('sidebar_open', sidebarOpen ? 'true' : 'false');
+    }
   }, [sidebarOpen]);
 
+  // Fix #5: Close mobile sheet when resizing to desktop width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && mobileSheetOpen) {
+        setMobileSheetOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileSheetOpen]);
+
   // AC #9: Keyboard shortcut (Cmd/Ctrl+B) toggles sidebar
+  // Fix #6: Don't toggle when user is in editable field (conflicts with bold)
   useEffect(() => {
     const handleKeyboard = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-        e.preventDefault();
-        setSidebarOpen(prev => !prev);
+        const active = document.activeElement;
+        const isEditable = active?.tagName === 'INPUT'
+          || active?.tagName === 'TEXTAREA'
+          || active?.getAttribute('contenteditable') === 'true';
+        if (!isEditable) {
+          e.preventDefault();
+          setSidebarOpen(prev => !prev);
+        }
       }
       // AC #9: Escape closes mobile sidebar
       if (e.key === 'Escape' && mobileSheetOpen) {
@@ -95,12 +128,21 @@ export function MainAppShell({ children }: MainAppShellProps) {
 
   return (
     <div className="flex h-screen">
-      {/* AC #6: Mobile Sheet Overlay */}
+      {/* AC #6: Mobile Sheet Overlay - MagicPatterns style */}
       <div className="md:hidden">
         <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-64 border-slate-200 bg-slate-50 p-0 dark:border-slate-700 dark:bg-slate-900">
+            {/* Mobile logo area */}
+            <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-blue-600">
+                  <span className="text-lg font-bold text-white">V</span>
+                </div>
+                <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">VT SaaS</span>
+              </div>
+            </div>
             <nav
-              className="flex h-full flex-col p-4"
+              className="flex h-[calc(100%-4rem)] flex-col p-3"
               role="navigation"
               aria-label="Main navigation"
             >
@@ -118,63 +160,92 @@ export function MainAppShell({ children }: MainAppShellProps) {
                   />
                 ))}
               </ul>
-              {/* Mobile theme toggle */}
-              <div className="border-t pt-2">
+              {/* Mobile footer: Theme, Language, then User profile - MagicPatterns order */}
+              <div className="space-y-3 border-t border-slate-200 pt-3 dark:border-slate-700">
                 <ThemeToggle showLabel />
+                <LanguageSelector showLabel />
+                <TooltipProvider delayDuration={0}>
+                  <UserProfileSection collapsed={false} />
+                </TooltipProvider>
               </div>
             </nav>
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* AC #6, #7: Desktop Sidebar - Persistent, collapsible */}
+      {/* AC #6, #7: Desktop Sidebar - Persistent, collapsible - MagicPatterns style */}
       <aside
-        className={`hidden shrink-0 flex-col border-r bg-background transition-all duration-300 md:flex ${
+        className={`hidden shrink-0 flex-col border-r border-slate-200 bg-slate-50 transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 md:flex ${
           sidebarOpen ? 'w-64' : 'w-16'
         }`}
         aria-label="Main navigation sidebar"
       >
-        <nav className="flex-1 p-2" role="navigation" aria-label="Main navigation">
-          <ul className="space-y-1">
-            {navItems.map(item => (
-              <NavItem
-                key={item.href}
-                icon={item.icon}
-                label={item.label}
-                href={item.href}
-                isActive={isActive(item.href)}
-                disabled={item.disabled}
-                collapsed={!sidebarOpen}
-              />
-            ))}
-          </ul>
-        </nav>
-
-        {/* Theme toggle and collapse button */}
-        <div className="space-y-1 border-t p-2">
-          {/* Dark mode toggle */}
-          {sidebarOpen
-            ? (
-                <ThemeToggle showLabel />
-              )
-            : (
-                <ThemeToggle compact />
-              )}
-
-          {/* AC #7: Collapse toggle button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidebarOpen(prev => !prev)}
-            className="w-full justify-start"
+        {/* Logo area with collapse button - MagicPatterns style (CSS-based visibility to prevent flicker) */}
+        <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-700">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 transition-transform hover:scale-105"
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             aria-expanded={sidebarOpen}
           >
-            <ChevronLeft
-              className={`size-4 transition-transform ${!sidebarOpen ? 'rotate-180' : ''}`}
-            />
-            {sidebarOpen && <span className="ml-2">Collapse</span>}
+            <span className="text-lg font-bold text-white">V</span>
+          </button>
+          <span className={`ml-3 text-lg font-semibold text-slate-900 transition-opacity dark:text-slate-100 ${!sidebarOpen ? 'hidden' : ''}`}>
+            VT SaaS
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+            className={`ml-auto size-8 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 ${!sidebarOpen ? 'hidden' : ''}`}
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeft className="size-4" />
           </Button>
+        </div>
+
+        <nav className="flex-1 p-3" role="navigation" aria-label="Main navigation">
+          {/* Fix #7: Single TooltipProvider for all NavItems */}
+          <TooltipProvider delayDuration={0}>
+            <ul className="space-y-1">
+              {navItems.map(item => (
+                <NavItem
+                  key={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  isActive={isActive(item.href)}
+                  disabled={item.disabled}
+                  collapsed={!sidebarOpen}
+                />
+              ))}
+            </ul>
+          </TooltipProvider>
+        </nav>
+
+        {/* Footer: Theme, Language, then User profile at bottom - MagicPatterns order */}
+        <div className="space-y-3 border-t border-slate-200 p-3 dark:border-slate-700">
+          {/* Theme and language toggles */}
+          <div className={`flex ${sidebarOpen ? 'flex-col space-y-1' : 'flex-col items-center space-y-2'}`}>
+            {sidebarOpen
+              ? (
+                  <>
+                    <ThemeToggle showLabel />
+                    <LanguageSelector showLabel />
+                  </>
+                )
+              : (
+                  <>
+                    <ThemeToggle compact />
+                    <LanguageSelector compact />
+                  </>
+                )}
+          </div>
+
+          {/* User profile section at bottom */}
+          <TooltipProvider delayDuration={0}>
+            <UserProfileSection collapsed={!sidebarOpen} />
+          </TooltipProvider>
         </div>
       </aside>
 

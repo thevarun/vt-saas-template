@@ -164,7 +164,21 @@
   },
   "Dashboard": {
     "meta_title": "Dashboard",
-    "meta_description": "Your personal dashboard - access your account and chat with AI."
+    "meta_description": "Your personal dashboard - access your account and chat with AI.",
+    "welcomeTitle": "Welcome, {name}!",
+    "welcomeDescription": "Let's get you started with your health journey",
+    "gettingStartedTitle": "Getting Started",
+    "actionStartChat": "Start a Conversation",
+    "actionStartChatDesc": "Try our AI health companion",
+    "actionCompleteProfile": "Complete Your Profile",
+    "actionCompleteProfileDesc": "Add more details about yourself",
+    "actionExploreFeatures": "Explore Features",
+    "actionExploreFeaturesDesc": "Learn what you can do",
+    "actionButtonLabel": "Get Started",
+    "recentActivityTitle": "Recent Activity",
+    "viewAll": "View all",
+    "noActivityTitle": "No activity yet",
+    "noActivityDescription": "Your recent activity will appear here once you start using the app."
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",
@@ -342,5 +356,110 @@
     "back_to_home": "Back to Home",
     "try_again": "Sign Up Again",
     "sign_in": "Go to Sign In"
+  },
+  "Onboarding": {
+    "meta_title": "Welcome to VT SaaS Template",
+    "meta_description": "Complete your profile to get started",
+    "step1Title": "Welcome! Let's set up your profile",
+    "step1Description": "Your username will be your unique identity on the platform.",
+    "usernameLabel": "Choose your username",
+    "usernamePlaceholder": "Enter username",
+    "usernameAvailable": "Available",
+    "usernameTaken": "This username is already taken",
+    "usernameInvalid": "Only letters, numbers, and underscores allowed",
+    "usernameChecking": "Checking availability...",
+    "usernameRequirements": "3-20 characters, letters, numbers, and underscores only",
+    "continue": "Continue",
+    "saving": "Saving...",
+    "skipForNow": "Skip for now",
+    "goBack": "Go back",
+    "progressStep": "Step {current} of {total}",
+    "stepAriaLabel": "Step {step}{isCurrent, select, true { (Current)} other {}}",
+    "errorSaving": "Failed to save. Please try again.",
+    "errorNetwork": "Network error. Please check your connection.",
+    "step2Title": "Discover What You Can Do",
+    "step2Description": "Here are some of the key features you'll have access to",
+    "feature1Title": "AI-Powered Chat",
+    "feature1Description": "Intelligent conversations powered by advanced AI to help you get things done",
+    "feature2Title": "Multi-Language Support",
+    "feature2Description": "Available in English, Hindi, and Bengali for a localized experience",
+    "feature3Title": "Secure & Private",
+    "feature3Description": "Your data is protected with enterprise-grade security and encryption",
+    "feature4Title": "Fast & Responsive",
+    "feature4Description": "Lightning-fast performance optimized for all devices",
+    "step3Title": "Set Your Preferences",
+    "step3Description": "Customize your experience to suit your needs",
+    "notificationsLabel": "Email Notifications",
+    "notificationsDescription": "Receive updates and important alerts",
+    "languageLabel": "Language",
+    "languageDescription": "Choose your preferred language",
+    "languageEn": "English",
+    "languageHi": "Hindi",
+    "languageBn": "Bengali",
+    "completeSetup": "Complete Setup",
+    "successMessage": "You're all set! Redirecting to dashboard..."
+  },
+  "EmptyState": {
+    "noItemsTitle": "No items yet",
+    "noItemsDescription": "Get started by creating your first item",
+    "noResultsTitle": "No results found",
+    "noResultsDescription": "Try adjusting your search criteria",
+    "errorTitle": "Failed to load data",
+    "errorDescription": "Something went wrong. Please try again.",
+    "actionCreate": "Create Item",
+    "actionRetry": "Retry"
+  },
+  "DesignSystem": {
+    "title": "Design System",
+    "description": "Reusable UI components for consistent design across the app",
+    "emptyStates": {
+      "title": "Empty States",
+      "description": "Components for displaying empty, search, and error states throughout the application.",
+      "defaultVariant": "Default (No Items)",
+      "searchVariant": "Search (No Results)",
+      "errorVariant": "Error State",
+      "customIcon": "Custom Icon",
+      "noAction": "Without Action Button",
+      "examples": {
+        "noItems": {
+          "title": "No items yet",
+          "description": "Get started by creating your first item",
+          "action": "Create Item"
+        },
+        "noResults": {
+          "title": "No results found",
+          "description": "Try adjusting your search criteria",
+          "action": "Clear Filters"
+        },
+        "error": {
+          "title": "Failed to load data",
+          "description": "Something went wrong. Please try again.",
+          "action": "Retry"
+        },
+        "noTeam": {
+          "title": "No team members",
+          "description": "Invite colleagues to collaborate on projects",
+          "action": "Invite Team"
+        },
+        "noDocs": {
+          "title": "No documents",
+          "description": "Documents will appear here once created"
+        }
+      }
+    },
+    "usage": {
+      "title": "Usage Guidelines",
+      "defaultHint": "Default variant: Use for empty lists, first-time user states, and initial content areas",
+      "searchHint": "Search variant: Use when search or filter returns no matching results",
+      "errorHint": "Error variant: Use when data failed to load or an operation failed"
+    }
+  },
+  "Loading": {
+    "loading": "Loading...",
+    "pleaseWait": "Please wait",
+    "loadingContent": "Loading content",
+    "timeout": "Loading is taking longer than expected",
+    "retry": "Retry",
+    "slowConnection": "Slow connection detected"
   }
 }

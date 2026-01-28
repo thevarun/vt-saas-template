@@ -147,7 +147,14 @@
       "Bash(git status:*)",
       "mcp__serena__find_file",
       "Bash(git -C /Users/varuntorka/Coding/vt-saas-template-epic-2-complete-authentication-experience log --oneline -5)",
-      "Skill(bmad:bmm:workflows:dev-story)"
+      "Skill(bmad:bmm:workflows:dev-story)",
+      "mcp__playwright__playwright_get_visible_text",
+      "mcp__playwright__playwright_expect_response",
+      "mcp__playwright__playwright_assert_response",
+      "mcp__playwright__playwright_hover",
+      "mcp__playwright__playwright_press_key",
+      "mcp__ide__getDiagnostics",
+      "mcp__playwright__playwright_go_back"
     ],
     "deny": [],
     "ask": []

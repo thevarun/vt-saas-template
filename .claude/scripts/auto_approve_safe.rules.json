@@ -104,7 +104,7 @@
     "^npm\\s+update\\s+[@\\w/-]+$",
     "^npm\\s+run\\s+[\\w-]+\\s+2>&1$",
 
-    "^sleep\\s+\\d+$",
+    "^sleep\\s+[0-9.]+$",
 
     "^chmod\\s+[0-6][0-7][0-7]\\s+",
 
@@ -112,6 +112,7 @@
     "^npm\\s+run\\s+clean(\\s+.*)?$",
     "^npm\\s+(dedupe|cache\\s+clean)(\\s+.*)?$",
     "^curl\\s+(-[sIo]+\\s+)*https?://localhost[:/][^|;&]*$",
+    "^curl\\s+[^|;&]*http://localhost[:/][^|;&]*$",
     "^pgrep\\s+"
   ],
 

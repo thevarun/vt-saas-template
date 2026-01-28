@@ -1,7 +1,19 @@
+import { eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
+import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
+import { userPreferences } from '@/models/Schema';
+
+const usernameSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must be at most 20 characters')
+    .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
+});
 
 export async function POST(request: Request) {
   try {
@@ -13,49 +25,47 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
         { status: 401 },
       );
     }
 
-    const { username } = await request.json();
+    const body = await request.json();
 
     // Validate username format
-    if (!username || typeof username !== 'string') {
+    const validation = usernameSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid username' },
+        {
+          error: validation.error.errors[0]?.message || 'Invalid username format',
+          code: 'VALIDATION_ERROR',
+        },
         { status: 400 },
       );
     }
 
-    // Check if it's the user's current username
-    if (user.user_metadata?.username === username) {
-      return NextResponse.json({ available: true });
+    const { username } = validation.data;
+
+    // Check if username exists in database
+    const existingProfile = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.username, username))
+      .limit(1);
+
+    // If username exists and belongs to current user, it's available
+    const existingUser = existingProfile[0];
+    if (existingUser) {
+      const isCurrentUser = existingUser.userId === user.id;
+      return NextResponse.json({ available: isCurrentUser });
     }
 
-    // Query Supabase to check if username exists
-    // Since we're storing username in user_metadata, we need to check all users
-    // This is a basic implementation - for production, consider using a dedicated users table
-    const { data: users, error } = await supabase.auth.admin.listUsers();
-
-    if (error) {
-      console.error('Error checking username:', error);
-      return NextResponse.json(
-        { error: 'Failed to check username availability' },
-        { status: 500 },
-      );
-    }
-
-    // Check if username is taken by another user
-    const usernameTaken = users.users.some(
-      u => u.id !== user.id && u.user_metadata?.username === username,
-    );
-
-    return NextResponse.json({ available: !usernameTaken });
+    // Username doesn't exist, it's available
+    return NextResponse.json({ available: true });
   } catch (error) {
     console.error('Username check error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
     );
   }

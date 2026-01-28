@@ -164,7 +164,21 @@
   },
   "Dashboard": {
     "meta_title": "Dashboard",
-    "meta_description": "Your personal dashboard - access your account and chat with AI."
+    "meta_description": "Your personal dashboard - access your account and chat with AI.",
+    "welcomeTitle": "स्वागत है, {name}!",
+    "welcomeDescription": "आइए अपनी स्वास्थ्य यात्रा शुरू करें",
+    "gettingStartedTitle": "शुरुआत करें",
+    "actionStartChat": "बातचीत शुरू करें",
+    "actionStartChatDesc": "हमारे AI स्वास्थ्य साथी को आज़माएं",
+    "actionCompleteProfile": "अपनी प्रोफ़ाइल पूर्ण करें",
+    "actionCompleteProfileDesc": "अपने बारे में और जानकारी जोड़ें",
+    "actionExploreFeatures": "सुविधाओं का अन्वेषण करें",
+    "actionExploreFeaturesDesc": "जानें कि आप क्या कर सकते हैं",
+    "actionButtonLabel": "शुरू करें",
+    "recentActivityTitle": "हाल की गतिविधि",
+    "viewAll": "सभी देखें",
+    "noActivityTitle": "अभी तक कोई गतिविधि नहीं",
+    "noActivityDescription": "ऐप का उपयोग शुरू करने के बाद आपकी हाल की गतिविधि यहां दिखाई देगी।"
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",
@@ -338,5 +352,110 @@
     "back_to_home": "होम पर वापस जाएं",
     "try_again": "फिर से साइन अप करें",
     "sign_in": "साइन इन पर जाएं"
+  },
+  "Onboarding": {
+    "meta_title": "VT SaaS Template में आपका स्वागत है",
+    "meta_description": "शुरू करने के लिए अपनी प्रोफ़ाइल पूरी करें",
+    "step1Title": "स्वागत है! आइए अपनी प्रोफ़ाइल सेट करें",
+    "step1Description": "आपका उपयोगकर्ता नाम प्लेटफ़ॉर्म पर आपकी विशिष्ट पहचान होगी।",
+    "usernameLabel": "अपना उपयोगकर्ता नाम चुनें",
+    "usernamePlaceholder": "उपयोगकर्ता नाम दर्ज करें",
+    "usernameAvailable": "उपलब्ध",
+    "usernameTaken": "यह उपयोगकर्ता नाम पहले से लिया गया है",
+    "usernameInvalid": "केवल अक्षर, संख्या और अंडरस्कोर की अनुमति है",
+    "usernameChecking": "उपलब्धता जांच रहे हैं...",
+    "usernameRequirements": "3-20 अक्षर, अक्षर, संख्या और अंडरस्कोर",
+    "continue": "जारी रखें",
+    "saving": "सहेज रहे हैं...",
+    "skipForNow": "अभी के लिए छोड़ें",
+    "goBack": "वापस जाएं",
+    "progressStep": "चरण {current} का {total}",
+    "stepAriaLabel": "चरण {step}{isCurrent, select, true { (वर्तमान)} other {}}",
+    "errorSaving": "सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "errorNetwork": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "step2Title": "जानें कि आप क्या कर सकते हैं",
+    "step2Description": "यहां कुछ प्रमुख विशेषताएं हैं जिनका आप उपयोग कर सकेंगे",
+    "feature1Title": "एआई-संचालित चैट",
+    "feature1Description": "उन्नत एआई द्वारा संचालित बुद्धिमान बातचीत जो आपको काम पूरा करने में मदद करती है",
+    "feature2Title": "बहु-भाषा समर्थन",
+    "feature2Description": "स्थानीयकृत अनुभव के लिए अंग्रेजी, हिंदी और बंगाली में उपलब्ध",
+    "feature3Title": "सुरक्षित और निजी",
+    "feature3Description": "आपका डेटा एंटरप्राइज-ग्रेड सुरक्षा और एन्क्रिप्शन से सुरक्षित है",
+    "feature4Title": "तेज़ और उत्तरदायी",
+    "feature4Description": "सभी उपकरणों के लिए अनुकूलित बिजली-तेज़ प्रदर्शन",
+    "step3Title": "अपनी प्राथमिकताएं सेट करें",
+    "step3Description": "अपनी आवश्यकताओं के अनुरूप अपने अनुभव को अनुकूलित करें",
+    "notificationsLabel": "ईमेल सूचनाएं",
+    "notificationsDescription": "अपडेट और महत्वपूर्ण अलर्ट प्राप्त करें",
+    "languageLabel": "भाषा",
+    "languageDescription": "अपनी पसंदीदा भाषा चुनें",
+    "languageEn": "English",
+    "languageHi": "हिंदी",
+    "languageBn": "বাংলা",
+    "completeSetup": "सेटअप पूरा करें",
+    "successMessage": "आप तैयार हैं! डैशबोर्ड पर पुनर्निर्देशित किया जा रहा है..."
+  },
+  "EmptyState": {
+    "noItemsTitle": "अभी तक कोई आइटम नहीं",
+    "noItemsDescription": "अपना पहला आइटम बनाकर शुरुआत करें",
+    "noResultsTitle": "कोई परिणाम नहीं मिला",
+    "noResultsDescription": "अपने खोज मानदंड को समायोजित करने का प्रयास करें",
+    "errorTitle": "डेटा लोड करने में विफल",
+    "errorDescription": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+    "actionCreate": "आइटम बनाएं",
+    "actionRetry": "पुनः प्रयास करें"
+  },
+  "DesignSystem": {
+    "title": "डिज़ाइन सिस्टम",
+    "description": "ऐप में सुसंगत डिज़ाइन के लिए पुन: प्रयोज्य UI घटक",
+    "emptyStates": {
+      "title": "खाली स्थितियां",
+      "description": "पूरे एप्लिकेशन में खाली, खोज और त्रुटि स्थितियां प्रदर्शित करने के लिए घटक।",
+      "defaultVariant": "डिफ़ॉल्ट (कोई आइटम नहीं)",
+      "searchVariant": "खोज (कोई परिणाम नहीं)",
+      "errorVariant": "त्रुटि स्थिति",
+      "customIcon": "कस्टम आइकन",
+      "noAction": "एक्शन बटन के बिना",
+      "examples": {
+        "noItems": {
+          "title": "अभी तक कोई आइटम नहीं",
+          "description": "अपना पहला आइटम बनाकर शुरुआत करें",
+          "action": "आइटम बनाएं"
+        },
+        "noResults": {
+          "title": "कोई परिणाम नहीं मिला",
+          "description": "अपने खोज मानदंड को समायोजित करने का प्रयास करें",
+          "action": "फ़िल्टर साफ़ करें"
+        },
+        "error": {
+          "title": "डेटा लोड करने में विफल",
+          "description": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+          "action": "पुनः प्रयास करें"
+        },
+        "noTeam": {
+          "title": "कोई टीम सदस्य नहीं",
+          "description": "परियोजनाओं पर सहयोग करने के लिए सहकर्मियों को आमंत्रित करें",
+          "action": "टीम आमंत्रित करें"
+        },
+        "noDocs": {
+          "title": "कोई दस्तावेज़ नहीं",
+          "description": "बनाए जाने के बाद दस्तावेज़ यहां दिखाई देंगे"
+        }
+      }
+    },
+    "usage": {
+      "title": "उपयोग दिशानिर्देश",
+      "defaultHint": "डिफ़ॉल्ट वैरिएंट: खाली सूचियों, प्रथम-बार उपयोगकर्ता स्थितियों और प्रारंभिक सामग्री क्षेत्रों के लिए उपयोग करें",
+      "searchHint": "खोज वैरिएंट: जब खोज या फ़िल्टर कोई मिलान परिणाम नहीं देता है तब उपयोग करें",
+      "errorHint": "त्रुटि वैरिएंट: जब डेटा लोड करने में विफल हो या कोई ऑपरेशन विफल हो तब उपयोग करें"
+    }
+  },
+  "Loading": {
+    "loading": "लोड हो रहा है...",
+    "pleaseWait": "कृपया प्रतीक्षा करें",
+    "loadingContent": "सामग्री लोड हो रही है",
+    "timeout": "लोड करने में अपेक्षा से अधिक समय लग रहा है",
+    "retry": "पुनः प्रयास करें",
+    "slowConnection": "धीमा कनेक्शन पाया गया"
   }
 }

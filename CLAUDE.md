@@ -170,6 +170,9 @@ npm run lint && npm run check-types && npm test && npm run build
 
 ## Testing Notes
 
+- Screenshots directory - `_bmad-output/implementation-artifacts/screenshots`
+- Test credentials - `test@test.com`, `password`
+
 ### Unit Tests (Vitest)
 - Location: Co-located with source (e.g., `Component.test.tsx`)
 - Environment: `jsdom` for components, `node` for utilities
@@ -179,7 +182,7 @@ npm run lint && npm run check-types && npm test && npm run build
 - Pattern: `*.spec.ts` or `*.e2e.ts`
 - Setup/teardown files handle test account creation
 
-### Visual Development
+### Visual Development & Inspection
 After implementing front-end changes, use Playwright MCP tools to navigate to affected pages, capture screenshots, and check console for errors.
 
 ## Important Implementation Notes

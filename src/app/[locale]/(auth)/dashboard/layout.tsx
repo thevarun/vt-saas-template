@@ -1,7 +1,4 @@
-import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
-
-import { DashboardHeader } from '@/features/dashboard/DashboardHeader';
 
 export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
@@ -17,33 +14,12 @@ export async function generateMetadata(props: { params: Promise<{ locale: string
 }
 
 export default function DashboardLayout(props: { children: React.ReactNode }) {
-  const t = useTranslations('DashboardLayout');
-
   return (
-    <>
-      <div className="shadow-md">
-        <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
-          <DashboardHeader
-            menu={[
-              {
-                href: '/dashboard',
-                label: t('home'),
-              },
-              {
-                href: '/chat',
-                label: t('chat'),
-              },
-            ]}
-          />
-        </div>
+    <div className="min-h-screen bg-slate-50/50 p-4 dark:bg-slate-950 md:p-8 lg:p-12">
+      <div className="mx-auto max-w-screen-xl">
+        {props.children}
       </div>
-
-      <div className="min-h-[calc(100vh-72px)] bg-muted">
-        <div className="mx-auto max-w-screen-xl px-3 pb-16 pt-6">
-          {props.children}
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
