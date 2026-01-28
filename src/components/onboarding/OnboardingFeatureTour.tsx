@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeft, ArrowRight, Globe, MessageSquare, Shield, Zap } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 
@@ -31,15 +31,17 @@ function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
 
 export function OnboardingFeatureTour() {
   const t = useTranslations('Onboarding');
+  const locale = useLocale();
+  const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
   const handleContinue = () => {
     // Use hard navigation for server component page with query params
-    window.location.href = '/onboarding?step=3';
+    window.location.href = `${localePrefix}/onboarding?step=3`;
   };
 
   const handleGoBack = () => {
     // Use hard navigation for server component page with query params
-    window.location.href = '/onboarding?step=1';
+    window.location.href = `${localePrefix}/onboarding?step=1`;
   };
 
   const features = [

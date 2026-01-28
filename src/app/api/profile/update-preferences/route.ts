@@ -8,8 +8,8 @@ import { createClient } from '@/libs/supabase/server';
 import { userPreferences } from '@/models/Schema';
 
 const preferencesSchema = z.object({
-  emailNotifications: z.boolean(),
-  language: z.enum(['en', 'hi', 'bn']),
+  emailNotifications: z.boolean().optional(),
+  language: z.enum(['en', 'hi', 'bn']).optional(),
   username: z.string().min(3).max(20).regex(/^[a-z0-9_]+$/).optional(),
   isNewUser: z.boolean().optional(),
 });
@@ -42,27 +42,34 @@ export async function PATCH(request: Request) {
     let result;
 
     if (existing.length === 0) {
-      // New user - insert new record
+      // New user - insert new record with defaults for missing fields
       const inserted = await db
         .insert(userPreferences)
         .values({
           userId: user.id,
           username: validated.username,
-          emailNotifications: validated.emailNotifications,
-          language: validated.language,
+          emailNotifications: validated.emailNotifications ?? true,
+          language: validated.language ?? 'en',
         })
         .returning();
 
       result = inserted[0];
     } else {
-      // Existing user - update record
+      // Existing user - only update provided fields
+      const updateData: Record<string, unknown> = {
+        updatedAt: new Date(),
+      };
+
+      if (validated.emailNotifications !== undefined) {
+        updateData.emailNotifications = validated.emailNotifications;
+      }
+      if (validated.language !== undefined) {
+        updateData.language = validated.language;
+      }
+
       const updated = await db
         .update(userPreferences)
-        .set({
-          emailNotifications: validated.emailNotifications,
-          language: validated.language,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(userPreferences.userId, user.id))
         .returning();
 

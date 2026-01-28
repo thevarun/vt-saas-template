@@ -13,6 +13,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'en'),
 }));
 
 vi.mock('@/hooks/use-toast', () => ({
