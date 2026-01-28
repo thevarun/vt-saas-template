@@ -129,7 +129,7 @@
     "shadcn": "^3.7.0",
     "start-server-and-test": "^2.0.8",
     "storybook": "^10.1.11",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.1",
     "typescript": "^5.9.3",
