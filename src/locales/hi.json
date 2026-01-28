@@ -1,4 +1,27 @@
 {
+  "Admin": {
+    "brand": "एडमिन",
+    "title": "एडमिन पैनल",
+    "badge": "एडमिन",
+    "backToApp": "ऐप पर वापस जाएं",
+    "nav": {
+      "overview": "अवलोकन",
+      "dashboard": "डैशबोर्ड",
+      "management": "प्रबंधन",
+      "users": "उपयोगकर्ता",
+      "feedback": "प्रतिक्रिया",
+      "system": "सिस्टम",
+      "settings": "सेटिंग्स"
+    },
+    "dashboard": {
+      "title": "डैशबोर्ड",
+      "description": "आपके एप्लिकेशन की प्रमुख मेट्रिक्स और हालिया गतिविधि का अवलोकन।",
+      "totalUsers": "कुल उपयोगकर्ता",
+      "newSignups": "नए साइनअप (7 दिन)",
+      "activeUsers": "सक्रिय उपयोगकर्ता (7 दिन)",
+      "pendingFeedback": "लंबित प्रतिक्रिया"
+    }
+  },
   "Index": {
     "meta_title": "VT SaaS Template",
     "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."

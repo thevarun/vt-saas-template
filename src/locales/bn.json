@@ -1,4 +1,27 @@
 {
+  "Admin": {
+    "brand": "অ্যাডমিন",
+    "title": "অ্যাডমিন প্যানেল",
+    "badge": "অ্যাডমিন",
+    "backToApp": "অ্যাপে ফিরে যান",
+    "nav": {
+      "overview": "সংক্ষিপ্ত বিবরণ",
+      "dashboard": "ড্যাশবোর্ড",
+      "management": "ব্যবস্থাপনা",
+      "users": "ব্যবহারকারী",
+      "feedback": "প্রতিক্রিয়া",
+      "system": "সিস্টেম",
+      "settings": "সেটিংস"
+    },
+    "dashboard": {
+      "title": "ড্যাশবোর্ড",
+      "description": "আপনার অ্যাপ্লিকেশনের মূল মেট্রিক্স এবং সাম্প্রতিক কার্যকলাপের সংক্ষিপ্ত বিবরণ।",
+      "totalUsers": "মোট ব্যবহারকারী",
+      "newSignups": "নতুন সাইনআপ (৭ দিন)",
+      "activeUsers": "সক্রিয় ব্যবহারকারী (৭ দিন)",
+      "pendingFeedback": "মুলতুবি প্রতিক্রিয়া"
+    }
+  },
   "Index": {
     "meta_title": "VT SaaS Template",
     "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."

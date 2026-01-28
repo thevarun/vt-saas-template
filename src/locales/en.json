@@ -1,4 +1,27 @@
 {
+  "Admin": {
+    "brand": "Admin",
+    "title": "Admin Panel",
+    "badge": "Admin",
+    "backToApp": "Back to App",
+    "nav": {
+      "overview": "Overview",
+      "dashboard": "Dashboard",
+      "management": "Management",
+      "users": "Users",
+      "feedback": "Feedback",
+      "system": "System",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Overview of your application's key metrics and recent activity.",
+      "totalUsers": "Total Users",
+      "newSignups": "New Signups (7d)",
+      "activeUsers": "Active Users (7d)",
+      "pendingFeedback": "Pending Feedback"
+    }
+  },
   "Index": {
     "meta_title": "VT SaaS Template",
     "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."
