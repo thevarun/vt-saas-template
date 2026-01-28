@@ -8,6 +8,7 @@ import { OnboardingFeatureTour } from '../OnboardingFeatureTour';
 // Mock next-intl
 vi.mock('next-intl', () => ({
   useTranslations: vi.fn(),
+  useLocale: vi.fn(() => 'en'),
 }));
 
 describe('OnboardingFeatureTour', () => {

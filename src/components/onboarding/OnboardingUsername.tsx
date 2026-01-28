@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -33,8 +33,10 @@ type OnboardingUsernameProps = {
 
 export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const t = useTranslations('Onboarding');
+  const locale = useLocale();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
   const {
     handleSubmit,
@@ -61,7 +63,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const onSubmit = async (data: UsernameFormData) => {
     // If username unchanged and user already exists, just proceed
     if (skipAvailabilityCheck) {
-      window.location.href = '/onboarding?step=2';
+      window.location.href = `${localePrefix}/onboarding?step=2`;
       return;
     }
 
@@ -86,7 +88,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
           description: 'Your username has been saved',
         });
         // Use hard navigation for server component page with query params
-        window.location.href = '/onboarding?step=2';
+        window.location.href = `${localePrefix}/onboarding?step=2`;
       } else {
         toast({
           title: 'Error',

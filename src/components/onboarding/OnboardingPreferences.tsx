@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, Bell, Check, Globe } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,9 +39,11 @@ type OnboardingPreferencesProps = {
 
 export function OnboardingPreferences({ initialData }: OnboardingPreferencesProps) {
   const t = useTranslations('Onboarding');
+  const locale = useLocale();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
   const form = useForm<PreferencesFormData>({
     resolver: zodResolver(preferencesSchema),
@@ -100,7 +102,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
 
   const handleGoBack = () => {
     // Use hard navigation for server component page with query params
-    window.location.href = '/onboarding?step=2';
+    window.location.href = `${localePrefix}/onboarding?step=2`;
   };
 
   if (isComplete) {
@@ -168,7 +170,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
                   <Switch
                     id="notifications"
                     checked={emailNotifications}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       form.setValue('emailNotifications', checked)}
                   />
                 </div>
@@ -187,7 +189,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
                 </div>
                 <Select
                   value={language}
-                  onValueChange={value =>
+                  onValueChange={(value: string) =>
                     form.setValue('language', value as 'en' | 'hi' | 'bn')}
                 >
                   <SelectTrigger id="language" className="w-full">
