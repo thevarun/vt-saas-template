@@ -20,6 +20,54 @@
       "newSignups": "New Signups (7d)",
       "activeUsers": "Active Users (7d)",
       "pendingFeedback": "Pending Feedback"
+    },
+    "Users": {
+      "title": "User Management",
+      "description": "View and manage all registered users in your application.",
+      "noUsername": "Not set",
+      "never": "Never",
+      "columns": {
+        "user": "User",
+        "status": "Status",
+        "signedUp": "Signed Up",
+        "lastLogin": "Last Login",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "search": {
+        "placeholder": "Search by email or username..."
+      },
+      "filter": {
+        "label": "Filter",
+        "statusAll": "All Status"
+      },
+      "actions": {
+        "export": "Export",
+        "addUser": "Add User",
+        "view": "View details",
+        "edit": "Edit user",
+        "delete": "Delete user"
+      },
+      "bulkActions": {
+        "selected": "selected",
+        "selectAll": "Select all users",
+        "email": "Email",
+        "suspend": "Suspend",
+        "delete": "Delete"
+      },
+      "pagination": {
+        "showing": "Showing {start}-{end} of {total} users"
+      },
+      "empty": {
+        "noUsers": "No users found"
+      },
+      "error": {
+        "loadFailed": "Failed to load users. Please try again."
+      }
     }
   },
   "Index": {
