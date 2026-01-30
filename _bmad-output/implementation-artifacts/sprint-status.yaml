@@ -91,7 +91,7 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Admin Panel & System Management
-  epic-6: in-progress
+  epic-6: done
   6-1-admin-role-and-access-control: done
   6-2-admin-layout-and-navigation: done
   6-3-user-management-list: done
@@ -100,7 +100,7 @@ development_status:
   6-6-admin-audit-logging: done
   6-7-email-testing-ui: done
   6-8-feedback-admin-list-view: done
-  6-9-feedback-admin-actions: backlog
+  6-9-feedback-admin-actions: done
   epic-6-retrospective: optional
 
   # Epic 7: SEO & Social Sharing Foundations
