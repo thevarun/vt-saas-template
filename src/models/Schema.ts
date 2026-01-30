@@ -11,6 +11,8 @@
 import {
   boolean,
   index,
+  jsonb,
+  pgEnum,
   pgSchema,
   pgTable,
   text,
@@ -93,5 +95,53 @@ export const userPreferences = healthCompanionSchema.table(
   table => ({
     userIdIdx: index('idx_user_preferences_user_id').on(table.userId),
     usernameIdx: index('idx_user_preferences_username').on(table.username),
+  }),
+);
+
+// Admin audit log table for tracking admin actions
+export const adminAuditLog = pgTable(
+  'admin_audit_log',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    adminId: uuid('admin_id').notNull(),
+    action: text('action').notNull(), // 'suspend_user' | 'unsuspend_user' | 'delete_user' | 'reset_password'
+    targetType: text('target_type').notNull(), // 'user'
+    targetId: uuid('target_id').notNull(),
+    metadata: jsonb('metadata'), // { reason?: string, [key: string]: any }
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    adminIdIdx: index('idx_admin_audit_log_admin_id').on(table.adminId),
+    createdAtIdx: index('idx_admin_audit_log_created_at').on(table.createdAt),
+    actionCreatedAtIdx: index('idx_admin_audit_log_action_created_at').on(
+      table.action,
+      table.createdAt,
+    ),
+  }),
+);
+
+// Feedback enums and table for user feedback management
+export const feedbackTypeEnum = pgEnum('feedback_type', ['bug', 'feature', 'praise']);
+export const feedbackStatusEnum = pgEnum('feedback_status', ['pending', 'reviewed', 'archived']);
+
+export const feedback = pgTable(
+  'feedback',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    type: feedbackTypeEnum('type').notNull(),
+    message: text('message').notNull(),
+    email: text('email'),
+    status: feedbackStatusEnum('status').notNull().default('pending'),
+    userId: uuid('user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  },
+  table => ({
+    createdAtIdx: index('idx_feedback_created_at').on(table.createdAt),
+    typeIdx: index('idx_feedback_type').on(table.type),
+    statusIdx: index('idx_feedback_status').on(table.status),
+    statusCreatedAtIdx: index('idx_feedback_status_created_at').on(table.status, table.createdAt),
   }),
 );

@@ -1,4 +1,303 @@
 {
+  "Admin": {
+    "brand": "एडमिन",
+    "title": "एडमिन पैनल",
+    "badge": "एडमिन",
+    "backToApp": "ऐप पर वापस जाएं",
+    "nav": {
+      "overview": "अवलोकन",
+      "dashboard": "डैशबोर्ड",
+      "management": "प्रबंधन",
+      "users": "उपयोगकर्ता",
+      "feedback": "प्रतिक्रिया",
+      "system": "सिस्टम",
+      "emailTesting": "Email Testing",
+      "auditLog": "ऑडिट लॉग",
+      "settings": "सेटिंग्स"
+    },
+    "AuditLog": {
+      "title": "ऑडिट लॉग",
+      "description": "जवाबदेही और समस्या निवारण के लिए सभी एडमिन कार्यों का इतिहास देखें।",
+      "recentActions": "हालिया कार्य",
+      "showingResults": "{total} में से {count} प्रविष्टियाँ दिखा रहे हैं",
+      "noLogs": "कोई ऑडिट लॉग प्रविष्टि नहीं मिली।",
+      "columns": {
+        "action": "कार्य",
+        "admin": "एडमिन",
+        "target": "लक्ष्य",
+        "timestamp": "समय",
+        "details": "विवरण"
+      },
+      "actions": {
+        "suspend_user": "उपयोगकर्ता निलंबित",
+        "unsuspend_user": "निलंबन हटाएं",
+        "delete_user": "उपयोगकर्ता हटाएं",
+        "reset_password": "पासवर्ड रीसेट"
+      },
+      "filters": {
+        "action": "कार्य प्रकार",
+        "allActions": "सभी कार्य",
+        "startDate": "आरंभ तिथि",
+        "endDate": "अंतिम तिथि",
+        "apply": "फ़िल्टर लागू करें",
+        "clear": "फ़िल्टर हटाएं",
+        "invalidDateRange": "आरंभ तिथि अंतिम तिथि से पहले होनी चाहिए"
+      },
+      "pagination": {
+        "previous": "पिछला",
+        "next": "अगला",
+        "pageOf": "पृष्ठ {current} का {total}"
+      }
+    },
+    "Email": {
+      "title": "Email Testing",
+      "description": "Test email templates and delivery before sending to real users.",
+      "testEmail": "Send Test Email",
+      "testEmailDescription": "Select a template and recipient to send a test email.",
+      "templateLabel": "Email Template",
+      "templatePlaceholder": "Select a template",
+      "templateDescription": "Choose which email template to test.",
+      "templates": {
+        "welcome": "Welcome Email",
+        "passwordReset": "Password Reset",
+        "verifyEmail": "Email Verification"
+      },
+      "emailLabel": "Recipient Email",
+      "emailPlaceholder": "recipient@example.com",
+      "emailDescription": "Enter a valid email address to receive the test email.",
+      "dataLabel": "Template Data (Optional)",
+      "dataPlaceholder": "{\"name\": \"John Doe\"}",
+      "dataDescription": "Optional JSON data to populate template variables.",
+      "sendButton": "Send Test Email",
+      "sendingButton": "Sending...",
+      "successTitle": "Test Email Sent",
+      "successMessage": "Test email successfully sent to {email}.",
+      "errorTitle": "Failed to Send",
+      "invalidJson": "Invalid JSON format in template data."
+    },
+    "dashboard": {
+      "title": "डैशबोर्ड",
+      "description": "आपके एप्लिकेशन की प्रमुख मेट्रिक्स और हालिया गतिविधि का अवलोकन।",
+      "totalUsers": "कुल उपयोगकर्ता",
+      "newSignups": "नए साइनअप (7 दिन)",
+      "activeUsers": "सक्रिय उपयोगकर्ता (7 दिन)",
+      "pendingFeedback": "लंबित प्रतिक्रिया",
+      "trend": {
+        "up": "पिछले सप्ताह से बढ़ा",
+        "down": "पिछले सप्ताह से घटा"
+      }
+    },
+    "Users": {
+      "title": "उपयोगकर्ता प्रबंधन",
+      "description": "अपने एप्लिकेशन में सभी पंजीकृत उपयोगकर्ताओं को देखें और प्रबंधित करें।",
+      "noUsername": "सेट नहीं है",
+      "never": "कभी नहीं",
+      "columns": {
+        "user": "उपयोगकर्ता",
+        "status": "स्थिति",
+        "signedUp": "साइनअप की तारीख",
+        "lastLogin": "अंतिम लॉगिन",
+        "actions": "क्रियाएं"
+      },
+      "status": {
+        "active": "सक्रिय",
+        "suspended": "निलंबित",
+        "pending": "लंबित"
+      },
+      "search": {
+        "placeholder": "ईमेल या उपयोगकर्ता नाम से खोजें..."
+      },
+      "filter": {
+        "label": "फ़िल्टर",
+        "statusAll": "सभी स्थिति"
+      },
+      "actions": {
+        "export": "निर्यात",
+        "addUser": "उपयोगकर्ता जोड़ें",
+        "view": "विवरण देखें",
+        "edit": "उपयोगकर्ता संपादित करें",
+        "delete": "उपयोगकर्ता हटाएं"
+      },
+      "bulkActions": {
+        "selected": "चयनित",
+        "selectAll": "सभी उपयोगकर्ताओं का चयन करें",
+        "email": "ईमेल",
+        "suspend": "निलंबित करें",
+        "delete": "हटाएं"
+      },
+      "pagination": {
+        "showing": "{start}-{end} / {total} उपयोगकर्ता दिखाए जा रहे हैं"
+      },
+      "empty": {
+        "noUsers": "कोई उपयोगकर्ता नहीं मिला"
+      },
+      "error": {
+        "loadFailed": "उपयोगकर्ताओं को लोड करने में विफल। कृपया पुनः प्रयास करें।"
+      }
+    },
+    "UserDetail": {
+      "title": "उपयोगकर्ता विवरण",
+      "close": "बंद करें",
+      "notSet": "सेट नहीं है",
+      "never": "कभी नहीं",
+      "verified": "सत्यापित",
+      "unverified": "असत्यापित",
+      "notVerified": "सत्यापित नहीं",
+      "ownAccountWarning": "आप अपने खाते पर विनाशकारी क्रियाएं नहीं कर सकते।",
+      "sections": {
+        "accountInfo": "खाता जानकारी",
+        "actions": "क्रियाएं",
+        "dangerZone": "खतरे का क्षेत्र"
+      },
+      "fields": {
+        "username": "उपयोगकर्ता नाम",
+        "displayName": "प्रदर्शन नाम",
+        "signupDate": "साइनअप की तारीख",
+        "lastLogin": "अंतिम लॉगिन",
+        "emailVerified": "ईमेल सत्यापित",
+        "userId": "उपयोगकर्ता आईडी"
+      },
+      "status": {
+        "active": "सक्रिय",
+        "suspended": "निलंबित",
+        "pending": "लंबित"
+      },
+      "actions": {
+        "resetPassword": "पासवर्ड रीसेट करें",
+        "resetPasswordDesc": "उपयोगकर्ता को पासवर्ड रीसेट ईमेल भेजें",
+        "suspend": "उपयोगकर्ता निलंबित करें",
+        "suspendDesc": "खाता पहुंच अस्थायी रूप से अक्षम करें",
+        "unsuspend": "निलंबन हटाएं",
+        "unsuspendDesc": "खाता पहुंच पुनर्स्थापित करें",
+        "delete": "उपयोगकर्ता हटाएं",
+        "deleteDesc": "उपयोगकर्ता और उनका सारा डेटा स्थायी रूप से हटाएं"
+      },
+      "suspend": {
+        "title": "{email} को निलंबित करें?",
+        "description": "यह उपयोगकर्ता तब तक लॉगिन नहीं कर पाएगा जब तक आप उसे अनसस्पेंड नहीं करते। उन्हें तुरंत लॉग आउट कर दिया जाएगा।",
+        "confirm": "उपयोगकर्ता निलंबित करें",
+        "loading": "निलंबित कर रहे हैं...",
+        "success": "उपयोगकर्ता निलंबित",
+        "successDesc": "उपयोगकर्ता खाता सफलतापूर्वक निलंबित कर दिया गया है।",
+        "error": "उपयोगकर्ता को निलंबित करने में विफल"
+      },
+      "unsuspend": {
+        "title": "{email} का निलंबन हटाएं?",
+        "description": "यह उपयोगकर्ता की एप्लिकेशन तक पहुंच बहाल कर देगा। वे फिर से लॉगिन कर सकेंगे।",
+        "confirm": "निलंबन हटाएं",
+        "loading": "निलंबन हटा रहे हैं...",
+        "success": "निलंबन हटाया गया",
+        "successDesc": "उपयोगकर्ता खाता सफलतापूर्वक अनसस्पेंड कर दिया गया है।",
+        "error": "निलंबन हटाने में विफल"
+      },
+      "delete": {
+        "title": "{email} को हटाएं?",
+        "warningStrong": "यह क्रिया पूर्ववत नहीं की जा सकती!",
+        "description": "यह उपयोगकर्ता खाता और संबंधित सभी डेटा स्थायी रूप से हटा देगा जिसमें शामिल है:",
+        "dataProfile": "प्रोफ़ाइल जानकारी",
+        "dataActivity": "गतिविधि इतिहास",
+        "dataContent": "सभी उपयोगकर्ता-जनित सामग्री",
+        "confirmPrompt": "पुष्टि करने के लिए टाइप करें:",
+        "placeholder": "पुष्टि के लिए ईमेल पता दर्ज करें",
+        "confirm": "उपयोगकर्ता हटाएं",
+        "loading": "हटा रहे हैं...",
+        "success": "उपयोगकर्ता हटाया गया",
+        "successDesc": "उपयोगकर्ता खाता स्थायी रूप से हटा दिया गया है।",
+        "error": "उपयोगकर्ता को हटाने में विफल"
+      },
+      "resetPassword": {
+        "title": "पासवर्ड रीसेट ईमेल भेजें?",
+        "description": "यह उपयोगकर्ता को एक पासवर्ड रीसेट ईमेल भेजेगा। उन्हें नया पासवर्ड सेट करने के लिए एक लिंक मिलेगा।",
+        "note": "रीसेट लिंक 1 घंटे में समाप्त हो जाएगा।",
+        "confirm": "रीसेट ईमेल भेजें",
+        "loading": "भेज रहे हैं...",
+        "success": "रीसेट ईमेल भेजा गया",
+        "successNote": "उपयोगकर्ता को जल्द ही ईमेल मिल जाना चाहिए। अगर नहीं मिला तो स्पैम चेक करने को कहें।",
+        "error": "रीसेट ईमेल भेजने में विफल"
+      },
+      "cancel": "रद्द करें"
+    },
+    "Feedback": {
+      "title": "Feedback Management",
+      "description": "Review and manage user feedback submissions",
+      "allFeedback": "All Feedback",
+      "showingResults": "Showing {count} of {total} feedback items",
+      "types": {
+        "bug": "Bug",
+        "feature": "Feature",
+        "praise": "Praise"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "reviewed": "Reviewed",
+        "archived": "Archived"
+      },
+      "filters": {
+        "allTypes": "All Types",
+        "allStatuses": "All Statuses",
+        "type": "Type",
+        "status": "Status",
+        "clearFilters": "Clear Filters",
+        "activeFilters": "{count} active"
+      },
+      "anonymous": "Anonymous",
+      "noFeedback": "No feedback yet",
+      "noFeedbackDescription": "Feedback submissions will appear here once users start providing feedback.",
+      "detail": {
+        "title": "Feedback Detail",
+        "fullMessage": "Full Message",
+        "submittedBy": "Submitted by",
+        "submittedAt": "Submitted",
+        "reviewedAt": "Reviewed",
+        "status": "Status",
+        "type": "Type",
+        "markReviewed": "Mark as Reviewed",
+        "delete": "Delete",
+        "close": "Close",
+        "actionComingSoon": "This action will be available in Story 6.9"
+      },
+      "actions": {
+        "markReviewed": "Mark as Reviewed",
+        "archive": "Archive",
+        "delete": "Delete",
+        "export": "Export CSV",
+        "markReviewedSuccess": "Feedback marked as reviewed",
+        "archiveSuccess": "Feedback archived",
+        "deleteSuccess": "Feedback deleted",
+        "exportSuccess": "CSV exported successfully",
+        "actionError": "Action failed. Please try again.",
+        "deleteConfirmTitle": "Delete Feedback",
+        "deleteConfirmMessage": "This action is permanent and cannot be undone. Type 'delete' to confirm.",
+        "deleteConfirmPlaceholder": "Type delete to confirm",
+        "confirmDelete": "Delete Permanently",
+        "deleting": "Deleting...",
+        "cancel": "Cancel"
+      },
+      "bulkActions": {
+        "selected": "{count} selected",
+        "markReviewed": "Mark All Reviewed",
+        "delete": "Delete Selected",
+        "clearSelection": "Clear",
+        "selectAll": "Select all",
+        "bulkMarkReviewedSuccess": "{count} items marked as reviewed",
+        "bulkDeleteConfirmTitle": "Delete {count} Items",
+        "bulkDeleteConfirmMessage": "This will permanently delete {count} feedback items. This cannot be undone.",
+        "bulkDeleteSuccess": "{count} items deleted",
+        "bulkActionError": "Bulk action failed. Please try again."
+      },
+      "export": {
+        "button": "Export CSV",
+        "exporting": "Exporting...",
+        "success": "CSV exported successfully",
+        "error": "Failed to export CSV"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {current} of {total}"
+      }
+    }
+  },
   "Index": {
     "meta_title": "VT SaaS Template",
     "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."
@@ -318,6 +617,10 @@
       "retry": "Try Again",
       "home": "Go to Homepage",
       "reload": "Reload Application"
+    },
+    "admin": {
+      "accessDenied": "पहुंच अस्वीकृत",
+      "contactAdmin": "आपके पास एडमिन सुविधाओं तक पहुंचने की अनुमति नहीं है। यदि आपको एक्सेस चाहिए तो कृपया एक एडमिनिस्ट्रेटर से संपर्क करें।"
     },
     "auth": {
       "title": "Dashboard Error",

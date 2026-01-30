@@ -12,6 +12,13 @@ export const badgeVariants = cva(
         destructive:
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
         outline: 'text-foreground',
+        // Admin user status variants
+        active:
+          'border-transparent bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+        suspended:
+          'border-transparent bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        pending:
+          'border-transparent bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
       },
     },
     defaultVariants: {

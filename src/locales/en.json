@@ -1,4 +1,303 @@
 {
+  "Admin": {
+    "brand": "Admin",
+    "title": "Admin Panel",
+    "badge": "Admin",
+    "backToApp": "Back to App",
+    "nav": {
+      "overview": "Overview",
+      "dashboard": "Dashboard",
+      "management": "Management",
+      "users": "Users",
+      "feedback": "Feedback",
+      "system": "System",
+      "emailTesting": "Email Testing",
+      "auditLog": "Audit Log",
+      "settings": "Settings"
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "View a history of all admin actions for accountability and troubleshooting.",
+      "recentActions": "Recent Actions",
+      "showingResults": "Showing {count} of {total} entries",
+      "noLogs": "No audit log entries found.",
+      "columns": {
+        "action": "Action",
+        "admin": "Admin",
+        "target": "Target",
+        "timestamp": "Timestamp",
+        "details": "Details"
+      },
+      "actions": {
+        "suspend_user": "Suspend User",
+        "unsuspend_user": "Unsuspend User",
+        "delete_user": "Delete User",
+        "reset_password": "Reset Password"
+      },
+      "filters": {
+        "action": "Action Type",
+        "allActions": "All Actions",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "apply": "Apply Filters",
+        "clear": "Clear Filters",
+        "invalidDateRange": "Start date must be before end date"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "pageOf": "Page {current} of {total}"
+      }
+    },
+    "Email": {
+      "title": "Email Testing",
+      "description": "Test email templates and delivery before sending to real users.",
+      "testEmail": "Send Test Email",
+      "testEmailDescription": "Select a template and recipient to send a test email.",
+      "templateLabel": "Email Template",
+      "templatePlaceholder": "Select a template",
+      "templateDescription": "Choose which email template to test.",
+      "templates": {
+        "welcome": "Welcome Email",
+        "passwordReset": "Password Reset",
+        "verifyEmail": "Email Verification"
+      },
+      "emailLabel": "Recipient Email",
+      "emailPlaceholder": "recipient@example.com",
+      "emailDescription": "Enter a valid email address to receive the test email.",
+      "dataLabel": "Template Data (Optional)",
+      "dataPlaceholder": "{\"name\": \"John Doe\"}",
+      "dataDescription": "Optional JSON data to populate template variables.",
+      "sendButton": "Send Test Email",
+      "sendingButton": "Sending...",
+      "successTitle": "Test Email Sent",
+      "successMessage": "Test email successfully sent to {email}.",
+      "errorTitle": "Failed to Send",
+      "invalidJson": "Invalid JSON format in template data."
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Overview of your application's key metrics and recent activity.",
+      "totalUsers": "Total Users",
+      "newSignups": "New Signups (7d)",
+      "activeUsers": "Active Users (7d)",
+      "pendingFeedback": "Pending Feedback",
+      "trend": {
+        "up": "Up from last week",
+        "down": "Down from last week"
+      }
+    },
+    "Users": {
+      "title": "User Management",
+      "description": "View and manage all registered users in your application.",
+      "noUsername": "Not set",
+      "never": "Never",
+      "columns": {
+        "user": "User",
+        "status": "Status",
+        "signedUp": "Signed Up",
+        "lastLogin": "Last Login",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "search": {
+        "placeholder": "Search by email or username..."
+      },
+      "filter": {
+        "label": "Filter",
+        "statusAll": "All Status"
+      },
+      "actions": {
+        "export": "Export",
+        "addUser": "Add User",
+        "view": "View details",
+        "edit": "Edit user",
+        "delete": "Delete user"
+      },
+      "bulkActions": {
+        "selected": "selected",
+        "selectAll": "Select all users",
+        "email": "Email",
+        "suspend": "Suspend",
+        "delete": "Delete"
+      },
+      "pagination": {
+        "showing": "Showing {start}-{end} of {total} users"
+      },
+      "empty": {
+        "noUsers": "No users found"
+      },
+      "error": {
+        "loadFailed": "Failed to load users. Please try again."
+      }
+    },
+    "UserDetail": {
+      "title": "User Details",
+      "close": "Close",
+      "notSet": "Not set",
+      "never": "Never",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "notVerified": "Not verified",
+      "ownAccountWarning": "You cannot perform destructive actions on your own account.",
+      "sections": {
+        "accountInfo": "Account Information",
+        "actions": "Actions",
+        "dangerZone": "Danger Zone"
+      },
+      "fields": {
+        "username": "Username",
+        "displayName": "Display Name",
+        "signupDate": "Signed Up",
+        "lastLogin": "Last Login",
+        "emailVerified": "Email Verified",
+        "userId": "User ID"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "actions": {
+        "resetPassword": "Reset Password",
+        "resetPasswordDesc": "Send password reset email to user",
+        "suspend": "Suspend User",
+        "suspendDesc": "Temporarily disable account access",
+        "unsuspend": "Unsuspend User",
+        "unsuspendDesc": "Restore account access",
+        "delete": "Delete User",
+        "deleteDesc": "Permanently remove user and all their data"
+      },
+      "suspend": {
+        "title": "Suspend {email}?",
+        "description": "This user will be unable to log in until you unsuspend them. They will be logged out immediately.",
+        "confirm": "Suspend User",
+        "loading": "Suspending...",
+        "success": "User Suspended",
+        "successDesc": "The user account has been suspended successfully.",
+        "error": "Failed to Suspend User"
+      },
+      "unsuspend": {
+        "title": "Unsuspend {email}?",
+        "description": "This will restore the user's access to the application. They will be able to log in again.",
+        "confirm": "Unsuspend User",
+        "loading": "Unsuspending...",
+        "success": "User Unsuspended",
+        "successDesc": "The user account has been unsuspended successfully.",
+        "error": "Failed to Unsuspend User"
+      },
+      "delete": {
+        "title": "Delete {email}?",
+        "warningStrong": "This action cannot be undone!",
+        "description": "This will permanently delete the user account and remove all associated data including:",
+        "dataProfile": "Profile information",
+        "dataActivity": "Activity history",
+        "dataContent": "All user-generated content",
+        "confirmPrompt": "Type to confirm:",
+        "placeholder": "Enter email address to confirm",
+        "confirm": "Delete User",
+        "loading": "Deleting...",
+        "success": "User Deleted",
+        "successDesc": "The user account has been permanently deleted.",
+        "error": "Failed to Delete User"
+      },
+      "resetPassword": {
+        "title": "Send Password Reset Email?",
+        "description": "This will send a password reset email to the user. They will receive a link to set a new password.",
+        "note": "The reset link will expire in 1 hour.",
+        "confirm": "Send Reset Email",
+        "loading": "Sending...",
+        "success": "Reset Email Sent",
+        "successNote": "The user should receive the email shortly. Ask them to check spam if not received.",
+        "error": "Failed to Send Reset Email"
+      },
+      "cancel": "Cancel"
+    },
+    "Feedback": {
+      "title": "Feedback Management",
+      "description": "Review and manage user feedback submissions",
+      "allFeedback": "All Feedback",
+      "showingResults": "Showing {count} of {total} feedback items",
+      "types": {
+        "bug": "Bug",
+        "feature": "Feature",
+        "praise": "Praise"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "reviewed": "Reviewed",
+        "archived": "Archived"
+      },
+      "filters": {
+        "allTypes": "All Types",
+        "allStatuses": "All Statuses",
+        "type": "Type",
+        "status": "Status",
+        "clearFilters": "Clear Filters",
+        "activeFilters": "{count} active"
+      },
+      "anonymous": "Anonymous",
+      "noFeedback": "No feedback yet",
+      "noFeedbackDescription": "Feedback submissions will appear here once users start providing feedback.",
+      "detail": {
+        "title": "Feedback Detail",
+        "fullMessage": "Full Message",
+        "submittedBy": "Submitted by",
+        "submittedAt": "Submitted",
+        "reviewedAt": "Reviewed",
+        "status": "Status",
+        "type": "Type",
+        "markReviewed": "Mark as Reviewed",
+        "delete": "Delete",
+        "close": "Close",
+        "actionComingSoon": "This action will be available in Story 6.9"
+      },
+      "actions": {
+        "markReviewed": "Mark as Reviewed",
+        "archive": "Archive",
+        "delete": "Delete",
+        "export": "Export CSV",
+        "markReviewedSuccess": "Feedback marked as reviewed",
+        "archiveSuccess": "Feedback archived",
+        "deleteSuccess": "Feedback deleted",
+        "exportSuccess": "CSV exported successfully",
+        "actionError": "Action failed. Please try again.",
+        "deleteConfirmTitle": "Delete Feedback",
+        "deleteConfirmMessage": "This action is permanent and cannot be undone. Type 'delete' to confirm.",
+        "deleteConfirmPlaceholder": "Type delete to confirm",
+        "confirmDelete": "Delete Permanently",
+        "deleting": "Deleting...",
+        "cancel": "Cancel"
+      },
+      "bulkActions": {
+        "selected": "{count} selected",
+        "markReviewed": "Mark All Reviewed",
+        "delete": "Delete Selected",
+        "clearSelection": "Clear",
+        "selectAll": "Select all",
+        "bulkMarkReviewedSuccess": "{count} items marked as reviewed",
+        "bulkDeleteConfirmTitle": "Delete {count} Items",
+        "bulkDeleteConfirmMessage": "This will permanently delete {count} feedback items. This cannot be undone.",
+        "bulkDeleteSuccess": "{count} items deleted",
+        "bulkActionError": "Bulk action failed. Please try again."
+      },
+      "export": {
+        "button": "Export CSV",
+        "exporting": "Exporting...",
+        "success": "CSV exported successfully",
+        "error": "Failed to export CSV"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {current} of {total}"
+      }
+    }
+  },
   "Index": {
     "meta_title": "VT SaaS Template",
     "meta_description": "A production-ready SaaS template with authentication, AI chat, and modern UI."
@@ -322,6 +621,10 @@
       "retry": "Try Again",
       "home": "Go to Homepage",
       "reload": "Reload Application"
+    },
+    "admin": {
+      "accessDenied": "Access Denied",
+      "contactAdmin": "You don't have permission to access admin features. Please contact an administrator if you need access."
     },
     "auth": {
       "title": "Dashboard Error",

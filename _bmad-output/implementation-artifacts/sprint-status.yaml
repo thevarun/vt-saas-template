@@ -91,16 +91,16 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Admin Panel & System Management
-  epic-6: backlog
-  6-1-admin-role-and-access-control: backlog
-  6-2-admin-layout-and-navigation: backlog
-  6-3-user-management-list: backlog
-  6-4-user-detail-and-actions: backlog
-  6-5-system-metrics-dashboard: backlog
-  6-6-admin-audit-logging: backlog
-  6-7-email-testing-ui: backlog
-  6-8-feedback-admin-list-view: backlog
-  6-9-feedback-admin-actions: backlog
+  epic-6: done
+  6-1-admin-role-and-access-control: done
+  6-2-admin-layout-and-navigation: done
+  6-3-user-management-list: done
+  6-4-user-detail-and-actions: done
+  6-5-system-metrics-dashboard: done
+  6-6-admin-audit-logging: done
+  6-7-email-testing-ui: done
+  6-8-feedback-admin-list-view: done
+  6-9-feedback-admin-actions: done
   epic-6-retrospective: optional
 
   # Epic 7: SEO & Social Sharing Foundations
