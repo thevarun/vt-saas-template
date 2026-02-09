@@ -1,38 +1,61 @@
 import '@/styles/global.css';
 
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Toaster as SonnerToaster } from 'sonner';
 
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
+import { generateHreflangLinks } from '@/libs/seo/hreflang';
 import { AllLocales } from '@/utils/AppConfig';
 
-export const metadata: Metadata = {
-  icons: [
-    {
-      rel: 'apple-touch-icon',
-      url: '/apple-touch-icon.png',
+export async function generateMetadata(): Promise<Metadata> {
+  // Get current pathname from headers
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '/';
+
+  // Generate hreflang links for all locales
+  const hreflangLinks = generateHreflangLinks(pathname);
+
+  // Convert to Next.js Metadata alternates.languages format
+  const languages = hreflangLinks.reduce(
+    (acc, link) => {
+      acc[link.hreflang] = link.href;
+      return acc;
     },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon-32x32.png',
+    {} as Record<string, string>,
+  );
+
+  return {
+    alternates: {
+      languages,
     },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon-16x16.png',
-    },
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
-  ],
-};
+    icons: [
+      {
+        rel: 'apple-touch-icon',
+        url: '/apple-touch-icon.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        url: '/favicon-32x32.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        url: '/favicon-16x16.png',
+      },
+      {
+        rel: 'icon',
+        url: '/favicon.ico',
+      },
+    ],
+  };
+}
 
 export function generateStaticParams() {
   return AllLocales.map(locale => ({ locale }));

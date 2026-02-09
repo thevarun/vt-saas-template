@@ -63,6 +63,15 @@ The project includes:
 - **Middleware**: Handles locale detection and prefix routing
 - **Config**: `src/utils/AppConfig.ts`
 
+### SEO Configuration
+- **Site URL**: Configured via `NEXT_PUBLIC_SITE_URL` env var (auto-detected on Vercel)
+- **Hreflang Tags**: Automatically added to all public pages via root layout
+  - Includes alternates for all locales: en, hi, bn
+  - Includes x-default pointing to English version
+  - Uses absolute URLs with site domain
+- **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
+- **Implementation**: `src/libs/seo/` - hreflang generation utilities
+
 ### Email Integration
 - **Provider**: Resend (https://resend.com)
 - **Email Service**: `src/libs/email/`
@@ -137,6 +146,9 @@ RESEND_API_KEY=           # Resend API key (optional in dev - logs to console)
 EMAIL_FROM_ADDRESS=       # Sender email (default: noreply@example.com)
 EMAIL_FROM_NAME=          # Sender name (default: VT SaaS Template)
 EMAIL_REPLY_TO=           # Reply-to address (optional)
+
+# SEO - Site URL (required for hreflang, Open Graph, sitemaps)
+NEXT_PUBLIC_SITE_URL=     # Absolute site URL (optional - auto-detected on Vercel)
 ```
 
 ### Sensitive (.env.local only)
