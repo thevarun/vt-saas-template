@@ -108,16 +108,22 @@ describe('PostHogProvider', () => {
     it('tracks event with properties', () => {
       provider.init({ apiKey: 'test', enabled: true });
 
-      const eventName = 'button_clicked';
-      const properties = { buttonName: 'Sign Up' };
+      const eventName = 'signup_completed';
+      const properties = { method: 'email' as const, timestamp: '2024-01-01T00:00:00.000Z' };
 
       provider.track(eventName, properties);
 
-      expect(posthog.capture).toHaveBeenCalledWith(eventName, properties);
+      expect(posthog.capture).toHaveBeenCalledWith(
+        eventName,
+        expect.objectContaining({
+          method: 'email',
+          timestamp: expect.any(String),
+        }),
+      );
     });
 
     it('does not call posthog if not initialized', () => {
-      provider.track('test_event');
+      provider.track('signup_completed', { method: 'email' });
 
       expect(posthog.capture).not.toHaveBeenCalled();
     });

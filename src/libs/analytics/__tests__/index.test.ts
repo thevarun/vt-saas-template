@@ -66,20 +66,26 @@ describe('analytics utilities', () => {
 
   describe('trackEvent', () => {
     it('calls provider.track with eventName and properties', () => {
-      const eventName = 'button_clicked';
-      const properties = { buttonName: 'Sign Up' };
+      trackEvent('signup_completed', { method: 'email' });
 
-      trackEvent(eventName, properties);
-
-      expect(mockProvider.track).toHaveBeenCalledWith(eventName, properties);
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'signup_completed',
+        expect.objectContaining({
+          method: 'email',
+          timestamp: expect.any(String),
+        }),
+      );
     });
 
     it('calls provider.track with eventName only', () => {
-      const eventName = 'page_viewed';
+      trackEvent('signup_started', {});
 
-      trackEvent(eventName);
-
-      expect(mockProvider.track).toHaveBeenCalledWith(eventName, undefined);
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'signup_started',
+        expect.objectContaining({
+          timestamp: expect.any(String),
+        }),
+      );
     });
   });
 

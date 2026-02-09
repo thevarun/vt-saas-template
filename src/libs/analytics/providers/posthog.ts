@@ -5,6 +5,7 @@
 
 import posthog from 'posthog-js';
 
+import type { EventName, EventPropertiesMap } from '../events';
 import type { AnalyticsConfig, AnalyticsProvider, EventProperties, UserProperties } from '../types';
 
 export class PostHogProvider implements AnalyticsProvider {
@@ -50,12 +51,28 @@ export class PostHogProvider implements AnalyticsProvider {
     posthog.identify(userId, properties);
   }
 
-  track(eventName: string, properties?: EventProperties): void {
+  track<T extends EventName>(
+    eventName: T,
+    properties?: EventPropertiesMap[T] & EventProperties,
+  ): void {
     if (typeof window === 'undefined' || !this.initialized) {
       return;
     }
 
-    posthog.capture(eventName, properties);
+    try {
+      // Merge automatic context with provided properties
+      const enrichedProperties = {
+        ...properties,
+        timestamp: properties?.timestamp || new Date().toISOString(),
+      };
+
+      posthog.capture(eventName, enrichedProperties);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Analytics] PostHog tracking error:', error);
+      }
+      // Don't throw - analytics should never break the app
+    }
   }
 
   reset(): void {

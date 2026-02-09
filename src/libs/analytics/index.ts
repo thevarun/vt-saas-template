@@ -1,9 +1,10 @@
 /**
  * Analytics Library
- * Main export for analytics functionality
+ * Main export for analytics functionality with type-safe event tracking
  */
 
 import { getAnalyticsProvider } from './client';
+import type { EventName, EventPropertiesMap } from './events';
 import type { EventProperties, UserProperties } from './types';
 
 /**
@@ -50,23 +51,48 @@ export function identifyUser(userId: string, properties?: UserProperties): void 
 }
 
 /**
- * Track an analytics event
- * Use for tracking user actions and behaviors
+ * Track a type-safe analytics event
+ * TypeScript enforces correct event names and properties
  *
- * @param eventName - Name of the event
- * @param properties - Event properties
+ * @param eventName - Name of the event (type-checked)
+ * @param properties - Event properties (typed per event)
  *
  * @example
  * ```tsx
- * trackEvent('button_clicked', {
- *   buttonName: 'Sign Up',
- *   location: 'header'
+ * // Type-safe - TypeScript validates method is valid
+ * trackEvent('signup_completed', { method: 'email' })
+ *
+ * // Type-safe - TypeScript requires all properties
+ * trackEvent('onboarding_step_completed', {
+ *   step_number: 1,
+ *   step_name: 'username'
  * })
+ *
+ * // Type error - invalid method
+ * trackEvent('signup_completed', { method: 'invalid' }) // ❌ TypeScript error
  * ```
  */
-export function trackEvent(eventName: string, properties?: EventProperties): void {
+export function trackEvent<T extends EventName>(
+  eventName: T,
+  properties: EventPropertiesMap[T],
+): void {
   const provider = getAnalyticsProvider();
-  provider.track(eventName, properties);
+
+  // Add automatic context
+  const enrichedProperties = {
+    ...properties,
+    timestamp: new Date().toISOString(),
+    // User context is automatically attached by the provider
+  } as EventPropertiesMap[T] & EventProperties;
+
+  try {
+    provider.track(eventName, enrichedProperties);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[Analytics] Failed to track event:', eventName, error);
+    }
+    // Don't throw - analytics should never break the app
+  }
 }
 
 /**
@@ -84,5 +110,18 @@ export function resetUser(): void {
   provider.reset();
 }
 
+export type { EventName, EventPropertiesMap } from './events';
+
+// Re-export helper functions
+export {
+  trackError,
+  trackFeatureFirstUse,
+  trackFeedbackSubmitted,
+  trackLoginCompleted,
+  trackOnboardingCompleted,
+  trackOnboardingStepCompleted,
+  trackProfileUpdated,
+  trackSignupCompleted,
+} from './helpers';
 // Re-export types
 export type { EventProperties, UserProperties } from './types';
