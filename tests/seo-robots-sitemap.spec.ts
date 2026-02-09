@@ -75,12 +75,10 @@ test.describe('SEO - Robots and Sitemap', () => {
     test('uses absolute URLs', async ({ page }) => {
       await page.goto('/sitemap.xml');
 
-      const content = page.locator('body');
-
-      await expect(content).toHaveText();
+      const html = await page.content();
 
       // All URLs should start with http:// or https://
-      const locMatches = content!.match(/<loc>(.+?)<\/loc>/g);
+      const locMatches = html.match(/<loc>(.+?)<\/loc>/g);
 
       expect(locMatches).toBeTruthy();
       expect(locMatches!.length).toBeGreaterThan(0);
@@ -101,13 +99,11 @@ test.describe('SEO - Robots and Sitemap', () => {
     test('has expected number of entries', async ({ page }) => {
       await page.goto('/sitemap.xml');
 
-      const content = page.locator('body');
-
-      await expect(content).toHaveText();
+      const html = await page.content();
 
       // Count <url> elements (should be: public routes × locale count)
       // Currently: 1 public route (/) × 3 locales = 3 entries
-      const urlMatches = content!.match(/<url>/g);
+      const urlMatches = html.match(/<url>/g);
 
       expect(urlMatches).toBeTruthy();
       expect(urlMatches!.length).toBe(3);
