@@ -1,15 +1,85 @@
 import type { MetadataRoute } from 'next';
 
-import { getBaseUrl } from '@/utils/Helpers';
+import { getSiteUrl } from '@/libs/seo/config';
+import { AllLocales } from '@/utils/AppConfig';
+
+/**
+ * Route Classification:
+ *
+ * PUBLIC ROUTES (included in sitemap):
+ * - / (landing page)
+ * - Future: /about, /pricing, /blog/[slug], /docs/[...path]
+ *
+ * PRIVATE ROUTES (excluded from sitemap, disallowed in robots.txt):
+ * - /dashboard (auth required)
+ * - /admin/* (admin role required)
+ * - /onboarding (auth required)
+ * - /chat/* (auth required)
+ * - /sign-out (utility page)
+ * - /design-system (internal reference)
+ *
+ * API ROUTES (excluded from sitemap, disallowed in robots.txt):
+ * - /api/* (not HTML pages)
+ *
+ * AUTH PAGES (currently excluded - minimal SEO value):
+ * - /sign-in, /sign-up, /forgot-password
+ * - Future consideration: Include if signup/login should be discoverable via search
+ *
+ * HOW TO ADD NEW PUBLIC ROUTES:
+ * 1. Add the path to the publicRoutes array below
+ * 2. Set appropriate changeFrequency and priority
+ * 3. Sitemap auto-regenerates on deployment (no manual sitemap.xml editing needed)
+ */
+
+/**
+ * Generate sitemap entries for a route across all supported locales
+ *
+ * @param path - Route path (e.g., '/', '/about', '/pricing')
+ * @param options - Sitemap options
+ * @param options.changeFrequency - How frequently the page is expected to change
+ * @param options.priority - Priority of this URL relative to other URLs on the site (0.0-1.0)
+ * @returns Array of sitemap entries (one per locale)
+ */
+function generateLocalizedUrls(
+  path: string,
+  options: {
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    priority?: number;
+  } = {},
+): MetadataRoute.Sitemap {
+  const siteUrl = getSiteUrl();
+  const { changeFrequency = 'weekly', priority = 0.8 } = options;
+
+  return AllLocales.map(locale => ({
+    url: `${siteUrl}/${locale}${path === '/' ? '' : path}`,
+    lastModified: new Date(),
+    changeFrequency,
+    priority,
+  }));
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: `${getBaseUrl()}/`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.7,
-    },
-    // Add more URLs here
+  // Public routes that should be indexed by search engines
+  const publicRoutes: Array<{
+    path: string;
+    changeFrequency?: MetadataRoute.Sitemap[0]['changeFrequency'];
+    priority?: number;
+  }> = [
+    { path: '/', changeFrequency: 'daily', priority: 1.0 },
+    // Future: Add /about, /pricing, /blog, etc.
   ];
+
+  // Generate localized entries for all public routes
+  const entries: MetadataRoute.Sitemap = [];
+
+  for (const route of publicRoutes) {
+    entries.push(
+      ...generateLocalizedUrls(route.path, {
+        changeFrequency: route.changeFrequency,
+        priority: route.priority,
+      }),
+    );
+  }
+
+  return entries;
 }

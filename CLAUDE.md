@@ -75,8 +75,24 @@ The project includes:
   - Utilities: `src/libs/seo/opengraph.ts`
   - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
   - Default OG image: `public/og-image.png` (1200x630)
+- **Robots.txt**: Configures search engine crawling rules (`src/app/robots.ts`)
+  - Allows all public pages by default (`Allow: /`)
+  - Disallows: `/dashboard`, `/admin`, `/api`, `/onboarding`, `/chat`, `/sign-out`, `/design-system`
+  - References sitemap location with absolute URL
+  - Auto-generated at build time, served at `/robots.txt`
+- **Sitemap**: XML sitemap for search engine indexing (`src/app/sitemap.ts`)
+  - Dynamically generated for all public pages
+  - Includes localized versions (en, hi, bn) of each page
+  - Absolute URLs with domain
+  - Auto-generated at build time, served at `/sitemap.xml`
+  - Auto-updates on each deployment (no manual sitemap.xml editing needed)
+  - **Adding New Public Pages**: Add route to `publicRoutes` array in `src/app/sitemap.ts` with appropriate priority/changeFrequency
 - **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
 - **Implementation**: `src/libs/seo/` - SEO utilities (hreflang, Open Graph, constants)
+- **Validation Tools**:
+  - Sitemap: [XML Sitemaps Validator](https://www.xml-sitemaps.com/validate-xml-sitemap.html)
+  - Robots.txt: [Google Search Console Robots Tester](https://support.google.com/webmasters/answer/6062598)
+  - Submit sitemap to Google Search Console after deployment
 
 ### Email Integration
 - **Provider**: Resend (https://resend.com)
