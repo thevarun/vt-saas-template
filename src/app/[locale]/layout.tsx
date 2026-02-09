@@ -8,7 +8,12 @@ import { Toaster as SonnerToaster } from 'sonner';
 
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+} from '@/libs/seo/constants';
 import { generateHreflangLinks } from '@/libs/seo/hreflang';
+import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { AllLocales } from '@/utils/AppConfig';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,10 +33,20 @@ export async function generateMetadata(): Promise<Metadata> {
     {} as Record<string, string>,
   );
 
+  // Generate social metadata (Open Graph & Twitter Cards)
+  const socialMetadata = generateSocialMetadata({
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    path: pathname,
+  });
+
   return {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
     alternates: {
       languages,
     },
+    ...socialMetadata,
     icons: [
       {
         rel: 'apple-touch-icon',

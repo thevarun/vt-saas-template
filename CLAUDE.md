@@ -69,8 +69,14 @@ The project includes:
   - Includes alternates for all locales: en, hi, bn
   - Includes x-default pointing to English version
   - Uses absolute URLs with site domain
+- **Social Metadata**: Open Graph and Twitter Card tags for rich social sharing
+  - Default metadata set in root layout (`src/app/[locale]/layout.tsx`)
+  - Page-specific overrides via `generateMetadata()` function
+  - Utilities: `src/libs/seo/opengraph.ts`
+  - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
+  - Default OG image: `public/og-image.png` (1200x630)
 - **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
-- **Implementation**: `src/libs/seo/` - hreflang generation utilities
+- **Implementation**: `src/libs/seo/` - SEO utilities (hreflang, Open Graph, constants)
 
 ### Email Integration
 - **Provider**: Resend (https://resend.com)
@@ -214,6 +220,58 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
      <YourTemplate data={yourData} />
    );
    ```
+
+### Adding Social Metadata to Pages
+1. Import utilities from `@/libs/seo`:
+   ```typescript
+   import type { Metadata } from 'next';
+   import { generateSocialMetadata } from '@/libs/seo/opengraph';
+   import { SITE_NAME } from '@/libs/seo/constants';
+   ```
+
+2. Create `generateMetadata` function in page:
+   ```typescript
+   export async function generateMetadata(props: {
+     params: Promise<{ locale: string }>;
+   }): Promise<Metadata> {
+     const { locale } = await props.params;
+
+     const title = `Page Title | ${SITE_NAME}`;
+     const description = 'Page-specific description for social sharing';
+
+     return {
+       title,
+       description,
+       ...generateSocialMetadata({
+         title,
+         description,
+         path: `/${locale}/your-path`,
+       }),
+     };
+   }
+   ```
+
+3. For custom Open Graph images:
+   ```typescript
+   ...generateSocialMetadata({
+     title,
+     description,
+     image: '/custom-og-image.png', // Must be 1200x630
+     path: `/${locale}/your-path`,
+   })
+   ```
+
+**Social Validation Tools:**
+- Facebook: https://developers.facebook.com/tools/debug/
+- Twitter: https://cards-dev.twitter.com/validator
+- LinkedIn: https://www.linkedin.com/post-inspector/
+
+**OG Image Requirements:**
+- Dimensions: 1200x630 pixels
+- Format: PNG or JPG (PNG preferred for quality)
+- Location: `public/` directory
+- Size: < 1MB recommended
+- Content: Keep important text/logo in center (edges may be cropped)
 
 ### Error Handling
 

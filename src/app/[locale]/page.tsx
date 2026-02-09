@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
+import { SITE_NAME } from '@/libs/seo/constants';
+import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { CTA } from '@/templates/CTA';
 import { FAQ } from '@/templates/FAQ';
 import { Features } from '@/templates/Features';
@@ -10,16 +13,26 @@ import { Navbar } from '@/templates/Navbar';
 // Force dynamic rendering to avoid RSC serialization issues during build
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await props.params;
   const t = await getTranslations({
     locale,
     namespace: 'Index',
   });
 
+  const title = `${t('meta_title')} | ${SITE_NAME}`;
+  const description = t('meta_description');
+
   return {
-    title: t('meta_title'),
-    description: t('meta_description'),
+    title,
+    description,
+    ...generateSocialMetadata({
+      title,
+      description,
+      path: `/${locale}`,
+    }),
   };
 }
 
