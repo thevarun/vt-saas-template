@@ -75,19 +75,19 @@ test.describe('SEO - Robots and Sitemap', () => {
     test('uses absolute URLs', async ({ page }) => {
       await page.goto('/sitemap.xml');
 
-      const bodyText = page.locator('body');
+      const content = page.locator('body');
 
-      await expect(bodyText).toHaveText();
+      await expect(content).toHaveText();
 
       // All URLs should start with http:// or https://
-      const locMatches = bodyText!.match(/<loc>(.+?)<\/loc>/g);
+      const locMatches = content!.match(/<loc>(.+?)<\/loc>/g);
 
       expect(locMatches).toBeTruthy();
       expect(locMatches!.length).toBeGreaterThan(0);
 
-      locMatches!.forEach((locTag) => {
+      for (const locTag of locMatches!) {
         expect(locTag).toMatch(/<loc>https?:\/\//);
-      });
+      }
     });
 
     test('entries have lastmod element', async ({ page }) => {
@@ -101,13 +101,13 @@ test.describe('SEO - Robots and Sitemap', () => {
     test('has expected number of entries', async ({ page }) => {
       await page.goto('/sitemap.xml');
 
-      const bodyText = page.locator('body');
+      const content = page.locator('body');
 
-      await expect(bodyText).toHaveText();
+      await expect(content).toHaveText();
 
       // Count <url> elements (should be: public routes × locale count)
       // Currently: 1 public route (/) × 3 locales = 3 entries
-      const urlMatches = bodyText!.match(/<url>/g);
+      const urlMatches = content!.match(/<url>/g);
 
       expect(urlMatches).toBeTruthy();
       expect(urlMatches!.length).toBe(3);
