@@ -74,9 +74,11 @@ DIFY_API_KEY=app-xxxxxxxxxxxxxxxx
 DATABASE_URL=postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres
 ```
 
-**Optional (Monitoring):**
+**Error Monitoring (Sentry):**
 ```
-SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+SENTRY_ORG=your-sentry-org
+SENTRY_PROJECT=your-sentry-project
 SENTRY_AUTH_TOKEN=your_sentry_auth_token
 ```
 
@@ -280,19 +282,16 @@ postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres?pgbounce
 
 2. **Add Environment Variables**
    ```
-   SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+   NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+   SENTRY_ORG=your-sentry-org
+   SENTRY_PROJECT=your-sentry-project
    SENTRY_AUTH_TOKEN=your_auth_token
    ```
 
-3. **Update Configuration**
-   ```typescript
-   // sentry.client.config.ts
-   Sentry.init({
-     dsn: process.env.SENTRY_DSN,
-     environment: process.env.NODE_ENV,
-     tracesSampleRate: 0.1,
-   });
-   ```
+3. **Verify Configuration**
+   - `sentry.client.config.ts` — client-side error tracking + session replay
+   - `src/instrumentation.ts` — server-side + edge error tracking
+   - `next.config.mjs` — source map uploads (uses `SENTRY_ORG`, `SENTRY_PROJECT`)
 
 ### Vercel Analytics
 
@@ -534,6 +533,33 @@ npm run build
 - Enable caching headers
 - Reduce bundle size
 - Optimize images
+
+---
+
+## Pre-Launch Checklist
+
+Complete these items before your first production deployment:
+
+### Environment & Secrets
+- [ ] Set `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` in Vercel
+- [ ] Set `ADMIN_EMAILS` for production admin users
+- [ ] Set up Resend with a verified domain and configure `EMAIL_FROM_ADDRESS`
+- [ ] Set `CROWDIN_PROJECT_ID` and `CROWDIN_PERSONAL_TOKEN` as GitHub repo secrets
+- [ ] Set all CI/CD secrets: `DIFY_API_KEY`, `DIFY_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] Ensure no test credentials exist in production environment
+
+### Verification
+- [ ] Run full CI locally: `npm run lint && npm run check-types && npm test && npm run build`
+- [ ] Run E2E tests against production Supabase instance: `npm run test:e2e`
+- [ ] Verify security headers are active (use [securityheaders.com](https://securityheaders.com))
+- [ ] Test authentication flow end-to-end (sign up, sign in, password reset)
+- [ ] Confirm Sentry receives test errors
+
+### Infrastructure
+- [ ] Supabase RLS policies reviewed and enabled
+- [ ] Database migrations applied to production
+- [ ] Custom domain configured with SSL (auto-provisioned on Vercel)
+- [ ] DNS records set correctly
 
 ---
 
