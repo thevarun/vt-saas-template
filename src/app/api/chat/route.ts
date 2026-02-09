@@ -22,6 +22,17 @@ import {
 } from '@/libs/supabase/threads';
 
 /**
+ * POST /api/chat
+ *
+ * Chat API endpoint for the Dify implementation.
+ * Proxies chat requests to Dify API while keeping the API key server-side.
+ * Used by the /chat/dify route.
+ *
+ * Note: This route serves the Dify chat implementation. The Vercel AI SDK
+ * implementation (Story 10.7) will use a separate endpoint at /api/chat/vercel.
+ */
+
+/**
  * Parse SSE event data from chunk
  */
 function parseSSEEvent(chunk: string): Record<string, any> | null {

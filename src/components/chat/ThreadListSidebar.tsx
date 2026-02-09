@@ -19,8 +19,8 @@ import { ThreadListSkeleton } from './ThreadListSkeleton';
  *
  * Acceptance Criteria:
  * - AC #2: ThreadList displays user's threads fetched from GET /api/threads
- * - AC #3: "New Thread" button navigates to /chat (empty composer)
- * - AC #4: Clicking thread navigates to /chat/[threadId]
+ * - AC #3: "New Thread" button navigates to /chat/dify (empty composer)
+ * - AC #4: Clicking thread navigates to /chat/dify/[threadId]
  * - AC #5: Active thread highlighted in sidebar (visual indicator)
  * - AC #6: Archive button per thread (archives thread, removes from sidebar)
  * - AC #10: Loading state shows skeletons during thread fetch
@@ -129,7 +129,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   // AC #3: Navigate to new thread (empty composer)
   const handleNewThread = () => {
-    router.push('/chat');
+    router.push('/chat/dify');
     onNavigate?.();
   };
 
