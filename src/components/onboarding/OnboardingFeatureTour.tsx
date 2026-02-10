@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Globe, MessageSquare, Shield, Zap } from 'lucide
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
+import { trackOnboardingStepCompleted } from '@/libs/analytics';
 
 import { ProgressIndicator } from './ProgressIndicator';
 
@@ -35,6 +36,13 @@ export function OnboardingFeatureTour() {
   const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
   const handleContinue = () => {
+    // Track step completion
+    try {
+      trackOnboardingStepCompleted(2, 'feature_tour');
+    } catch (error) {
+      console.error('[OnboardingFeatureTour] Failed to track step completion:', error);
+    }
+
     // Use hard navigation for server component page with query params
     window.location.href = `${localePrefix}/onboarding?step=3`;
   };

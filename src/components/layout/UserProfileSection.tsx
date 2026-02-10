@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { resetUser, trackEvent } from '@/libs/analytics';
 import { useRouter } from '@/libs/i18nNavigation';
 import { createClient } from '@/libs/supabase/client';
 
@@ -60,6 +61,13 @@ export function UserProfileSection({ collapsed = false }: UserProfileSectionProp
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      // Track logout before clearing session
+      try {
+        trackEvent('logout_completed', {});
+      } catch (error) {
+        console.error('[UserProfileSection] Failed to track logout:', error);
+      }
+
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -67,6 +75,14 @@ export function UserProfileSection({ collapsed = false }: UserProfileSectionProp
         setIsLoggingOut(false);
         return;
       }
+
+      // Reset analytics identity after logout
+      try {
+        resetUser();
+      } catch (error) {
+        console.error('[UserProfileSection] Failed to reset analytics user:', error);
+      }
+
       router.push('/sign-in');
     } catch (error) {
       console.error('Logout failed:', error);

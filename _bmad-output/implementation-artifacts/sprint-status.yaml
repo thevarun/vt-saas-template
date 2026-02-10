@@ -125,7 +125,7 @@ development_status:
   epic-9: in-progress
   9-1-analytics-infrastructure-setup-posthog: done
   9-2-event-tracking-utility: done
-  9-3-core-user-flow-instrumentation: backlog
+  9-3-core-user-flow-instrumentation: done
   9-4-conversion-funnel-tracking: backlog
   9-5-founder-analytics-dashboard: backlog
   epic-9-retrospective: optional

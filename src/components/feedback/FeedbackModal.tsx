@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { trackFeatureFirstUse, trackFeedbackSubmitted } from '@/libs/analytics';
 import { createClient } from '@/libs/supabase/client';
 import { cn } from '@/utils/Helpers';
 
@@ -37,7 +38,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
-  // Check authentication status when modal opens
+  // Check authentication status when modal opens and track first use
   useEffect(() => {
     if (open) {
       const checkAuth = async () => {
@@ -54,6 +55,17 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         }
       };
       checkAuth();
+
+      // Track feature first use
+      const hasUsedFeedback = localStorage.getItem('feature_used_feedback');
+      if (!hasUsedFeedback) {
+        try {
+          trackFeatureFirstUse('feedback_widget');
+          localStorage.setItem('feature_used_feedback', 'true');
+        } catch (error) {
+          console.error('[FeedbackModal] Failed to track first use:', error);
+        }
+      }
     }
   }, [open]);
 
@@ -119,7 +131,16 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         return;
       }
 
-      // Success
+      // Success - Track feedback submission
+      try {
+        trackFeedbackSubmitted(
+          feedbackType as 'bug' | 'feature' | 'general',
+          false, // No screenshot support in current implementation
+        );
+      } catch (error) {
+        console.error('[FeedbackModal] Failed to track feedback submission:', error);
+      }
+
       setIsLoading(false);
       onOpenChange(false);
 

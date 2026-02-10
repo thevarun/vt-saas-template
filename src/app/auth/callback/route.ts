@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { trackEventServer } from '@/libs/analytics/server';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
@@ -47,6 +48,29 @@ export async function GET(request: Request) {
     if (!error) {
       // Get user to check if this is email verification
       const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        try {
+          // Determine auth provider method from user metadata
+          const provider = user.app_metadata?.provider || 'email';
+          const method = provider === 'email' ? 'email' : provider; // 'google', 'github', etc.
+
+          // Check if this is a new signup or returning login
+          // New signups have created_at very recent (within last minute)
+          const userCreatedAt = new Date(user.created_at);
+          const isNewSignup = Date.now() - userCreatedAt.getTime() < 60000;
+
+          // Track the appropriate event
+          if (isNewSignup) {
+            await trackEventServer('signup_completed', { method: method as 'email' | 'google' | 'github' }, user.id);
+          } else {
+            await trackEventServer('login_completed', { method: method as 'email' | 'google' | 'github' }, user.id);
+          }
+        } catch (analyticsError) {
+          // Don't break auth flow if analytics fails
+          console.error('[Auth Callback] Analytics tracking failed:', analyticsError);
+        }
+      }
 
       // Build locale-aware redirect path
       const redirectPath = getLocalePath(locale, next);
