@@ -38,7 +38,8 @@ export type EventName
     | 'error_occurred'
   // Page events
     | 'page_viewed'
-    | 'landing_viewed';
+    | 'landing_viewed'
+    | 'pseo_page_viewed';
 
 /**
  * Properties for signup_completed event
@@ -126,6 +127,19 @@ export type LandingViewedProperties = {
 };
 
 /**
+ * Properties for pseo_page_viewed event
+ * Tracks programmatic SEO page views for growth analysis
+ */
+export type PseoPageViewedProperties = {
+  /** pSEO category (e.g., 'tools', 'templates', 'guides') */
+  category: string;
+  /** Page slug identifier (e.g., 'password-generator') */
+  slug: string;
+  /** Traffic source from document.referrer */
+  referrer?: string;
+};
+
+/**
  * Properties for user_activated event
  */
 export type UserActivatedProperties = {
@@ -162,6 +176,7 @@ export type EventPropertiesMap = {
   error_occurred: ErrorOccurredProperties;
   page_viewed: PageViewedProperties;
   landing_viewed: LandingViewedProperties;
+  pseo_page_viewed: PseoPageViewedProperties;
 };
 
 /**
@@ -185,4 +200,5 @@ export const EVENT_CATEGORIES: Record<EventName, EventCategory> = {
   error_occurred: EventCategory.Error,
   page_viewed: EventCategory.Page,
   landing_viewed: EventCategory.Page,
+  pseo_page_viewed: EventCategory.Page,
 };

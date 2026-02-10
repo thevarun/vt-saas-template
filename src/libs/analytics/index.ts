@@ -110,8 +110,14 @@ export function resetUser(): void {
   provider.reset();
 }
 
-export type { EventName, EventPropertiesMap } from './events';
-
+// Re-export pSEO tracking utilities
+export type { PseoPageTrackerProps } from './components/PseoPageTracker';
+export { PseoPageTracker } from './components/PseoPageTracker';
+export type {
+  EventName,
+  EventPropertiesMap,
+  PseoPageViewedProperties,
+} from './events';
 // Re-export helper functions
 export {
   trackError,
@@ -126,6 +132,7 @@ export {
   trackSignupCompleted,
   trackUserActivated,
 } from './helpers';
+export { usePseoTracking } from './hooks/usePseoTracking';
 
 // Re-export referral utilities
 export {
