@@ -21,15 +21,15 @@ test.describe('SEO - Hreflang Tags', () => {
     expect(hreflangValues).toContain('x-default');
   });
 
-  test('x-default points to English version', async ({ page }) => {
+  test('x-default points to unprefixed default locale URL', async ({ page }) => {
     await page.goto('/en');
 
     // Find the x-default link
     const xDefaultLink = page.locator('link[rel="alternate"][hreflang="x-default"]');
     const href = await xDefaultLink.getAttribute('href');
 
-    // Should point to /en
-    expect(href).toContain('/en');
+    // x-default should be the unprefixed canonical URL (no /en prefix)
+    expect(href).toMatch(/^https?:\/\/[^/]+\/?$/);
   });
 
   test('hreflang URLs are absolute', async ({ page }) => {
@@ -46,15 +46,15 @@ test.describe('SEO - Hreflang Tags', () => {
     }
   });
 
-  test('hreflang includes self-referential link', async ({ page }) => {
+  test('hreflang includes self-referential link for default locale (unprefixed)', async ({ page }) => {
     await page.goto('/en');
 
     // Find the en hreflang link
     const enLink = page.locator('link[rel="alternate"][hreflang="en"]');
     const href = await enLink.getAttribute('href');
 
-    // Should point to /en
-    expect(href).toContain('/en');
+    // Default locale (en) should be unprefixed per localePrefix: 'as-needed'
+    expect(href).toMatch(/^https?:\/\/[^/]+\/?$/);
   });
 
   test('Hindi page has correct hreflang tags', async ({ page }) => {

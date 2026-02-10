@@ -19,11 +19,12 @@ describe('generateHreflangLinks', () => {
     expect(links.map(l => l.hreflang)).toEqual(['en', 'hi', 'bn', 'x-default']);
   });
 
-  it('includes x-default pointing to English version', () => {
+  it('includes x-default pointing to unprefixed default locale URL', () => {
     const links = generateHreflangLinks('/');
     const xDefault = links.find(l => l.hreflang === 'x-default');
 
-    expect(xDefault?.href).toBe('https://example.com/en');
+    // x-default uses unprefixed URL (same as default locale)
+    expect(xDefault?.href).toBe('https://example.com');
   });
 
   it('uses absolute URLs with domain', () => {
@@ -41,7 +42,8 @@ describe('generateHreflangLinks', () => {
     const hiLink = links.find(l => l.hreflang === 'hi');
     const bnLink = links.find(l => l.hreflang === 'bn');
 
-    expect(enLink?.href).toBe('https://example.com/en/about');
+    // Default locale (en) is unprefixed per localePrefix: 'as-needed'
+    expect(enLink?.href).toBe('https://example.com/about');
     expect(hiLink?.href).toBe('https://example.com/hi/about');
     expect(bnLink?.href).toBe('https://example.com/bn/about');
   });
@@ -51,7 +53,7 @@ describe('generateHreflangLinks', () => {
     const enLink = links.find(l => l.hreflang === 'en');
     const hiLink = links.find(l => l.hreflang === 'hi');
 
-    expect(enLink?.href).toBe('https://example.com/en/about');
+    expect(enLink?.href).toBe('https://example.com/about');
     expect(hiLink?.href).toBe('https://example.com/hi/about');
   });
 
@@ -60,8 +62,9 @@ describe('generateHreflangLinks', () => {
     const enLink = links.find(l => l.hreflang === 'en');
     const xDefault = links.find(l => l.hreflang === 'x-default');
 
-    expect(enLink?.href).toBe('https://example.com/en');
-    expect(xDefault?.href).toBe('https://example.com/en');
+    // Default locale and x-default are unprefixed
+    expect(enLink?.href).toBe('https://example.com');
+    expect(xDefault?.href).toBe('https://example.com');
   });
 
   it('handles root path with locale prefix', () => {
@@ -69,7 +72,7 @@ describe('generateHreflangLinks', () => {
     const enLink = links.find(l => l.hreflang === 'en');
     const hiLink = links.find(l => l.hreflang === 'hi');
 
-    expect(enLink?.href).toBe('https://example.com/en');
+    expect(enLink?.href).toBe('https://example.com');
     expect(hiLink?.href).toBe('https://example.com/hi');
   });
 
@@ -77,25 +80,33 @@ describe('generateHreflangLinks', () => {
     const links = generateHreflangLinks('/pricing/plans/enterprise');
     const enLink = links.find(l => l.hreflang === 'en');
 
-    expect(enLink?.href).toBe('https://example.com/en/pricing/plans/enterprise');
+    expect(enLink?.href).toBe('https://example.com/pricing/plans/enterprise');
   });
 
   it('handles paths with trailing slash', () => {
     const links = generateHreflangLinks('/about/');
     const enLink = links.find(l => l.hreflang === 'en');
 
-    expect(enLink?.href).toBe('https://example.com/en/about/');
+    expect(enLink?.href).toBe('https://example.com/about/');
   });
 
   it('includes self-referential hreflang for each locale', () => {
     const links = generateHreflangLinks('/en/about');
 
-    const locales = ['en', 'hi', 'bn'];
-    locales.forEach((locale) => {
-      const link = links.find(l => l.hreflang === locale);
+    // Default locale (en) is unprefixed, others have locale prefix
+    const enLink = links.find(l => l.hreflang === 'en');
 
-      expect(link).toBeDefined();
-      expect(link?.href).toContain(`/${locale}/about`);
-    });
+    expect(enLink).toBeDefined();
+    expect(enLink?.href).toBe('https://example.com/about');
+
+    const hiLink = links.find(l => l.hreflang === 'hi');
+
+    expect(hiLink).toBeDefined();
+    expect(hiLink?.href).toContain('/hi/about');
+
+    const bnLink = links.find(l => l.hreflang === 'bn');
+
+    expect(bnLink).toBeDefined();
+    expect(bnLink?.href).toContain('/bn/about');
   });
 });

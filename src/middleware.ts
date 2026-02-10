@@ -56,9 +56,6 @@ export async function middleware(
   // Apply internationalization middleware first
   const response = intlMiddleware(request);
 
-  // Add pathname to headers for SEO metadata generation
-  response.headers.set('x-pathname', request.nextUrl.pathname);
-
   // Update Supabase session cookies on the response
   await updateSession(request, response);
 

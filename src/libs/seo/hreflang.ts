@@ -29,21 +29,21 @@ export type HreflangLink = {
  * @returns Array of hreflang link objects
  *
  * @example
- * // Root page
+ * // Root page (default locale unprefixed per localePrefix: 'as-needed')
  * generateHreflangLinks('/') // [
- * //   { hreflang: 'en', href: 'https://example.com/en' },
+ * //   { hreflang: 'en', href: 'https://example.com' },
  * //   { hreflang: 'hi', href: 'https://example.com/hi' },
  * //   { hreflang: 'bn', href: 'https://example.com/bn' },
- * //   { hreflang: 'x-default', href: 'https://example.com/en' }
+ * //   { hreflang: 'x-default', href: 'https://example.com' }
  * // ]
  *
  * @example
  * // Nested page
  * generateHreflangLinks('/about') // [
- * //   { hreflang: 'en', href: 'https://example.com/en/about' },
+ * //   { hreflang: 'en', href: 'https://example.com/about' },
  * //   { hreflang: 'hi', href: 'https://example.com/hi/about' },
  * //   { hreflang: 'bn', href: 'https://example.com/bn/about' },
- * //   { hreflang: 'x-default', href: 'https://example.com/en/about' }
+ * //   { hreflang: 'x-default', href: 'https://example.com/about' }
  * // ]
  *
  * @example
@@ -58,15 +58,20 @@ export function generateHreflangLinks(pathname: string): HreflangLink[] {
   const cleanPathname = pathname.replace(localePattern, '/');
 
   // Generate alternate for each locale
-  const links: HreflangLink[] = AllLocales.map(locale => ({
-    hreflang: locale,
-    href: `${siteUrl}/${locale}${cleanPathname === '/' ? '' : cleanPathname}`,
-  }));
+  // Default locale is unprefixed per localePrefix: 'as-needed'
+  const links: HreflangLink[] = AllLocales.map((locale) => {
+    const isDefaultLocale = locale === AppConfig.defaultLocale;
+    const localePrefix = isDefaultLocale ? '' : `/${locale}`;
+    return {
+      hreflang: locale,
+      href: `${siteUrl}${localePrefix}${cleanPathname === '/' ? '' : cleanPathname}`,
+    };
+  });
 
-  // Add x-default pointing to English (default locale)
+  // Add x-default pointing to default locale (unprefixed canonical URL)
   links.push({
     hreflang: 'x-default',
-    href: `${siteUrl}/${AppConfig.defaultLocale}${cleanPathname === '/' ? '' : cleanPathname}`,
+    href: `${siteUrl}${cleanPathname === '/' ? '' : cleanPathname}`,
   });
 
   return links;

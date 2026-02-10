@@ -9,6 +9,7 @@ import { Features } from '@/templates/Features';
 import { Footer } from '@/templates/Footer';
 import { Hero } from '@/templates/Hero';
 import { Navbar } from '@/templates/Navbar';
+import { AppConfig } from '@/utils/AppConfig';
 
 // Force dynamic rendering to avoid RSC serialization issues during build
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,8 @@ export async function generateMetadata(props: {
     ...generateSocialMetadata({
       title,
       description,
-      path: `/${locale}`,
+      // Default locale is unprefixed per localePrefix: 'as-needed'
+      path: locale === AppConfig.defaultLocale ? '/' : `/${locale}`,
     }),
   };
 }

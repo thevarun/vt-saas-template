@@ -9,6 +9,7 @@ import sitemap from './sitemap';
 vi.mock('@/libs/seo/config');
 vi.mock('@/utils/AppConfig', () => ({
   AllLocales: ['en', 'hi', 'bn'],
+  AppConfig: { defaultLocale: 'en' },
 }));
 
 describe('sitemap', () => {
@@ -31,11 +32,12 @@ describe('sitemap', () => {
     });
   });
 
-  it('includes all locales', () => {
+  it('includes all locales with default locale unprefixed', () => {
     const entries = sitemap();
     const urls = entries.map(e => e.url);
 
-    expect(urls).toContain('https://example.com/en');
+    // Default locale (en) is unprefixed per localePrefix: 'as-needed'
+    expect(urls).toContain('https://example.com');
     expect(urls).toContain('https://example.com/hi');
     expect(urls).toContain('https://example.com/bn');
   });

@@ -51,13 +51,22 @@ test.describe('SEO - Robots and Sitemap', () => {
       await expect(page.locator('body')).toContainText('http://www.sitemaps.org/schemas/sitemap');
     });
 
-    test('includes all locales', async ({ page }) => {
+    test('includes all locales with default locale unprefixed', async ({ page }) => {
       await page.goto('/sitemap.xml');
 
-      // Check for all locale URLs
-      await expect(page.locator('body')).toContainText('/en');
+      // Non-default locales should have their prefix
       await expect(page.locator('body')).toContainText('/hi');
       await expect(page.locator('body')).toContainText('/bn');
+
+      // Default locale (en) is unprefixed - verify the base URL entry exists
+      const html = await page.content();
+      const locMatches = html.match(/<loc>(.+?)<\/loc>/g) || [];
+      const urls = locMatches.map(m => m.replace(/<\/?loc>/g, ''));
+
+      // Should have an entry for the unprefixed root (default locale)
+      const hasUnprefixedRoot = urls.some(url => url.match(/^https?:\/\/[^/]+\/?$/));
+
+      expect(hasUnprefixedRoot).toBe(true);
     });
 
     test('excludes private routes', async ({ page }) => {

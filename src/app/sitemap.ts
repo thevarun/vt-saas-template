@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { getSiteUrl } from '@/libs/seo/config';
-import { AllLocales } from '@/utils/AppConfig';
+import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
 /**
  * Route Classification:
@@ -50,12 +50,17 @@ function generateLocalizedUrls(
   const siteUrl = getSiteUrl();
   const { changeFrequency = 'weekly', priority = 0.8 } = options;
 
-  return AllLocales.map(locale => ({
-    url: `${siteUrl}/${locale}${path === '/' ? '' : path}`,
-    lastModified: new Date(),
-    changeFrequency,
-    priority,
-  }));
+  // Default locale is unprefixed per localePrefix: 'as-needed'
+  return AllLocales.map((locale) => {
+    const isDefaultLocale = locale === AppConfig.defaultLocale;
+    const localePrefix = isDefaultLocale ? '' : `/${locale}`;
+    return {
+      url: `${siteUrl}${localePrefix}${path === '/' ? '' : path}`,
+      lastModified: new Date(),
+      changeFrequency,
+      priority,
+    };
+  });
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {

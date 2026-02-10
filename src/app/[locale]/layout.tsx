@@ -1,7 +1,6 @@
 import '@/styles/global.css';
 
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Toaster as SonnerToaster } from 'sonner';
@@ -16,10 +15,11 @@ import { generateHreflangLinks } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { AllLocales } from '@/utils/AppConfig';
 
-export async function generateMetadata(): Promise<Metadata> {
-  // Get current pathname from headers
-  const headersList = await headers();
-  const pathname = headersList.get('x-pathname') || '/';
+export function generateMetadata(): Metadata {
+  // Root layout provides default metadata for the home page.
+  // Individual pages should override with their own generateMetadata
+  // for correct path-specific hreflang and social metadata.
+  const pathname = '/';
 
   // Generate hreflang links for all locales
   const hreflangLinks = generateHreflangLinks(pathname);
