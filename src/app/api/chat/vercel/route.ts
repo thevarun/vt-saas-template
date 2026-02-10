@@ -10,6 +10,11 @@ import {
   unauthorizedError,
 } from '@/libs/api/errors';
 import { logger } from '@/libs/Logger';
+import { queueMemoryExtraction } from '@/libs/mem0/queue';
+import {
+  formatMemoriesForPrompt,
+  getRelevantMemories,
+} from '@/libs/mem0/retrieval';
 import {
   createConversation,
   getConversationById,
@@ -190,6 +195,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     // AC #1 & #6: Create AI provider and stream response
     const model = await createAIProvider();
 
+    // Memory Integration: Fetch relevant memories for context (if enabled)
+    // This is a fire-and-forget operation that doesn't block the chat
+    // If Mem0 is disabled or fetch fails, returns empty array
+    const memories = await getRelevantMemories(user.id, message);
+    const memoryContext = formatMemoriesForPrompt(memories);
+
     // Get conversation history for context
     // Note: For now, we'll just send the current message
     // Future enhancement: Load conversation history from database
@@ -208,9 +219,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     // - Latency metrics (request duration)
     // - Model metadata
     // - User ID and session ID (added via metadata)
+    //
+    // Memory Integration: If memories exist, they're prepended to system prompt
+    // This provides the AI with context from previous conversations
     const result = streamText({
       model,
       messages,
+      system: memoryContext || undefined, // Only set if memories exist
       experimental_telemetry: {
         isEnabled: true,
         functionId: 'vercel-chat-stream',
@@ -296,6 +311,17 @@ export async function POST(request: NextRequest): Promise<Response> {
           },
           'Chat completion successful',
         );
+
+        // Memory Integration: Queue memory extraction job (fire-and-forget)
+        // This happens after conversation completes and doesn't block the response
+        // If Mem0 is disabled or queueing fails, errors are logged but don't throw
+        queueMemoryExtraction(activeConversationId).catch((error: any) => {
+          logger.error(
+            { error, conversationId: activeConversationId },
+            'Failed to queue memory extraction',
+          );
+          Sentry.captureException(error);
+        });
       })
       .catch((error: any) => {
         // AC #3: Catch any unhandled errors in the persistence chain

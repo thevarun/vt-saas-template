@@ -23,6 +23,11 @@ export const Env = createEnv({
     LANGFUSE_PUBLIC_KEY: z.string().optional(),
     LANGFUSE_SECRET_KEY: z.string().optional(),
     LANGFUSE_HOST: z.string().url().default('https://cloud.langfuse.com'),
+    // Mem0 (Memory Integration) - Optional to allow graceful degradation
+    ENABLE_MEM0: z.enum(['true', 'false']).default('false'),
+    MEM0_API_KEY: z.string().optional(),
+    // Cron endpoint authentication
+    CRON_SECRET: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -50,6 +55,9 @@ export const Env = createEnv({
     LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY,
     LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY,
     LANGFUSE_HOST: process.env.LANGFUSE_HOST,
+    ENABLE_MEM0: process.env.ENABLE_MEM0,
+    MEM0_API_KEY: process.env.MEM0_API_KEY,
+    CRON_SECRET: process.env.CRON_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
