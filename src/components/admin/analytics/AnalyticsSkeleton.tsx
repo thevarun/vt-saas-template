@@ -10,7 +10,7 @@ export function AnalyticsSkeleton() {
       {/* Metrics Row Skeleton */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <AnalyticsMetricCardSkeleton key={i} />
+          <AnalyticsMetricCardSkeleton key={`metric-skeleton-${i}`} />
         ))}
       </div>
 
@@ -23,7 +23,7 @@ export function AnalyticsSkeleton() {
           </CardHeader>
           <CardContent className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-2">
+              <div key={`rate-skeleton-${i}`} className="space-y-2">
                 <Skeleton className="mb-2 h-4 w-32" />
                 <Skeleton className="h-2 w-full" />
               </div>
