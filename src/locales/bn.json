@@ -455,7 +455,11 @@
   },
   "Chat": {
     "meta_title": "AI Assistant Chat",
-    "meta_description": "Chat with your AI assistant for personalized guidance and support"
+    "meta_description": "Chat with your AI assistant for personalized guidance and support",
+    "vercel_meta_title": "চ্যাট (AI SDK) - VT SaaS Template",
+    "vercel_meta_description": "Vercel AI SDK দ্বারা চালিত AI চ্যাট",
+    "vercel_title": "চ্যাট (AI SDK)",
+    "vercel_description": "Vercel AI SDK ব্যবহার করে প্রশ্ন জিজ্ঞাসা করুন এবং AI-চালিত উত্তর পান"
   },
   "ChatPage": {
     "title": "Chat",

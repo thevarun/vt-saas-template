@@ -455,7 +455,11 @@
   },
   "Chat": {
     "meta_title": "AI Assistant Chat",
-    "meta_description": "Chat with your AI assistant for personalized guidance and support"
+    "meta_description": "Chat with your AI assistant for personalized guidance and support",
+    "vercel_meta_title": "Chat (AI SDK) - VT SaaS Template",
+    "vercel_meta_description": "AI chat powered by Vercel AI SDK",
+    "vercel_title": "Chat (AI SDK)",
+    "vercel_description": "Ask questions and get AI-powered responses using Vercel AI SDK"
   },
   "ChatPage": {
     "title": "Chat",
