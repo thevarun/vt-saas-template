@@ -136,8 +136,8 @@ development_status:
   10-2-clean-up-dify-chat-code: done
   10-3-database-schema-consolidation: done
   10-4-vercel-ai-sdk-chat-api: done
-  10-5-langfuse-integration: ready-for-dev
-  10-6-mem0-memory-integration: backlog
+  10-5-langfuse-integration: done
+  10-6-mem0-memory-integration: ready-for-dev
   10-7-vercel-chat-ui: backlog
   10-8-conversation-management-api: backlog
   10-9-navigation-and-showcase-update: backlog
