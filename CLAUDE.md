@@ -231,6 +231,8 @@ npm run lint && npm run check-types && npm test && npm run build
 
 **Deployment:** Preview on PRs (Vercel), Production on merge to main
 
+**Release Automation:** semantic-release runs after CI on main. Conventional Commits determine version bumps (`feat:`→minor, `fix:`→patch, `feat!:`→major). Changelog generated at `docs/CHANGELOG.md`. See [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) for details.
+
 **Required GitHub Secrets:** `DIFY_API_KEY`, `DIFY_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Testing Notes

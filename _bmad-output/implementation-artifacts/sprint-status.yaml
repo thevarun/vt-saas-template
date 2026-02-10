@@ -114,8 +114,8 @@ development_status:
   # Epic 8: Go-To-Market Features
   epic-8: in-progress
   8-1-share-widget-component: done
-  8-2-private-shareable-urls: ready-for-dev
-  8-3-changelog-release-automation: backlog
+  8-2-private-shareable-urls: done
+  8-3-changelog-release-automation: ready-for-dev
   8-4-changelog-page: backlog
   8-5-programmatic-seo-page-generation: backlog
   epic-8-retrospective: optional
