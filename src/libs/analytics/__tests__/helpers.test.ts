@@ -10,11 +10,14 @@ import {
   trackError,
   trackFeatureFirstUse,
   trackFeedbackSubmitted,
+  trackLandingViewed,
   trackLoginCompleted,
   trackOnboardingCompleted,
   trackOnboardingStepCompleted,
   trackProfileUpdated,
+  trackReferredSignup,
   trackSignupCompleted,
+  trackUserActivated,
 } from '../helpers';
 
 vi.mock('../client');
@@ -172,6 +175,83 @@ describe('Event Helper Functions', () => {
         'profile_updated',
         expect.objectContaining({
           fields_updated: ['name', 'avatar'],
+        }),
+      );
+    });
+  });
+
+  describe('trackLandingViewed', () => {
+    it('tracks landing view with all properties', () => {
+      trackLandingViewed({
+        page_url: 'https://example.com',
+        locale: 'en',
+        referrer: 'https://google.com',
+        utm_source: 'google',
+        utm_medium: 'cpc',
+      });
+
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'landing_viewed',
+        expect.objectContaining({
+          page_url: 'https://example.com',
+          locale: 'en',
+          referrer: 'https://google.com',
+          utm_source: 'google',
+          utm_medium: 'cpc',
+        }),
+      );
+    });
+
+    it('tracks landing view with minimal properties', () => {
+      trackLandingViewed({
+        page_url: 'https://example.com',
+        locale: 'en',
+      });
+
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'landing_viewed',
+        expect.objectContaining({
+          page_url: 'https://example.com',
+          locale: 'en',
+        }),
+      );
+    });
+  });
+
+  describe('trackUserActivated', () => {
+    it('tracks user activation with trigger and time', () => {
+      trackUserActivated('feedback_submitted', 120);
+
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'user_activated',
+        expect.objectContaining({
+          activation_trigger: 'feedback_submitted',
+          activation_time_seconds: 120,
+        }),
+      );
+    });
+  });
+
+  describe('trackReferredSignup', () => {
+    it('tracks referred signup with source only', () => {
+      trackReferredSignup('friend123');
+
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'referred_signup',
+        expect.objectContaining({
+          referral_source: 'friend123',
+        }),
+      );
+    });
+
+    it('tracks referred signup with source and user ID', () => {
+      trackReferredSignup('utm_social', 'user-456');
+
+      expect(mockProvider.track).toHaveBeenCalledWith(
+        'referred_signup',
+        expect.objectContaining({
+          referral_source: 'utm_social',
+          referrer_user_id: 'user-456',
         }),
       );
     });

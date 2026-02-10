@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
+import { SignupCompletedTracker } from '@/components/analytics/SignupCompletedTracker';
 import { OnboardingFeatureTour } from '@/components/onboarding/OnboardingFeatureTour';
 import { OnboardingPreferences } from '@/components/onboarding/OnboardingPreferences';
 import { OnboardingUsername } from '@/components/onboarding/OnboardingUsername';
@@ -66,17 +67,40 @@ export default async function OnboardingPage({ searchParams }: Props) {
     isNewUser: !preferences,
   };
 
+  // Determine signup method from user app_metadata
+  // Supabase stores provider info in app_metadata.provider
+  const signupMethod = user.app_metadata?.provider === 'google'
+    ? 'google'
+    : user.app_metadata?.provider === 'github'
+      ? 'github'
+      : 'email';
+
   // Validate step (1-3 only)
   const validStep = Math.min(Math.max(step, 1), 3);
 
   // Render appropriate component with initial data
   switch (validStep) {
     case 3:
-      return <OnboardingPreferences initialData={initialData} />;
+      return (
+        <>
+          <SignupCompletedTracker method={signupMethod} isNewUser={initialData.isNewUser} />
+          <OnboardingPreferences initialData={initialData} />
+        </>
+      );
     case 2:
-      return <OnboardingFeatureTour />;
+      return (
+        <>
+          <SignupCompletedTracker method={signupMethod} isNewUser={initialData.isNewUser} />
+          <OnboardingFeatureTour />
+        </>
+      );
     case 1:
     default:
-      return <OnboardingUsername initialData={initialData} />;
+      return (
+        <>
+          <SignupCompletedTracker method={signupMethod} isNewUser={initialData.isNewUser} />
+          <OnboardingUsername initialData={initialData} />
+        </>
+      );
   }
 }

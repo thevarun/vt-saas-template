@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { trackFeatureFirstUse, trackProfileUpdated } from '@/libs/analytics';
+import { trackActivation } from '@/libs/analytics/activation';
 import { createClient } from '@/libs/supabase/client';
 
 const createProfileSchema = (t: ReturnType<typeof useTranslations<'UserProfile'>>) =>
@@ -41,6 +42,7 @@ export default function UserProfilePage() {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [originalData, setOriginalData] = useState<{ username: string; displayName: string }>({ username: '', displayName: '' });
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
   const profileSchema = createProfileSchema(t);
   type ProfileFormData = z.infer<typeof profileSchema>;
@@ -73,6 +75,11 @@ export default function UserProfilePage() {
 
         // Store original data for tracking changes
         setOriginalData({ username, displayName });
+
+        // Store user created_at for activation tracking
+        if (user.created_at) {
+          setUserCreatedAt(user.created_at);
+        }
       }
 
       setLoading(false);
@@ -159,6 +166,15 @@ export default function UserProfilePage() {
           trackProfileUpdated(fieldsUpdated);
         } catch (error) {
           console.error('[UserProfile] Failed to track profile update:', error);
+        }
+
+        // Track user activation if criteria met
+        if (userCreatedAt) {
+          try {
+            trackActivation('profile_updated', userCreatedAt);
+          } catch (error) {
+            console.error('[UserProfile] Failed to track activation:', error);
+          }
         }
       }
 

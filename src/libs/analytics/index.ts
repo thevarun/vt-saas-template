@@ -117,11 +117,23 @@ export {
   trackError,
   trackFeatureFirstUse,
   trackFeedbackSubmitted,
+  trackLandingViewed,
   trackLoginCompleted,
   trackOnboardingCompleted,
   trackOnboardingStepCompleted,
   trackProfileUpdated,
+  trackReferredSignup,
   trackSignupCompleted,
+  trackUserActivated,
 } from './helpers';
+
+// Re-export referral utilities
+export {
+  captureReferralParams,
+  clearReferralInfo,
+  extractUtmParams,
+  getReferralInfo,
+} from './referral';
+
 // Re-export types
 export type { EventProperties, UserProperties } from './types';

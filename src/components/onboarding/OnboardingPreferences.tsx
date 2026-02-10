@@ -19,6 +19,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { trackOnboardingCompleted, trackOnboardingStepCompleted } from '@/libs/analytics';
+import { markOnboardingCompleted } from '@/libs/analytics/activation';
 
 import { ProgressIndicator } from './ProgressIndicator';
 
@@ -97,6 +98,13 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
         trackOnboardingCompleted(3, durationSeconds);
       } catch (error) {
         console.error('[OnboardingPreferences] Failed to track onboarding completion:', error);
+      }
+
+      // Mark onboarding as completed for activation tracking
+      try {
+        markOnboardingCompleted();
+      } catch (error) {
+        console.error('[OnboardingPreferences] Failed to mark onboarding completed:', error);
       }
 
       // Clean up onboarding start time

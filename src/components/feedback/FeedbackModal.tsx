@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { trackFeatureFirstUse, trackFeedbackSubmitted } from '@/libs/analytics';
+import { trackActivation } from '@/libs/analytics/activation';
 import { createClient } from '@/libs/supabase/client';
 import { cn } from '@/utils/Helpers';
 
@@ -37,6 +38,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
   // Check authentication status when modal opens and track first use
   useEffect(() => {
@@ -47,6 +49,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           const supabase = createClient();
           const { data: { user } } = await supabase.auth.getUser();
           setIsAuthenticated(!!user);
+          if (user?.created_at) {
+            setUserCreatedAt(user.created_at);
+          }
         } catch (err) {
           console.error('[FeedbackModal] Auth check failed:', err);
           setIsAuthenticated(false);
@@ -139,6 +144,15 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         );
       } catch (error) {
         console.error('[FeedbackModal] Failed to track feedback submission:', error);
+      }
+
+      // Track user activation if criteria met
+      if (userCreatedAt) {
+        try {
+          trackActivation('feedback_submitted', userCreatedAt);
+        } catch (error) {
+          console.error('[FeedbackModal] Failed to track activation:', error);
+        }
       }
 
       setIsLoading(false);

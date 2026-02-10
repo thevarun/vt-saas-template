@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
+import { LandingPageTracker } from '@/components/analytics/LandingPageTracker';
 import { CTA } from '@/templates/CTA';
 import { FAQ } from '@/templates/FAQ';
 import { Features } from '@/templates/Features';
@@ -30,6 +31,7 @@ const IndexPage = async (props: { params: Promise<{ locale: string }> }) => {
   // Landing page is statically generated for fast load times and SEO
   return (
     <>
+      <LandingPageTracker />
       <Navbar />
       <Hero />
       <Features />

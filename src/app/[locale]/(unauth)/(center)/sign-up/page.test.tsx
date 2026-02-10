@@ -13,6 +13,11 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'en' }),
 }));
 
+// Mock analytics
+vi.mock('@/libs/analytics', () => ({
+  trackEvent: vi.fn(),
+}));
+
 // Mock Supabase client
 const mockSignUp = vi.fn();
 vi.mock('@/libs/supabase/client', () => ({

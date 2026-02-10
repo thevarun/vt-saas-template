@@ -162,3 +162,69 @@ export function trackProfileUpdated(fieldsUpdated: string[]): void {
     fields_updated: fieldsUpdated,
   });
 }
+
+/**
+ * Track landing page view
+ *
+ * @param properties - Landing view properties
+ *
+ * @example
+ * ```tsx
+ * trackLandingViewed({
+ *   page_url: window.location.href,
+ *   locale: 'en',
+ *   referrer: document.referrer,
+ *   utm_source: 'google',
+ *   utm_medium: 'cpc'
+ * })
+ * ```
+ */
+export function trackLandingViewed(
+  properties: EventPropertiesMap['landing_viewed'],
+): void {
+  trackEvent('landing_viewed', properties);
+}
+
+/**
+ * Track user activation
+ *
+ * @param activationTrigger - What action triggered activation
+ * @param activationTimeSeconds - Time from signup to activation (in seconds)
+ *
+ * @example
+ * ```tsx
+ * trackUserActivated('feedback_submitted', 120)
+ * trackUserActivated('onboarding_completed', 60)
+ * ```
+ */
+export function trackUserActivated(
+  activationTrigger: string,
+  activationTimeSeconds: number,
+): void {
+  trackEvent('user_activated', {
+    activation_trigger: activationTrigger,
+    activation_time_seconds: activationTimeSeconds,
+  });
+}
+
+/**
+ * Track referred signup
+ *
+ * @param referralSource - Referral source identifier
+ * @param referrerUserId - Optional ID of referring user
+ *
+ * @example
+ * ```tsx
+ * trackReferredSignup('friend123')
+ * trackReferredSignup('utm_social', 'user-456')
+ * ```
+ */
+export function trackReferredSignup(
+  referralSource: string,
+  referrerUserId?: string,
+): void {
+  trackEvent('referred_signup', {
+    referral_source: referralSource,
+    referrer_user_id: referrerUserId,
+  });
+}

@@ -23,6 +23,7 @@ export type EventName
     | 'signup_completed'
     | 'login_completed'
     | 'logout_completed'
+    | 'referred_signup'
   // Onboarding events
     | 'onboarding_started'
     | 'onboarding_step_completed'
@@ -32,10 +33,12 @@ export type EventName
     | 'feedback_submitted'
     | 'profile_updated'
     | 'feature_first_use'
+    | 'user_activated'
   // Error events
     | 'error_occurred'
   // Page events
-    | 'page_viewed';
+    | 'page_viewed'
+    | 'landing_viewed';
 
 /**
  * Properties for signup_completed event
@@ -108,6 +111,37 @@ export type PageViewedProperties = {
 };
 
 /**
+ * Properties for landing_viewed event
+ */
+export type LandingViewedProperties = {
+  page_url: string;
+  locale: string;
+  referrer?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  ref?: string;
+};
+
+/**
+ * Properties for user_activated event
+ */
+export type UserActivatedProperties = {
+  activation_time_seconds: number;
+  activation_trigger: string;
+};
+
+/**
+ * Properties for referred_signup event
+ */
+export type ReferredSignupProperties = {
+  referral_source: string;
+  referrer_user_id?: string;
+};
+
+/**
  * Type mapping from event names to their property types
  * This enables type-safe event tracking with TypeScript generics
  */
@@ -116,6 +150,7 @@ export type EventPropertiesMap = {
   signup_completed: SignupCompletedProperties;
   login_completed: LoginCompletedProperties;
   logout_completed: Record<string, never>;
+  referred_signup: ReferredSignupProperties;
   onboarding_started: Record<string, never>;
   onboarding_step_completed: OnboardingStepCompletedProperties;
   onboarding_completed: OnboardingCompletedProperties;
@@ -123,8 +158,10 @@ export type EventPropertiesMap = {
   feedback_submitted: FeedbackSubmittedProperties;
   profile_updated: ProfileUpdatedProperties;
   feature_first_use: FeatureFirstUseProperties;
+  user_activated: UserActivatedProperties;
   error_occurred: ErrorOccurredProperties;
   page_viewed: PageViewedProperties;
+  landing_viewed: LandingViewedProperties;
 };
 
 /**
@@ -136,6 +173,7 @@ export const EVENT_CATEGORIES: Record<EventName, EventCategory> = {
   signup_completed: EventCategory.Auth,
   login_completed: EventCategory.Auth,
   logout_completed: EventCategory.Auth,
+  referred_signup: EventCategory.Auth,
   onboarding_started: EventCategory.Onboarding,
   onboarding_step_completed: EventCategory.Onboarding,
   onboarding_completed: EventCategory.Onboarding,
@@ -143,6 +181,8 @@ export const EVENT_CATEGORIES: Record<EventName, EventCategory> = {
   feedback_submitted: EventCategory.Feature,
   profile_updated: EventCategory.Feature,
   feature_first_use: EventCategory.Feature,
+  user_activated: EventCategory.Feature,
   error_occurred: EventCategory.Error,
   page_viewed: EventCategory.Page,
+  landing_viewed: EventCategory.Page,
 };
