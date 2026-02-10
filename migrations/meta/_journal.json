@@ -43,6 +43,13 @@
       "when": 1770003556485,
       "tag": "0005_awesome_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770605393149,
+      "tag": "0006_famous_omega_red",
+      "breakpoints": true
     }
   ]
 }

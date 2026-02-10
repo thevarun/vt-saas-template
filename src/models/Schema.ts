@@ -11,6 +11,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgSchema,
@@ -146,5 +147,34 @@ export const feedback = healthCompanionSchema.table(
     statusIdx: index('idx_feedback_status').on(table.status),
     createdAtIdx: index('idx_feedback_created_at').on(table.createdAt),
     statusCreatedIdx: index('idx_feedback_status_created').on(table.status, table.createdAt),
+  }),
+);
+
+// Shareable links table for private share URLs
+export const shareableLinks = healthCompanionSchema.table(
+  'shareable_links',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    token: text('token').notNull().unique(), // crypto.randomUUID() or nanoid
+    resourceType: text('resource_type').notNull(), // e.g., 'report', 'document'
+    resourceId: uuid('resource_id').notNull(),
+    createdBy: uuid('created_by').notNull(), // Supabase user ID
+    expiresAt: timestamp('expires_at', { withTimezone: true }), // null = never
+    accessCount: integer('access_count').default(0).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    tokenIdx: index('idx_shareable_links_token').on(table.token),
+    createdByIdx: index('idx_shareable_links_created_by').on(table.createdBy),
+    resourceIdx: index('idx_shareable_links_resource').on(
+      table.resourceType,
+      table.resourceId,
+    ),
   }),
 );
