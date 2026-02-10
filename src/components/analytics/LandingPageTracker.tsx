@@ -30,15 +30,19 @@ export function LandingPageTracker() {
     // Extract UTM parameters if present
     const utmParams = extractUtmParams();
 
-    // Get ref parameter for landing event
+    // Get ref parameter for landing event (sanitized via extractUtmParams, but capture raw for display)
     const refParam = searchParams.get('ref') || searchParams.get('referrer');
+    // Sanitize ref parameter (limit length and remove dangerous characters)
+    const sanitizedRef = refParam
+      ? refParam.replace(/[<>'"]/g, '').substring(0, 100).trim()
+      : undefined;
 
     // Track landing view
     trackLandingViewed({
       page_url: window.location.href,
       locale,
       referrer: document.referrer || undefined,
-      ref: refParam || undefined,
+      ref: sanitizedRef,
       ...utmParams,
     });
 

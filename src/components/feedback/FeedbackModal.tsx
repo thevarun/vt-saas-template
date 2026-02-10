@@ -138,8 +138,10 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
 
       // Success - Track feedback submission
       try {
+        // Map 'praise' to 'general' for analytics (database uses 'praise', analytics uses 'general')
+        const analyticsType = feedbackType === 'praise' ? 'general' : feedbackType;
         trackFeedbackSubmitted(
-          feedbackType as 'bug' | 'feature' | 'general',
+          analyticsType,
           false, // No screenshot support in current implementation
         );
       } catch (error) {
