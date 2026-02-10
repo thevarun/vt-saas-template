@@ -9,6 +9,11 @@ export const Env = createEnv({
     // Dify (AI chat) - Optional to allow graceful degradation
     DIFY_API_KEY: z.string().optional(),
     DIFY_API_URL: z.string().url().optional(),
+    // Vercel AI SDK - Optional to allow graceful degradation
+    OPENAI_API_KEY: z.string().optional(),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    AI_PROVIDER: z.enum(['openai', 'anthropic']).default('openai'),
+    DEFAULT_AI_MODEL: z.string().default('gpt-4o-mini'),
     // Email (Resend)
     RESEND_API_KEY: z.string().optional(), // Optional for dev mode (console logging)
     EMAIL_FROM_ADDRESS: z.string().email().default('noreply@example.com'),
@@ -30,6 +35,10 @@ export const Env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     DIFY_API_KEY: process.env.DIFY_API_KEY,
     DIFY_API_URL: process.env.DIFY_API_URL,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    AI_PROVIDER: process.env.AI_PROVIDER,
+    DEFAULT_AI_MODEL: process.env.DEFAULT_AI_MODEL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
     EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
