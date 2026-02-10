@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BarChart3,
   LayoutDashboard,
   Mail,
   MessageSquareText,
@@ -56,6 +57,7 @@ export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }:
       group: t('nav.overview'),
       items: [
         { label: t('nav.dashboard'), href: '/admin', icon: LayoutDashboard },
+        { label: t('nav.analytics'), href: '/admin/analytics', icon: BarChart3 },
       ],
     },
     {

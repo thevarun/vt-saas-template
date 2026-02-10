@@ -7,6 +7,7 @@
     "nav": {
       "overview": "अवलोकन",
       "dashboard": "डैशबोर्ड",
+      "analytics": "विश्लेषण",
       "management": "प्रबंधन",
       "users": "उपयोगकर्ता",
       "feedback": "प्रतिक्रिया",
@@ -47,6 +48,32 @@
         "previous": "पिछला",
         "next": "अगला",
         "pageOf": "पृष्ठ {current} का {total}"
+      }
+    },
+    "Analytics": {
+      "title": "विश्लेषण डैशबोर्ड",
+      "description": "प्रमुख व्यावसायिक मेट्रिक्स और उपयोगकर्ता गतिविधि की निगरानी करें",
+      "metrics": {
+        "totalUsers": "कुल उपयोगकर्ता",
+        "signups7d": "साइनअप (7 दिन)",
+        "signups30d": "साइनअप (30 दिन)",
+        "activeUsers7d": "सक्रिय उपयोगकर्ता (7 दिन)",
+        "activationRate": "सक्रियण दर"
+      },
+      "chart": {
+        "signupsOverTime": "समय के साथ साइनअप",
+        "last30Days": "पिछले 30 दिन"
+      },
+      "completionRates": {
+        "title": "पूर्णता दर",
+        "onboardingCompletion": "ऑनबोर्डिंग पूर्णता",
+        "activationRate": "सक्रियण दर",
+        "feedbackSubmitted": "फीडबैक सबमिट किया गया"
+      },
+      "trends": {
+        "vsLast7d": "पिछले 7 दिनों की तुलना में",
+        "vsLast30d": "पिछले 30 दिनों की तुलना में",
+        "noChange": "कोई बदलाव नहीं"
       }
     },
     "Email": {

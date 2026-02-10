@@ -7,6 +7,7 @@
     "nav": {
       "overview": "সংক্ষিপ্ত বিবরণ",
       "dashboard": "ড্যাশবোর্ড",
+      "analytics": "বিশ্লেষণ",
       "management": "ব্যবস্থাপনা",
       "users": "ব্যবহারকারী",
       "feedback": "প্রতিক্রিয়া",
@@ -47,6 +48,32 @@
         "previous": "আগের",
         "next": "পরবর্তী",
         "pageOf": "পৃষ্ঠা {current} এর {total}"
+      }
+    },
+    "Analytics": {
+      "title": "বিশ্লেষণ ড্যাশবোর্ড",
+      "description": "মূল ব্যবসায়িক মেট্রিক্স এবং ব্যবহারকারী কার্যকলাপ নিরীক্ষণ করুন",
+      "metrics": {
+        "totalUsers": "মোট ব্যবহারকারী",
+        "signups7d": "সাইনআপ (৭ দিন)",
+        "signups30d": "সাইনআপ (৩০ দিন)",
+        "activeUsers7d": "সক্রিয় ব্যবহারকারী (৭ দিন)",
+        "activationRate": "সক্রিয়করণ হার"
+      },
+      "chart": {
+        "signupsOverTime": "সময়ের সাথে সাইনআপ",
+        "last30Days": "গত ৩০ দিন"
+      },
+      "completionRates": {
+        "title": "সমাপ্তি হার",
+        "onboardingCompletion": "অনবোর্ডিং সমাপ্তি",
+        "activationRate": "সক্রিয়করণ হার",
+        "feedbackSubmitted": "প্রতিক্রিয়া জমা দেওয়া হয়েছে"
+      },
+      "trends": {
+        "vsLast7d": "গত ৭ দিনের তুলনায়",
+        "vsLast30d": "গত ৩০ দিনের তুলনায়",
+        "noChange": "কোন পরিবর্তন নেই"
       }
     },
     "Email": {
