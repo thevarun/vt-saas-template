@@ -132,8 +132,8 @@ development_status:
 
   # Epic 10: AI Chat Module (Dual Implementation)
   epic-10: in-progress
-  10-1-rename-existing-chat-route: ready-for-dev
-  10-2-clean-up-dify-chat-code: backlog
+  10-1-rename-existing-chat-route: done
+  10-2-clean-up-dify-chat-code: ready-for-dev
   10-3-database-schema-consolidation: backlog
   10-4-vercel-ai-sdk-chat-api: backlog
   10-5-langfuse-integration: backlog
