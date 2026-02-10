@@ -34,6 +34,12 @@ import {
 
 /**
  * Parse SSE event data from chunk
+ *
+ * Extracts JSON data from Server-Sent Events (SSE) format.
+ * SSE format: "data: {json}\n\n"
+ *
+ * @param chunk Raw SSE chunk string
+ * @returns Parsed JSON object or null if parsing fails
  */
 function parseSSEEvent(chunk: string): Record<string, any> | null {
   try {
@@ -52,6 +58,7 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
 
 /**
  * Create or update thread after receiving Dify response
+ *
  * AC #2: Thread auto-created in database after first Dify response
  * AC #3: Thread creation happens asynchronously (doesn't block chat response)
  * AC #4: Thread updated_at timestamp updates on new messages
@@ -59,6 +66,11 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
  * AC #6: Duplicate conversation_id handled gracefully
  *
  * Uses Supabase client for RLS enforcement - user can only access their own threads
+ *
+ * @param supabase Supabase client instance (with user context for RLS)
+ * @param userId User ID who owns the thread
+ * @param conversationId Dify conversation ID
+ * @param messageText Last message text for preview generation
  */
 async function createOrUpdateThread(
   supabase: SupabaseClient,

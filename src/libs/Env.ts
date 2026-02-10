@@ -6,8 +6,9 @@ export const Env = createEnv({
     DATABASE_URL: z.string().optional(),
     LOGTAIL_SOURCE_TOKEN: z.string().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-    DIFY_API_KEY: z.string().min(1),
-    DIFY_API_URL: z.string().url(),
+    // Dify (AI chat) - Optional to allow graceful degradation
+    DIFY_API_KEY: z.string().optional(),
+    DIFY_API_URL: z.string().url().optional(),
     // Email (Resend)
     RESEND_API_KEY: z.string().optional(), // Optional for dev mode (console logging)
     EMAIL_FROM_ADDRESS: z.string().email().default('noreply@example.com'),

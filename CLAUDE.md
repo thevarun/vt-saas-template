@@ -125,9 +125,10 @@ sendEmailAsync(
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-# Dify API (Server-side only)
+# Dify API (Server-side only) - Optional
+# If not configured, chat page shows setup message (graceful degradation)
 DIFY_API_URL=           # e.g., https://api.dify.ai/v1
-DIFY_API_KEY=           # Keep in .env.local
+DIFY_API_KEY=           # Get from https://dify.ai - Keep in .env.local
 
 # Database
 DATABASE_URL=           # PostgreSQL connection string
