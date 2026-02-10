@@ -137,8 +137,8 @@ development_status:
   10-3-database-schema-consolidation: done
   10-4-vercel-ai-sdk-chat-api: done
   10-5-langfuse-integration: done
-  10-6-mem0-memory-integration: ready-for-dev
-  10-7-vercel-chat-ui: backlog
+  10-6-mem0-memory-integration: done
+  10-7-vercel-chat-ui: ready-for-dev
   10-8-conversation-management-api: backlog
   10-9-navigation-and-showcase-update: backlog
   10-10-document-sse-streaming-patterns: backlog
