@@ -108,7 +108,7 @@ development_status:
   7-1-internationalization-seo-hreflang: done
   7-2-open-graph-and-twitter-card-metadata: done
   7-3-robotstxt-and-sitemap-configuration: done
-  7-4-dynamic-open-graph-images: backlog
+  7-4-dynamic-open-graph-images: ready-for-dev
   epic-7-retrospective: optional
 
   # Epic 8: Go-To-Market Features

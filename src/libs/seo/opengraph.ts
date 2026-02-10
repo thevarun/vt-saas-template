@@ -8,7 +8,7 @@
 import type { Metadata } from 'next';
 
 import { getSiteUrl } from './config';
-import { DEFAULT_OG_IMAGE, SITE_NAME } from './constants';
+import { OG_IMAGE_ENDPOINT, SITE_NAME } from './constants';
 
 /**
  * Parameters for social metadata generation
@@ -42,8 +42,18 @@ export type SocialMetadataParams = {
 export function generateOpenGraphMetadata(
   params: SocialMetadataParams,
 ): Metadata['openGraph'] {
-  const { title, description, image = DEFAULT_OG_IMAGE, path = '' } = params;
+  const { title, description, image, path = '' } = params;
   const siteUrl = getSiteUrl();
+
+  // Use provided image, or generate dynamic OG image, or fallback to static
+  let imageUrl: string;
+  if (image) {
+    // Custom image provided - use it as-is
+    imageUrl = `${siteUrl}${image}`;
+  } else {
+    // No custom image - use dynamic OG image generation
+    imageUrl = buildOgImageUrl({ title, description });
+  }
 
   return {
     type: 'website',
@@ -53,7 +63,7 @@ export function generateOpenGraphMetadata(
     url: `${siteUrl}${path}`,
     images: [
       {
-        url: `${siteUrl}${image}`,
+        url: imageUrl,
         width: 1200,
         height: 630,
         alt: title,
@@ -79,14 +89,24 @@ export function generateOpenGraphMetadata(
 export function generateTwitterMetadata(
   params: SocialMetadataParams,
 ): Metadata['twitter'] {
-  const { title, description, image = DEFAULT_OG_IMAGE } = params;
+  const { title, description, image } = params;
   const siteUrl = getSiteUrl();
+
+  // Use provided image, or generate dynamic OG image, or fallback to static
+  let imageUrl: string;
+  if (image) {
+    // Custom image provided - use it as-is
+    imageUrl = `${siteUrl}${image}`;
+  } else {
+    // No custom image - use dynamic OG image generation
+    imageUrl = buildOgImageUrl({ title, description });
+  }
 
   return {
     card: 'summary_large_image',
     title,
     description,
-    images: [`${siteUrl}${image}`],
+    images: [imageUrl],
   };
 }
 
@@ -122,4 +142,59 @@ export function generateSocialMetadata(
     openGraph: generateOpenGraphMetadata(params),
     twitter: generateTwitterMetadata(params),
   };
+}
+
+/**
+ * Parameters for dynamic OG image generation
+ */
+export type OgImageOptions = {
+  /** Optional page title to display in the image */
+  title?: string;
+  /** Optional page description to display in the image */
+  description?: string;
+};
+
+/**
+ * Build absolute URL for dynamic Open Graph image generation
+ *
+ * Constructs a URL to the dynamic OG image endpoint with query parameters.
+ * The endpoint will generate a custom OG image based on the provided title
+ * and description.
+ *
+ * @param options - Title and description for the image
+ * @returns Absolute URL to OG image endpoint with query params
+ *
+ * @example
+ * ```typescript
+ * // Generate default OG image
+ * const url = buildOgImageUrl();
+ * // => https://example.com/api/og
+ *
+ * // Generate OG image with title
+ * const url = buildOgImageUrl({ title: 'Dashboard' });
+ * // => https://example.com/api/og?title=Dashboard
+ *
+ * // Generate OG image with title and description
+ * const url = buildOgImageUrl({
+ *   title: 'User Dashboard',
+ *   description: 'View your analytics and stats'
+ * });
+ * // => https://example.com/api/og?title=User+Dashboard&description=View+your+analytics+and+stats
+ * ```
+ */
+export function buildOgImageUrl(options: OgImageOptions = {}): string {
+  const siteUrl = getSiteUrl();
+  const params = new URLSearchParams();
+
+  // Only add params if they have non-empty values
+  if (options.title && options.title.trim()) {
+    params.set('title', options.title);
+  }
+
+  if (options.description && options.description.trim()) {
+    params.set('description', options.description);
+  }
+
+  const queryString = params.toString();
+  return `${siteUrl}${OG_IMAGE_ENDPOINT}${queryString ? `?${queryString}` : ''}`;
 }

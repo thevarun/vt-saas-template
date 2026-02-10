@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as config from './config';
 import {
+  buildOgImageUrl,
   generateOpenGraphMetadata,
   generateSocialMetadata,
   generateTwitterMetadata,
@@ -55,7 +56,7 @@ describe('generateOpenGraphMetadata', () => {
     expect(og?.siteName).toBe('VT SaaS Template');
   });
 
-  it('uses absolute URL for images', () => {
+  it('uses dynamic OG image by default', () => {
     const og = generateOpenGraphMetadata({
       title: 'Test',
       description: 'Test',
@@ -64,7 +65,10 @@ describe('generateOpenGraphMetadata', () => {
     if (og && Array.isArray(og.images)) {
       const firstImage = og.images[0];
       if (firstImage && typeof firstImage === 'object' && 'url' in firstImage) {
-        expect(firstImage.url).toBe('https://example.com/og-image.png');
+        // Should use dynamic OG image endpoint with title and description
+        expect(firstImage.url).toContain('/api/og');
+        expect(firstImage.url).toContain('title=Test');
+        expect(firstImage.url).toContain('description=Test');
       }
     }
   });
@@ -164,14 +168,17 @@ describe('generateTwitterMetadata', () => {
     });
   });
 
-  it('uses absolute URL for images', () => {
+  it('uses dynamic OG image by default', () => {
     const twitter = generateTwitterMetadata({
       title: 'Test',
       description: 'Test',
     });
 
     if (twitter && Array.isArray(twitter.images)) {
-      expect(twitter.images[0]).toBe('https://example.com/og-image.png');
+      // Should use dynamic OG image endpoint with title and description
+      expect(twitter.images[0]).toContain('/api/og');
+      expect(twitter.images[0]).toContain('title=Test');
+      expect(twitter.images[0]).toContain('description=Test');
     }
   });
 
@@ -187,14 +194,15 @@ describe('generateTwitterMetadata', () => {
     }
   });
 
-  it('uses default image when not provided', () => {
+  it('uses dynamic image when not provided', () => {
     const twitter = generateTwitterMetadata({
       title: 'Test',
       description: 'Test',
     });
 
     if (twitter && Array.isArray(twitter.images)) {
-      expect(twitter.images[0]).toBe('https://example.com/og-image.png');
+      // Should use dynamic OG image endpoint
+      expect(twitter.images[0]).toContain('/api/og');
     }
   });
 });
@@ -261,5 +269,66 @@ describe('generateSocialMetadata', () => {
     });
 
     expect(metadata.openGraph?.url).toBe('https://example.com/blog');
+  });
+});
+
+describe('buildOgImageUrl', () => {
+  beforeEach(() => {
+    vi.spyOn(config, 'getSiteUrl').mockReturnValue('https://example.com');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns base URL without params', () => {
+    const url = buildOgImageUrl();
+
+    expect(url).toBe('https://example.com/api/og');
+  });
+
+  it('includes title param', () => {
+    const url = buildOgImageUrl({ title: 'Dashboard' });
+
+    expect(url).toBe('https://example.com/api/og?title=Dashboard');
+  });
+
+  it('includes description param', () => {
+    const url = buildOgImageUrl({ description: 'User dashboard' });
+
+    expect(url).toBe('https://example.com/api/og?description=User+dashboard');
+  });
+
+  it('includes title and description params', () => {
+    const url = buildOgImageUrl({
+      title: 'Dashboard',
+      description: 'User dashboard',
+    });
+
+    expect(url).toContain('title=Dashboard');
+    expect(url).toContain('description=User+dashboard');
+  });
+
+  it('URL encodes special characters', () => {
+    const url = buildOgImageUrl({ title: 'Hello & Welcome!' });
+
+    expect(url).toContain('Hello+%26+Welcome%21');
+  });
+
+  it('handles empty strings', () => {
+    const url = buildOgImageUrl({ title: '', description: '' });
+
+    expect(url).toBe('https://example.com/api/og');
+  });
+
+  it('handles Unicode characters', () => {
+    const url = buildOgImageUrl({ title: 'नमस्ते 🙏' });
+
+    expect(url).toContain('api/og?title=');
+
+    // URLSearchParams encodes spaces as +, which becomes + in decoded URL, not space
+    const decoded = decodeURIComponent(url).replace(/\+/g, ' ');
+
+    expect(decoded).toContain('नमस्ते 🙏');
   });
 });

@@ -74,7 +74,14 @@ The project includes:
   - Page-specific overrides via `generateMetadata()` function
   - Utilities: `src/libs/seo/opengraph.ts`
   - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
-  - Default OG image: `public/og-image.png` (1200x630)
+  - Default OG image: `public/og-image.png` (1200x630, static fallback)
+- **Dynamic OG Images**: Edge-generated images at `/api/og` (`src/app/api/og/route.tsx`)
+  - Runs on Vercel Edge Runtime for fast worldwide generation
+  - Query params: `?title=Page+Title&description=Page+Description`
+  - Auto-used by `generateSocialMetadata()` when no custom image provided
+  - Brand colors and Inter font, 1200x630 PNG output
+  - Fallback: returns static `/og-image.png` on generation failure
+  - Helper: `buildOgImageUrl()` from `src/libs/seo/opengraph.ts`
 - **Robots.txt**: Configures search engine crawling rules (`src/app/robots.ts`)
   - Allows all public pages by default (`Allow: /`)
   - Disallows: `/dashboard`, `/admin`, `/api`, `/onboarding`, `/chat`, `/sign-out`, `/design-system`
