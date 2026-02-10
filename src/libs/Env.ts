@@ -19,6 +19,10 @@ export const Env = createEnv({
     EMAIL_FROM_ADDRESS: z.string().email().default('noreply@example.com'),
     EMAIL_FROM_NAME: z.string().default('VT SaaS Template'),
     EMAIL_REPLY_TO: z.string().email().optional(),
+    // LangFuse (LLM observability) - Optional to allow graceful degradation
+    LANGFUSE_PUBLIC_KEY: z.string().optional(),
+    LANGFUSE_SECRET_KEY: z.string().optional(),
+    LANGFUSE_HOST: z.string().url().default('https://cloud.langfuse.com'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -43,6 +47,9 @@ export const Env = createEnv({
     EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
     EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
     EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO,
+    LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY,
+    LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY,
+    LANGFUSE_HOST: process.env.LANGFUSE_HOST,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

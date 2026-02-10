@@ -201,9 +201,24 @@ export async function POST(request: NextRequest): Promise<Response> {
     ];
 
     // AC #1 & #7: Stream text using Vercel AI SDK
+    // LangFuse Tracing: experimental_telemetry enables automatic tracing via OpenTelemetry
+    // When LangFuse is configured (via instrumentation.ts), this captures:
+    // - Input messages and output completions
+    // - Token usage (prompt + completion + total)
+    // - Latency metrics (request duration)
+    // - Model metadata
+    // - User ID and session ID (added via metadata)
     const result = streamText({
       model,
       messages,
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: 'vercel-chat-stream',
+        metadata: {
+          userId: user.id,
+          conversationId: activeConversationId,
+        },
+      },
     });
 
     // AC #7: Convert to SSE response with proper headers
