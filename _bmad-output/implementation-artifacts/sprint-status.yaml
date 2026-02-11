@@ -142,6 +142,6 @@ development_status:
   10-8-conversation-management-api: done
   10-9-navigation-and-showcase-update: done
   10-10-document-sse-streaming-patterns: done
-  10-11-document-api-proxy-pattern: ready-for-dev
+  10-11-document-api-proxy-pattern: done
   10-12-feature-removal-guides: backlog
   epic-10-retrospective: optional
