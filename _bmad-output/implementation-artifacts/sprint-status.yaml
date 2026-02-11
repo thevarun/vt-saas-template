@@ -139,7 +139,7 @@ development_status:
   10-5-langfuse-integration: done
   10-6-mem0-memory-integration: done
   10-7-vercel-chat-ui: done
-  10-8-conversation-management-api: ready-for-dev
+  10-8-conversation-management-api: done
   10-9-navigation-and-showcase-update: backlog
   10-10-document-sse-streaming-patterns: backlog
   10-11-document-api-proxy-pattern: backlog
