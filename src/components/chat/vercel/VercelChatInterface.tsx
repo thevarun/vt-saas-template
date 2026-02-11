@@ -16,6 +16,9 @@ type VercelChatInterfaceProps = {
  * VercelChatInterface Component - Internal Implementation
  * Chat interface using Vercel AI SDK with Assistant UI
  *
+ * SSE Consumption Pattern: Vercel AI SDK useChatRuntime hook
+ * See: docs/patterns/sse-streaming.md for full documentation
+ *
  * Key differences from Dify implementation:
  * - Uses useChatRuntime from @assistant-ui/react-ai-sdk (built-in streaming support)
  * - Uses AssistantChatTransport for custom API endpoint
@@ -33,7 +36,9 @@ type VercelChatInterfaceProps = {
  */
 function VercelChatInterfaceInner({ conversationId }: VercelChatInterfaceProps = {}) {
   // AC #1, #2, #4: useChatRuntime with AssistantChatTransport
-  // This provides built-in streaming, state management, and error handling
+  // This hook automatically handles SSE stream parsing and state updates
+  // Messages are streamed token-by-token from the server via SSE
+  // See: docs/patterns/sse-streaming.md#vercel-ai-sdk-usechat-hook
   const runtime = useChatRuntime({
     id: conversationId,
     transport: new AssistantChatTransport({

@@ -32,6 +32,9 @@ import type { VercelChatRequest } from '@/libs/vercel-ai/types';
  * Streaming chat API endpoint using Vercel AI SDK.
  * This is an alternative to the Dify implementation at /api/chat.
  *
+ * SSE Streaming Pattern: Vercel AI SDK integration
+ * See: docs/patterns/sse-streaming.md for full documentation
+ *
  * Security Model:
  * - All AI provider API keys stay server-side only (never exposed to client)
  * - Session validation via Supabase Auth
@@ -66,6 +69,7 @@ import type { VercelChatRequest } from '@/libs/vercel-ai/types';
  * - /chat/vercel - Frontend UI (Story 10.7)
  *
  * Related Documentation:
+ * - SSE Streaming: docs/patterns/sse-streaming.md
  * - Vercel AI SDK: https://sdk.vercel.ai/docs
  * - API Error Handling: docs/api-error-handling.md
  *
@@ -212,6 +216,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     ];
 
     // AC #1 & #7: Stream text using Vercel AI SDK
+    // streamText automatically handles SSE formatting and streaming
+    // See: docs/patterns/sse-streaming.md#vercel-ai-sdk-integration
+    //
     // LangFuse Tracing: experimental_telemetry enables automatic tracing via OpenTelemetry
     // When LangFuse is configured (via instrumentation.ts), this captures:
     // - Input messages and output completions
@@ -237,6 +244,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
 
     // AC #7: Convert to SSE response with proper headers
+    // toDataStreamResponse() returns Next.js Response with SSE headers
+    // Format compatible with useChat hook on client
+    // See: docs/patterns/sse-streaming.md#todatastreamresponse
     const response = result.toDataStreamResponse();
 
     // AC #2 & #5: Persist assistant response after streaming completes

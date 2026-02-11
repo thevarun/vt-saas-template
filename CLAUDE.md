@@ -230,6 +230,22 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
    );
    ```
 
+### SSE Streaming for AI Chat
+
+This template includes two complete Server-Sent Events (SSE) implementations for AI streaming:
+
+**Dify Implementation:**
+- API Route: `src/app/api/chat/route.ts` (SSE proxy pattern)
+- Pattern: Fetch from external API, stream to client
+- Zero-copy streaming (response.body passthrough)
+
+**Vercel AI SDK Implementation:**
+- API Route: `src/app/api/chat/vercel/route.ts` (streamText pattern)
+- Pattern: Vercel AI SDK with useChat hook
+- Automatic SSE formatting and state management
+
+**Documentation:** See [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) for complete SSE streaming patterns, examples, and troubleshooting.
+
 ### Error Handling
 
 See [docs/error-handling-guide.md](docs/error-handling-guide.md) for complete patterns.

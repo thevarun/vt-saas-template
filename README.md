@@ -247,6 +247,18 @@ E2E tests are in the `tests/` directory
 - Prettier: Auto-formatting enabled
 - Conventional Commits: Required (use `npm run commit`)
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[API Error Handling](docs/api-error-handling.md)** - Error handling patterns for API routes
+- **[Error Handling Guide](docs/error-handling-guide.md)** - Error boundaries and error handling strategies
+- **[SSE Streaming Pattern](docs/patterns/sse-streaming.md)** - Learn how to implement Server-Sent Events for AI streaming
+- **[Development Guide](docs/development-guide.md)** - Development workflows and best practices
+- **[CI/CD Pipeline](docs/ci-cd-pipeline.md)** - Continuous integration and deployment setup
+- **[Admin Setup](docs/admin-setup.md)** - Admin user configuration
+- **[Email System](docs/email-system.md)** - Email integration with Resend
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

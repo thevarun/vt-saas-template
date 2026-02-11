@@ -30,6 +30,9 @@ import {
  *
  * Note: This route serves the Dify chat implementation. The Vercel AI SDK
  * implementation (Story 10.7) will use a separate endpoint at /api/chat/vercel.
+ *
+ * SSE Streaming Pattern: Proxy external API stream to client
+ * See: docs/patterns/sse-streaming.md for full documentation
  */
 
 /**
@@ -238,12 +241,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     const stream = await difyClient.chatMessages(difyRequest);
 
     // AC #4: Stream SSE response back to client
+    // The Dify API returns a ReadableStream in streaming mode
     if (!(stream instanceof ReadableStream)) {
       // Should not happen for streaming mode, but handle gracefully
       return NextResponse.json(stream);
     }
 
     // Story 3.2 AC #1: Capture conversation_id and message from SSE stream
+    // We use a TransformStream to intercept the SSE data while streaming to client
+    // This allows us to extract metadata without blocking the response
+    // See: docs/patterns/sse-streaming.md#dify-api-integration
     let capturedConversationId: string | null = null;
     let capturedAnswer = '';
     const decoder = new TextDecoder();
@@ -294,12 +301,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     // Pipe Dify stream through transform
     const transformedStream = stream.pipeThrough(transformStream);
 
-    // Return streaming response with proper headers
+    // Return streaming response with proper SSE headers
+    // See: docs/patterns/sse-streaming.md#required-headers
     return new Response(transformedStream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        'Content-Type': 'text/event-stream', // Required: Tells browser this is SSE
+        'Cache-Control': 'no-cache', // Prevent caching of stream
+        'Connection': 'keep-alive', // Keep connection open
       },
     });
   } catch (error: any) {
