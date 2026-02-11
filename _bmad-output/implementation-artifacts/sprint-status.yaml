@@ -131,7 +131,7 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: AI Chat Module (Dual Implementation)
-  epic-10: in-progress
+  epic-10: done
   10-1-rename-existing-chat-route: done
   10-2-clean-up-dify-chat-code: done
   10-3-database-schema-consolidation: done
@@ -143,5 +143,5 @@ development_status:
   10-9-navigation-and-showcase-update: done
   10-10-document-sse-streaming-patterns: done
   10-11-document-api-proxy-pattern: done
-  10-12-feature-removal-guides: backlog
-  epic-10-retrospective: optional
+  10-12-feature-removal-guides: done
+  epic-10-retrospective: skipped
