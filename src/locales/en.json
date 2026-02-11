@@ -764,5 +764,11 @@
     "timeout": "Loading is taking longer than expected",
     "retry": "Retry",
     "slowConnection": "Slow connection detected"
+  },
+  "Changelog": {
+    "title": "Changelog",
+    "description": "Product updates and release notes",
+    "noReleases": "No releases yet",
+    "noReleasesDescription": "Releases will appear here once the first version is published to main."
   }
 }
