@@ -9,6 +9,7 @@ import {
   Menu,
   MessageSquare,
   Settings,
+  Sparkles,
   User,
   UserPlus,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ import { ThemeToggle } from '@/components/theme';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { getPublicChatConfig } from '@/utils/chatConfig';
 
 import { LanguageSelector } from './LanguageSelector';
 import { NavItem } from './NavItem';
@@ -55,10 +57,21 @@ export function MainAppShell({ children }: MainAppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
+  // Get chat configuration to conditionally show chat options
+  const chatConfig = getPublicChatConfig();
+
   // AC #2: Navigation items configuration
+  // Build nav items dynamically based on chat configuration
   const navItems: NavItemConfig[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    { icon: MessageSquare, label: 'Chat (Dify)', href: '/chat/dify' },
+    // Only show Dify chat if configured
+    ...(chatConfig.dify.configured
+      ? [{ icon: MessageSquare, label: 'Chat (Dify)', href: '/chat/dify' }]
+      : []),
+    // Only show Vercel chat if configured
+    ...(chatConfig.vercel.configured
+      ? [{ icon: Sparkles, label: 'Chat (AI SDK)', href: '/chat/vercel' }]
+      : []),
     { icon: Inbox, label: 'DS - Empty States', href: '/design-system/empty-states' },
     { icon: Loader2, label: 'DS - Loading', href: '/design-system/loading' },
     { icon: CreditCard, label: 'Pricing', href: '/pricing', disabled: true },

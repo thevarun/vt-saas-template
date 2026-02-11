@@ -34,6 +34,18 @@ The project includes:
 - Auth redirects to `/{locale}/sign-in` for unauthenticated users
 
 ### Chat/AI Integration
+
+The project includes **two chat implementations**. Users can choose between them at `/chat`:
+- **Dify Chat** (`/chat/dify`) - Simple, managed chat with minimal setup
+- **Vercel AI SDK Chat** (`/chat/vercel`) - Full control with conversation management
+
+**Configuration Detection:**
+- Both implementations support graceful degradation
+- Navigation automatically shows/hides options based on environment variables
+- Use `getChatConfig()` (server) or `getPublicChatConfig()` (client) from `src/utils/chatConfig.ts`
+- If neither is configured, chat selection page shows setup instructions
+
+**Dify Implementation** (`/chat/dify`):
 - **API Route**: `/api/chat` (`src/app/api/chat/route.ts`)
   - Validates Supabase session
   - Proxies requests to Dify API (keeps API key server-side only)
@@ -48,6 +60,12 @@ The project includes:
   - Streams responses in real-time
   - Maintains conversation context
   - Client-side only (requires authentication via middleware)
+
+**Vercel AI SDK Implementation** (`/chat/vercel`):
+- **API Routes**: `/api/chat/vercel/*` for chat operations, `/api/conversations/*` for management
+- **Conversation Management**: Create, list, delete conversations with Postgres storage
+- **Chat UI**: Uses Vercel AI SDK `useChat` hook with streaming support
+- **Features**: Conversation persistence, memory integration (optional with Mem0), observability (optional with LangFuse)
 
 ### Database
 - **ORM**: Drizzle ORM with PostgreSQL
@@ -127,8 +145,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 # Dify API (Server-side only) - Optional
 # If not configured, chat page shows setup message (graceful degradation)
-DIFY_API_URL=           # e.g., https://api.dify.ai/v1
-DIFY_API_KEY=           # Get from https://dify.ai - Keep in .env.local
+DIFY_API_URL=                     # e.g., https://api.dify.ai/v1
+DIFY_API_KEY=                     # Get from https://dify.ai - Keep in .env.local
+NEXT_PUBLIC_DIFY_API_URL=         # For UI config detection only (not sensitive)
+
+# Vercel AI SDK (Server-side only) - Optional
+# If not configured, chat/vercel route shows setup message
+OPENAI_API_KEY=                   # or ANTHROPIC_API_KEY
+NEXT_PUBLIC_OPENAI_API_KEY=       # Set to "configured" for UI detection (not actual key!)
+AI_PROVIDER=openai                # or anthropic
+DEFAULT_AI_MODEL=gpt-4o-mini      # Model to use
 
 # Database
 DATABASE_URL=           # PostgreSQL connection string
