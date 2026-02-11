@@ -766,5 +766,20 @@
     "description": "পণ্য আপডেট এবং রিলিজ নোট",
     "noReleases": "এখনও কোনো রিলিজ নেই",
     "noReleasesDescription": "প্রথম সংস্করণ মূল শাখায় প্রকাশিত হওয়ার পরে এখানে রিলিজ প্রদর্শিত হবে।"
+  },
+  "Pseo": {
+    "breadcrumbs": {
+      "home": "হোম"
+    },
+    "relatedPages": {
+      "title": "সম্পর্কিত নিবন্ধ",
+      "readMore": "আরও পড়ুন"
+    },
+    "metadata": {
+      "lastUpdated": "সর্বশেষ আপডেট"
+    },
+    "topics": {
+      "title": "বিষয়"
+    }
   }
 }

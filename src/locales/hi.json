@@ -766,5 +766,20 @@
     "description": "उत्पाद अपडेट और रिलीज़ नोट्स",
     "noReleases": "अभी तक कोई रिलीज़ नहीं",
     "noReleasesDescription": "पहला संस्करण मुख्य शाखा में प्रकाशित होने के बाद यहां रिलीज़ दिखाई देंगे।"
+  },
+  "Pseo": {
+    "breadcrumbs": {
+      "home": "होम"
+    },
+    "relatedPages": {
+      "title": "संबंधित लेख",
+      "readMore": "और पढ़ें"
+    },
+    "metadata": {
+      "lastUpdated": "अंतिम अपडेट"
+    },
+    "topics": {
+      "title": "विषय"
+    }
   }
 }

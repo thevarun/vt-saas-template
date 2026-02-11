@@ -770,5 +770,20 @@
     "description": "Product updates and release notes",
     "noReleases": "No releases yet",
     "noReleasesDescription": "Releases will appear here once the first version is published to main."
+  },
+  "Pseo": {
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "relatedPages": {
+      "title": "Related Articles",
+      "readMore": "Read more"
+    },
+    "metadata": {
+      "lastUpdated": "Last updated"
+    },
+    "topics": {
+      "title": "Topics"
+    }
   }
 }
