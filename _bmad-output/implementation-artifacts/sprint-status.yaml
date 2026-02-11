@@ -112,12 +112,12 @@ development_status:
   epic-7-retrospective: optional
 
   # Epic 8: Go-To-Market Features
-  epic-8: in-progress
+  epic-8: done
   8-1-share-widget-component: done
   8-2-private-shareable-urls: done
   8-3-changelog-release-automation: done
   8-4-changelog-page: done
-  8-5-programmatic-seo-page-generation: ready-for-dev
+  8-5-programmatic-seo-page-generation: done
   epic-8-retrospective: optional
 
   # Epic 9: Analytics & Founder Dashboard
