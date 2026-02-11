@@ -253,6 +253,7 @@ Comprehensive documentation is available in the `docs/` directory:
 
 - **[API Error Handling](docs/api-error-handling.md)** - Error handling patterns for API routes
 - **[Error Handling Guide](docs/error-handling-guide.md)** - Error boundaries and error handling strategies
+- **[API Proxy Pattern](docs/patterns/api-proxy.md)** - Securely integrate external APIs by proxying requests server-side
 - **[SSE Streaming Pattern](docs/patterns/sse-streaming.md)** - Learn how to implement Server-Sent Events for AI streaming
 - **[Development Guide](docs/development-guide.md)** - Development workflows and best practices
 - **[CI/CD Pipeline](docs/ci-cd-pipeline.md)** - Continuous integration and deployment setup
