@@ -784,6 +784,11 @@
       "errorHint": "Error variant: Use when data failed to load or an operation failed"
     }
   },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go to Homepage"
+  },
   "Loading": {
     "loading": "Loading...",
     "pleaseWait": "Please wait",
