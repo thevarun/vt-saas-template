@@ -63,12 +63,17 @@ export async function GET(request: NextRequest) {
     const titleFontSize = title.length > 40 ? 56 : 72;
 
     // Load Inter Bold font from Google Fonts for better typography
-    const fontData = await fetch(
-      'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff',
-    ).then(res => res.arrayBuffer()).catch(() => {
-      console.warn('Failed to load Inter font, falling back to sans-serif');
-      return null;
-    });
+    let fontData: ArrayBuffer | null = null;
+    try {
+      const fontResponse = await fetch(
+        'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf',
+      );
+      if (fontResponse.ok && fontResponse.headers.get('content-type')?.includes('font')) {
+        fontData = await fontResponse.arrayBuffer();
+      }
+    } catch {
+      // Font loading failed - will use sans-serif fallback
+    }
 
     return new ImageResponse(
       (
