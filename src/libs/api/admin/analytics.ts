@@ -1,3 +1,5 @@
+import type { User } from '@supabase/supabase-js';
+
 import { db } from '@/libs/DB';
 import { createAdminClient } from '@/libs/supabase/admin';
 import { feedback, userPreferences } from '@/models/Schema';
@@ -65,61 +67,67 @@ export function calculateTrend(current: number, previous: number): TrendData {
 }
 
 /**
- * Get total users count (all time)
+ * Fetch all users across all pages from Supabase Auth admin API.
+ * The API defaults to 50 users per page, so we must paginate.
  */
-async function getTotalUsers(): Promise<{ current: number; previous: number }> {
+async function listAllUsers(): Promise<User[]> {
   const supabase = createAdminClient();
+  const allUsers: User[] = [];
+  let page = 1;
+  const perPage = 1000;
 
-  // Get all users
-  const { data, error } = await supabase
-    .auth
-    .admin
-    .listUsers();
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
 
-  if (error) {
-    throw error;
+    if (error) {
+      throw error;
+    }
+
+    allUsers.push(...data.users);
+
+    if (data.users.length < perPage) {
+      break;
+    }
+    page++;
   }
 
-  const totalCount = data.users.length;
+  return allUsers;
+}
 
-  // For total users, we compare against count from 30 days ago
+/**
+ * Get total users count (all time)
+ */
+function getTotalUsers(users: User[]): { current: number; previous: number } {
+  const totalCount = users.length;
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const usersThirtyDaysAgo = data.users.filter(
+  const usersThirtyDaysAgo = users.filter(
     user => new Date(user.created_at) < thirtyDaysAgo,
   ).length;
 
-  return {
-    current: totalCount,
-    previous: usersThirtyDaysAgo,
-  };
+  return { current: totalCount, previous: usersThirtyDaysAgo };
 }
 
 /**
  * Get signups in last 7 days
  */
-async function getSignups7d(): Promise<{ current: number; previous: number }> {
-  const supabase = createAdminClient();
+function getSignups7d(users: User[]): { current: number; previous: number } {
   const now = new Date();
-
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
   const fourteenDaysAgo = new Date(now);
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-  const { data, error } = await supabase.auth.admin.listUsers();
-
-  if (error) {
-    throw error;
-  }
-
-  const currentCount = data.users.filter(
+  const currentCount = users.filter(
     user => new Date(user.created_at) >= sevenDaysAgo,
   ).length;
 
-  const previousCount = data.users.filter((user) => {
+  const previousCount = users.filter((user) => {
     const createdAt = new Date(user.created_at);
     return createdAt >= fourteenDaysAgo && createdAt < sevenDaysAgo;
   }).length;
@@ -130,27 +138,18 @@ async function getSignups7d(): Promise<{ current: number; previous: number }> {
 /**
  * Get signups in last 30 days
  */
-async function getSignups30d(): Promise<{ current: number; previous: number }> {
-  const supabase = createAdminClient();
+function getSignups30d(users: User[]): { current: number; previous: number } {
   const now = new Date();
-
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   const sixtyDaysAgo = new Date(now);
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-  const { data, error } = await supabase.auth.admin.listUsers();
-
-  if (error) {
-    throw error;
-  }
-
-  const currentCount = data.users.filter(
+  const currentCount = users.filter(
     user => new Date(user.created_at) >= thirtyDaysAgo,
   ).length;
 
-  const previousCount = data.users.filter((user) => {
+  const previousCount = users.filter((user) => {
     const createdAt = new Date(user.created_at);
     return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
   }).length;
@@ -161,27 +160,18 @@ async function getSignups30d(): Promise<{ current: number; previous: number }> {
 /**
  * Get active users in last 7 days (based on last_sign_in_at)
  */
-async function getActiveUsers7d(): Promise<{ current: number; previous: number }> {
-  const supabase = createAdminClient();
+function getActiveUsers7d(users: User[]): { current: number; previous: number } {
   const now = new Date();
-
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
   const fourteenDaysAgo = new Date(now);
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-  const { data, error } = await supabase.auth.admin.listUsers();
-
-  if (error) {
-    throw error;
-  }
-
-  const currentCount = data.users.filter(
+  const currentCount = users.filter(
     user => user.last_sign_in_at && new Date(user.last_sign_in_at) >= sevenDaysAgo,
   ).length;
 
-  const previousCount = data.users.filter((user) => {
+  const previousCount = users.filter((user) => {
     if (!user.last_sign_in_at) {
       return false;
     }
@@ -196,32 +186,21 @@ async function getActiveUsers7d(): Promise<{ current: number; previous: number }
  * Get activation rate (percentage of users who completed onboarding)
  * Based on presence of username in user_preferences
  */
-async function getActivationRate(): Promise<{ current: number; previous: number }> {
-  const supabase = createAdminClient();
-
-  // Get all users
-  const { data: users, error } = await supabase.auth.admin.listUsers();
-
-  if (error) {
-    throw error;
-  }
-
-  // Get user preferences (users who completed onboarding have username set)
+async function getActivationRate(
+  users: User[],
+): Promise<{ current: number; previous: number }> {
   const userPrefs = await db.select().from(userPreferences);
 
-  const totalUsers = users.users.length;
+  const totalUsers = users.length;
   const activatedUsers = userPrefs.filter(pref => pref.username).length;
-
   const currentRate = totalUsers > 0 ? (activatedUsers / totalUsers) * 100 : 0;
 
-  // For previous period, we'll calculate based on users from 7-14 days ago
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-  const previousPeriodUsers = users.users.filter((user) => {
+  const previousPeriodUsers = users.filter((user) => {
     const createdAt = new Date(user.created_at);
     return createdAt >= fourteenDaysAgo && createdAt < sevenDaysAgo;
   });
@@ -242,34 +221,21 @@ async function getActivationRate(): Promise<{ current: number; previous: number 
 }
 
 /**
- * Get onboarding completion rate (same as activation for now)
- */
-async function getOnboardingCompletion(): Promise<{ current: number; previous: number }> {
-  // For now, onboarding completion is the same as activation rate
-  return getActivationRate();
-}
-
-/**
  * Get total feedback count
  */
 async function getFeedbackCount(): Promise<{ current: number; previous: number }> {
-  // For feedback, we'll use simple trend based on last 30 vs previous 30 days
   const now = new Date();
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   const sixtyDaysAgo = new Date(now);
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-  // Get all feedback records
   const allFeedback = await db.select().from(feedback);
 
-  // Count feedback in last 30 days
   const recentCount = allFeedback.filter(
     f => new Date(f.createdAt) >= thirtyDaysAgo,
   ).length;
 
-  // Count feedback between 30-60 days ago
   const previousCount = allFeedback.filter((f) => {
     const createdAt = new Date(f.createdAt);
     return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
@@ -281,22 +247,12 @@ async function getFeedbackCount(): Promise<{ current: number; previous: number }
 /**
  * Get daily signups for chart (last 30 days)
  */
-async function getSignupsChartData(): Promise<Array<{ date: string; signups: number }>> {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase.auth.admin.listUsers();
-
-  if (error) {
-    throw error;
-  }
-
-  // Group signups by day
+function getSignupsChartData(users: User[]): Array<{ date: string; signups: number }> {
   const signupsByDay = new Map<string, number>();
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // Initialize all days with 0
   for (let i = 0; i < 30; i++) {
     const date = new Date();
     date.setDate(date.getDate() - (29 - i));
@@ -304,8 +260,7 @@ async function getSignupsChartData(): Promise<Array<{ date: string; signups: num
     signupsByDay.set(key, 0);
   }
 
-  // Count signups per day
-  data.users
+  users
     .filter(user => new Date(user.created_at) >= thirtyDaysAgo)
     .forEach((user) => {
       const date = new Date(user.created_at);
@@ -313,7 +268,6 @@ async function getSignupsChartData(): Promise<Array<{ date: string; signups: num
       signupsByDay.set(key, (signupsByDay.get(key) ?? 0) + 1);
     });
 
-  // Convert to array
   return Array.from(signupsByDay.entries()).map(([date, signups]) => ({
     date,
     signups,
@@ -321,29 +275,27 @@ async function getSignupsChartData(): Promise<Array<{ date: string; signups: num
 }
 
 /**
- * Main function to fetch all analytics metrics
+ * Main function to fetch all analytics metrics.
+ * Fetches all users once and passes to metric functions to avoid
+ * redundant paginated API calls.
  */
 export async function getAnalyticsMetrics(): Promise<AnalyticsMetrics> {
-  // Fetch all metrics in parallel
-  const [
-    totalUsers,
-    signups7d,
-    signups30d,
-    activeUsers7d,
-    activationRate,
-    onboardingCompletion,
-    feedbackCount,
-    signupsChart,
-  ] = await Promise.all([
-    getTotalUsers(),
-    getSignups7d(),
-    getSignups30d(),
-    getActiveUsers7d(),
-    getActivationRate(),
-    getOnboardingCompletion(),
+  // Fetch all users (paginated) and feedback count in parallel
+  const [users, feedbackCountData] = await Promise.all([
+    listAllUsers(),
     getFeedbackCount(),
-    getSignupsChartData(),
   ]);
+
+  // Compute user-based metrics synchronously from the full user list
+  const totalUsers = getTotalUsers(users);
+  const signups7d = getSignups7d(users);
+  const signups30d = getSignups30d(users);
+  const activeUsers7d = getActiveUsers7d(users);
+  const signupsChart = getSignupsChartData(users);
+
+  // Activation rate needs a DB query for user_preferences
+  const activationRateData = await getActivationRate(users);
+  const onboardingCompletion = activationRateData;
 
   return {
     totalUsers: {
@@ -363,16 +315,16 @@ export async function getAnalyticsMetrics(): Promise<AnalyticsMetrics> {
       trend: calculateTrend(activeUsers7d.current, activeUsers7d.previous),
     },
     activationRate: {
-      value: activationRate.current,
-      trend: calculateTrend(activationRate.current, activationRate.previous),
+      value: activationRateData.current,
+      trend: calculateTrend(activationRateData.current, activationRateData.previous),
     },
     onboardingCompletion: {
       value: onboardingCompletion.current,
       trend: calculateTrend(onboardingCompletion.current, onboardingCompletion.previous),
     },
     feedbackCount: {
-      value: feedbackCount.current,
-      trend: calculateTrend(feedbackCount.current, feedbackCount.previous),
+      value: feedbackCountData.current,
+      trend: calculateTrend(feedbackCountData.current, feedbackCountData.previous),
     },
     signupsChart,
   };

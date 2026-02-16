@@ -34,14 +34,14 @@ export function AnalyticsDashboard() {
     fetchMetrics();
   }, []);
 
-  if (isLoading || !metrics) {
+  if (isLoading) {
     return <AnalyticsSkeleton />;
   }
 
-  if (error) {
+  if (error || !metrics) {
     return (
       <div className="py-12 text-center">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-red-600 dark:text-red-400">{error ?? 'Failed to load analytics data'}</p>
       </div>
     );
   }
