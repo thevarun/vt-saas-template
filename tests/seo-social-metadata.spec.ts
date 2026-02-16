@@ -32,7 +32,7 @@ test.describe('SEO - Social Metadata', () => {
     const imageUrl = await ogImage.getAttribute('content');
 
     expect(imageUrl).toMatch(/^https?:\/\//); // Absolute URL
-    expect(imageUrl).toContain('/og-image.png');
+    expect(imageUrl).toContain('/api/og'); // Dynamic OG image endpoint
 
     // Check og:type
     const ogType = page.locator('meta[property="og:type"]').first();
@@ -92,7 +92,7 @@ test.describe('SEO - Social Metadata', () => {
     const imageUrl = await twitterImage.getAttribute('content');
 
     expect(imageUrl).toMatch(/^https?:\/\//); // Absolute URL
-    expect(imageUrl).toContain('/og-image.png');
+    expect(imageUrl).toContain('/api/og'); // Dynamic OG image endpoint
   });
 
   test('OG image asset exists and is accessible', async ({ page }) => {
