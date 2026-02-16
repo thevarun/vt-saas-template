@@ -135,63 +135,63 @@ export function ShareLinkModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Expiration Select */}
-          <div className="space-y-2">
-            <Label htmlFor="expiration">Link expiration</Label>
-            <Select value={expiration} onValueChange={setExpiration}>
-              <SelectTrigger id="expiration">
-                <SelectValue placeholder="Select expiration" />
-              </SelectTrigger>
-              <SelectContent>
-                {expirationOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Generated Link Display */}
-          {generatedLink && (
-            <div className="space-y-2 duration-200 animate-in fade-in slide-in-from-top-2">
-              <Label>Your share link</Label>
-              <div className="rounded-lg border border-border bg-muted p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  Share this link with anyone
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-                    <LinkIcon className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate font-mono text-sm text-foreground">
-                      {truncateUrl(generatedLink)}
-                    </span>
+          {generatedLink
+            ? (
+                <div className="space-y-2">
+                  <Label>Your share link</Label>
+                  <div className="rounded-lg border border-border bg-muted p-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">
+                      Share this link with anyone
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+                        <LinkIcon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate font-mono text-sm text-foreground">
+                          {truncateUrl(generatedLink)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleCopy}
+                        className="shrink-0"
+                        aria-label={copied ? 'Copied' : 'Copy link'}
+                      >
+                        {copied
+                          ? (
+                              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                <Check className="size-3.5" />
+                                Copied!
+                              </span>
+                            )
+                          : (
+                              <span className="flex items-center gap-1.5">
+                                <Copy className="size-3.5" />
+                                Copy
+                              </span>
+                            )}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleCopy}
-                    className="shrink-0"
-                    aria-label={copied ? 'Copied' : 'Copy link'}
-                  >
-                    {copied
-                      ? (
-                          <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                            <Check className="size-3.5" />
-                            Copied!
-                          </span>
-                        )
-                      : (
-                          <span className="flex items-center gap-1.5">
-                            <Copy className="size-3.5" />
-                            Copy
-                          </span>
-                        )}
-                  </Button>
                 </div>
-              </div>
-            </div>
-          )}
+              )
+            : (
+                <div className="space-y-2">
+                  <Label htmlFor="expiration">Link expiration</Label>
+                  <Select value={expiration} onValueChange={setExpiration}>
+                    <SelectTrigger id="expiration">
+                      <SelectValue placeholder="Select expiration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expirationOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
         </div>
 
         <DialogFooter>

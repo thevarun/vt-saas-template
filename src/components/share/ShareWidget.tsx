@@ -1,21 +1,17 @@
 'use client';
 
-import { Check, Link, Share2 } from 'lucide-react';
+import { Check, Link, MoreHorizontal, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/utils/Helpers';
 
 import { FacebookIcon, LinkedInIcon, XIcon } from './platformIcons';
@@ -31,8 +27,6 @@ type ShareWidgetProps = {
   description?: string;
   /** Which platforms to show (default: all four) */
   platforms?: Platform[];
-  /** Visual variant */
-  variant?: 'inline' | 'popup' | 'minimal';
   /** Additional CSS classes */
   className?: string;
 };
@@ -73,11 +67,11 @@ export function ShareWidget({
   title,
   description,
   platforms = ['twitter', 'linkedin', 'facebook', 'copy'],
-  variant = 'inline',
   className = '',
 }: ShareWidgetProps) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [hasNativeShare, setHasNativeShare] = useState(false);
 
   useEffect(() => {
     if (copied) {
@@ -87,18 +81,12 @@ export function ShareWidget({
     return undefined;
   }, [copied]);
 
+  useEffect(() => {
+    setHasNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+  }, []);
+
   const handleShare = async (platform: Platform) => {
     // TODO: Analytics — event: "share_clicked", properties: { platform, url, page: window.location.pathname }
-
-    // Native Web Share API for mobile (all platforms except 'copy')
-    if (platform !== 'copy' && typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title, text: description, url });
-        return;
-      } catch {
-        // User cancelled or API failed — fall through to platform URL
-      }
-    }
 
     if (platform === 'copy') {
       await navigator.clipboard.writeText(url);
@@ -108,13 +96,14 @@ export function ShareWidget({
     }
 
     const shareUrl = platformConfig[platform].getUrl(url, title);
-    window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handlePopoverOpen = (open: boolean) => {
-    setIsOpen(open);
-    if (open) {
-      // TODO: Analytics — event: "share_menu_opened", properties: { variant, page: window.location.pathname }
+  const handleNativeShare = async () => {
+    try {
+      await navigator.share({ title, text: description, url });
+    } catch {
+      // User cancelled or API failed
     }
   };
 
@@ -126,126 +115,64 @@ export function ShareWidget({
     'active:scale-95',
   );
 
-  // Inline variant
-  if (variant === 'inline') {
-    return (
-      <div className={cn('flex flex-wrap gap-2', className)}>
-        {platforms.map((platform) => {
-          const config = platformConfig[platform];
-          const Icon = platform === 'copy' && copied ? Check : config.icon;
-          const label = platform === 'copy' && copied ? 'Copied!' : config.label;
-
-          return (
-            <Button
-              key={platform}
-              onClick={() => handleShare(platform)}
-              variant="outline"
-              size="sm"
-              className={cn(
-                buttonBase,
-                'min-h-[44px] min-w-[44px] gap-2',
-                config.hoverClass,
-              )}
-              aria-label={`Share on ${config.label}`}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="text-sm">{label}</span>
-            </Button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Minimal variant
-  if (variant === 'minimal') {
-    return (
-      <TooltipProvider>
-        <div className={cn('flex items-center gap-1', className)}>
-          {platforms.map((platform) => {
-            const config = platformConfig[platform];
-            const Icon = platform === 'copy' && copied ? Check : config.icon;
-            const tooltipText
-              = platform === 'copy' && copied
-                ? 'Link copied!'
-                : `Share on ${config.label}`;
-
-            return (
-              <Tooltip key={platform}>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => handleShare(platform)}
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      buttonBase,
-                      'min-h-[44px] min-w-[44px] p-2.5',
-                      'text-muted-foreground',
-                      config.hoverClass,
-                    )}
-                    aria-label={tooltipText}
-                  >
-                    <Icon className="size-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{tooltipText}</p>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
-      </TooltipProvider>
-    );
-  }
-
-  // Popup variant
   return (
-    <Popover open={isOpen} onOpenChange={handlePopoverOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn(
-            buttonBase,
-            'min-h-[44px] min-w-[44px]',
-            className,
-          )}
-          aria-label="Share"
-        >
-          <Share2 className="size-5" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-[180px] p-2">
-        <div className="flex flex-col gap-1">
-          {platforms.map((platform) => {
-            const config = platformConfig[platform];
-            const Icon = platform === 'copy' && copied ? Check : config.icon;
-            const label = platform === 'copy' && copied ? 'Copied!' : config.label;
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className={cn(buttonBase, 'gap-2', className)}
+        aria-label="Share"
+      >
+        <Share2 className="size-4" />
+        <span className="text-sm">Share</span>
+      </Button>
 
-            return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[360px]">
+          <DialogHeader>
+            <DialogTitle>Share</DialogTitle>
+            <DialogDescription className="sr-only">
+              Share this page via social media or copy the link
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 py-2">
+            {platforms.map((platform) => {
+              const config = platformConfig[platform];
+              const Icon = platform === 'copy' && copied ? Check : config.icon;
+              const label = platform === 'copy' && copied ? 'Copied!' : config.label;
+
+              return (
+                <Button
+                  key={platform}
+                  onClick={() => handleShare(platform)}
+                  variant="outline"
+                  className={cn(
+                    buttonBase,
+                    'min-h-[44px] gap-2',
+                    config.hoverClass,
+                  )}
+                  aria-label={platform === 'copy' ? 'Copy Link' : `Share on ${config.label}`}
+                >
+                  <Icon className="size-4 shrink-0" />
+                  <span className="text-sm">{label}</span>
+                </Button>
+              );
+            })}
+            {hasNativeShare && (
               <Button
-                key={platform}
-                onClick={() => {
-                  handleShare(platform);
-                  if (platform !== 'copy') {
-                    setIsOpen(false);
-                  }
-                }}
-                variant="ghost"
-                className={cn(
-                  buttonBase,
-                  'min-h-[44px] w-full justify-start gap-3',
-                  config.hoverClass,
-                )}
+                onClick={handleNativeShare}
+                variant="outline"
+                className={cn(buttonBase, 'min-h-[44px] gap-2 col-span-2')}
+                aria-label="More sharing options"
               >
-                <Icon className="size-4 shrink-0" />
-                <span className="text-sm font-medium">{label}</span>
+                <MoreHorizontal className="size-4 shrink-0" />
+                <span className="text-sm">More</span>
               </Button>
-            );
-          })}
-        </div>
-      </PopoverContent>
-    </Popover>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

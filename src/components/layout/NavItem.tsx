@@ -18,6 +18,7 @@ type NavItemProps = {
   isActive?: boolean;
   disabled?: boolean;
   collapsed?: boolean;
+  external?: boolean;
   onNavigate?: () => void;
 };
 
@@ -40,6 +41,7 @@ export function NavItem({
   isActive = false,
   disabled = false,
   collapsed = false,
+  external = false,
   onNavigate,
 }: NavItemProps) {
   const { toast } = useToast();
@@ -57,30 +59,51 @@ export function NavItem({
     }
   };
 
-  const content = (
-    <Link
-      href={href}
-      onClick={handleClick}
-      className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-        // AC #3: Active state styling - Exact MagicPatterns style: white bg, blue text, shadow, ring
-        isActive && 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-blue-400 dark:ring-slate-700',
-        // AC #5: Hover state for non-active items - MagicPatterns style
-        !isActive && 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
-        // AC #4: Disabled state styling
-        disabled && 'cursor-not-allowed opacity-60',
-        // Collapsed: center icon
-        collapsed && 'justify-center px-2',
-      )}
-      // AC #9: ARIA accessibility
-      // Fix #8: Removed role="listitem" - the parent <li> already has implicit listitem role
-      aria-current={isActive ? 'page' : undefined}
-    >
+  const linkClasses = cn(
+    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+    // AC #3: Active state styling - Exact MagicPatterns style: white bg, blue text, shadow, ring
+    isActive && 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-blue-400 dark:ring-slate-700',
+    // AC #5: Hover state for non-active items - MagicPatterns style
+    !isActive && 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+    // AC #4: Disabled state styling
+    disabled && 'cursor-not-allowed opacity-60',
+    // Collapsed: center icon
+    collapsed && 'justify-center px-2',
+  );
+
+  const linkChildren = (
+    <>
       {/* Icon - size-5 (20px) per MagicPatterns, no container background */}
       <Icon className="size-5 shrink-0" />
       {!collapsed && <span>{label}</span>}
-    </Link>
+    </>
   );
+
+  const content = external
+    ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleClick}
+          className={linkClasses}
+          aria-current={isActive ? 'page' : undefined}
+        >
+          {linkChildren}
+        </a>
+      )
+    : (
+        <Link
+          href={href}
+          onClick={handleClick}
+          className={linkClasses}
+          // AC #9: ARIA accessibility
+          // Fix #8: Removed role="listitem" - the parent <li> already has implicit listitem role
+          aria-current={isActive ? 'page' : undefined}
+        >
+          {linkChildren}
+        </Link>
+      );
 
   // AC #7: Show tooltip when collapsed
   // Fix #7: Removed redundant TooltipProvider - parent provides it

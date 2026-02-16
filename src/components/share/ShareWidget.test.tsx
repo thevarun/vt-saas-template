@@ -1,8 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { TooltipProvider } from '@/components/ui/tooltip';
 
 import { ShareWidget } from './ShareWidget';
 
@@ -50,9 +48,43 @@ describe('shareWidget', () => {
     });
   });
 
-  describe('inline variant', () => {
-    it('renders all platform buttons by default', () => {
-      render(<ShareWidget {...defaultProps} variant="inline" />);
+  describe('share button', () => {
+    it('renders a single Share button', () => {
+      render(<ShareWidget {...defaultProps} />);
+
+      const button = screen.getByRole('button', { name: /share/i });
+
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveTextContent('Share');
+    });
+
+    it('accepts className prop', () => {
+      const { container } = render(
+        <ShareWidget {...defaultProps} className="custom-class" />,
+      );
+
+      const button = container.querySelector('.custom-class');
+
+      expect(button).toBeInTheDocument();
+    });
+  });
+
+  describe('share modal', () => {
+    it('opens modal when Share button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<ShareWidget {...defaultProps} />);
+
+      await user.click(screen.getByRole('button', { name: /share/i }));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Share' })).toBeInTheDocument();
+    });
+
+    it('shows all platform buttons inside modal', async () => {
+      const user = userEvent.setup();
+      render(<ShareWidget {...defaultProps} />);
+
+      await user.click(screen.getByRole('button', { name: /share/i }));
 
       expect(screen.getByRole('button', { name: /share on x/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /share on linkedin/i })).toBeInTheDocument();
@@ -60,118 +92,79 @@ describe('shareWidget', () => {
       expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument();
     });
 
-    it('renders only specified platforms', () => {
+    it('shows only specified platforms', async () => {
+      const user = userEvent.setup();
       render(
         <ShareWidget
           {...defaultProps}
-          variant="inline"
           platforms={['twitter', 'copy']}
         />,
       );
+
+      await user.click(screen.getByRole('button', { name: /share/i }));
 
       expect(screen.getByRole('button', { name: /share on x/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /share on linkedin/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /share on facebook/i })).not.toBeInTheDocument();
     });
+  });
 
-    it('opens Twitter share dialog when X button is clicked', async () => {
+  describe('share actions from modal', () => {
+    it('opens Twitter in a new tab when X button is clicked', async () => {
       const user = userEvent.setup();
-      render(<ShareWidget {...defaultProps} variant="inline" />);
+      render(<ShareWidget {...defaultProps} />);
 
-      const xButton = screen.getByRole('button', { name: /share on x/i });
-      await user.click(xButton);
+      await user.click(screen.getByRole('button', { name: /share/i }));
+      await user.click(screen.getByRole('button', { name: /share on x/i }));
 
       expect(mockWindowOpen).toHaveBeenCalledWith(
         expect.stringContaining('twitter.com/intent/tweet'),
         '_blank',
-        'noopener,noreferrer,width=600,height=400',
+        'noopener,noreferrer',
       );
     });
 
-    it('opens LinkedIn share dialog when LinkedIn button is clicked', async () => {
+    it('opens LinkedIn in a new tab when LinkedIn button is clicked', async () => {
       const user = userEvent.setup();
-      render(<ShareWidget {...defaultProps} variant="inline" />);
+      render(<ShareWidget {...defaultProps} />);
 
-      const linkedInButton = screen.getByRole('button', { name: /share on linkedin/i });
-      await user.click(linkedInButton);
+      await user.click(screen.getByRole('button', { name: /share/i }));
+      await user.click(screen.getByRole('button', { name: /share on linkedin/i }));
 
       expect(mockWindowOpen).toHaveBeenCalledWith(
         expect.stringContaining('linkedin.com/sharing'),
         '_blank',
-        'noopener,noreferrer,width=600,height=400',
+        'noopener,noreferrer',
       );
     });
 
-    it('opens Facebook share dialog when Facebook button is clicked', async () => {
+    it('opens Facebook in a new tab when Facebook button is clicked', async () => {
       const user = userEvent.setup();
-      render(<ShareWidget {...defaultProps} variant="inline" />);
+      render(<ShareWidget {...defaultProps} />);
 
-      const facebookButton = screen.getByRole('button', { name: /share on facebook/i });
-      await user.click(facebookButton);
+      await user.click(screen.getByRole('button', { name: /share/i }));
+      await user.click(screen.getByRole('button', { name: /share on facebook/i }));
 
       expect(mockWindowOpen).toHaveBeenCalledWith(
         expect.stringContaining('facebook.com/sharer'),
         '_blank',
-        'noopener,noreferrer,width=600,height=400',
+        'noopener,noreferrer',
       );
     });
-  });
 
-  describe('minimal variant', () => {
-    it('renders icon-only buttons', () => {
-      render(
-        <TooltipProvider>
-          <ShareWidget {...defaultProps} variant="minimal" />
-        </TooltipProvider>,
-      );
+    it('copies URL when Copy Link is clicked', async () => {
+      const user = userEvent.setup();
+      const clipboardSpy = vi.spyOn(navigator.clipboard, 'writeText');
+      render(<ShareWidget {...defaultProps} />);
 
-      // Buttons should not have visible text labels
-      const buttons = screen.getAllByRole('button');
+      await user.click(screen.getByRole('button', { name: /share/i }));
 
-      expect(buttons).toHaveLength(4);
+      const copyButton = screen.getByRole('button', { name: /copy link/i });
+      fireEvent.click(copyButton);
 
-      buttons.forEach((button) => {
-        // Should have aria-label but no visible text
-        expect(button).toHaveAttribute('aria-label');
-      });
-    });
-  });
-
-  describe('popup variant', () => {
-    it('renders a single share trigger button', () => {
-      render(<ShareWidget {...defaultProps} variant="popup" />);
-
-      const triggerButton = screen.getByRole('button', { name: /share/i });
-
-      expect(triggerButton).toBeInTheDocument();
-    });
-  });
-
-  describe('accessibility', () => {
-    it('has proper aria-labels on inline buttons', () => {
-      render(<ShareWidget {...defaultProps} variant="inline" />);
-
-      expect(screen.getByRole('button', { name: /share on x/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /share on linkedin/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /share on facebook/i })).toBeInTheDocument();
-    });
-
-    it('has proper aria-label on popup trigger', () => {
-      render(<ShareWidget {...defaultProps} variant="popup" />);
-
-      const trigger = screen.getByRole('button', { name: /share/i });
-
-      expect(trigger).toBeInTheDocument();
-    });
-
-    it('has touch-friendly button sizes (min 44x44)', () => {
-      const { container } = render(<ShareWidget {...defaultProps} variant="inline" />);
-
-      const buttons = container.querySelectorAll('button');
-      buttons.forEach((button) => {
-        expect(button).toHaveClass('min-h-[44px]');
-        expect(button).toHaveClass('min-w-[44px]');
+      await waitFor(() => {
+        expect(clipboardSpy).toHaveBeenCalledWith('https://example.com/article');
       });
     });
   });
@@ -182,10 +175,10 @@ describe('shareWidget', () => {
       const specialUrl = 'https://example.com/article?id=123&ref=test';
       const specialTitle = 'Article Title & More!';
 
-      render(<ShareWidget url={specialUrl} title={specialTitle} variant="inline" />);
+      render(<ShareWidget url={specialUrl} title={specialTitle} />);
 
-      const xButton = screen.getByRole('button', { name: /share on x/i });
-      await user.click(xButton);
+      await user.click(screen.getByRole('button', { name: /share/i }));
+      await user.click(screen.getByRole('button', { name: /share on x/i }));
 
       const calledUrl = mockWindowOpen.mock.calls[0]?.[0];
 
@@ -195,45 +188,25 @@ describe('shareWidget', () => {
     });
   });
 
-  describe('custom platforms', () => {
-    it('allows custom platform selection', () => {
-      render(
-        <ShareWidget
-          {...defaultProps}
-          variant="inline"
-          platforms={['twitter', 'linkedin']}
-        />,
-      );
+  describe('accessibility', () => {
+    it('has proper aria-label on Share button', () => {
+      render(<ShareWidget {...defaultProps} />);
+
+      const trigger = screen.getByRole('button', { name: /share/i });
+
+      expect(trigger).toBeInTheDocument();
+    });
+
+    it('has proper aria-labels on modal buttons', async () => {
+      const user = userEvent.setup();
+      render(<ShareWidget {...defaultProps} />);
+
+      await user.click(screen.getByRole('button', { name: /share/i }));
 
       expect(screen.getByRole('button', { name: /share on x/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /share on linkedin/i })).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /share on facebook/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /copy link/i })).not.toBeInTheDocument();
-    });
-  });
-
-  describe('component props', () => {
-    it('accepts className prop', () => {
-      const { container } = render(
-        <ShareWidget {...defaultProps} variant="inline" className="custom-class" />,
-      );
-
-      const wrapper = container.querySelector('.custom-class');
-
-      expect(wrapper).toBeInTheDocument();
-    });
-
-    it('accepts description prop', () => {
-      render(
-        <ShareWidget
-          {...defaultProps}
-          variant="inline"
-          description="This is a test description"
-        />,
-      );
-
-      // Component should render without errors
-      expect(screen.getByRole('button', { name: /share on x/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /share on facebook/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument();
     });
   });
 });

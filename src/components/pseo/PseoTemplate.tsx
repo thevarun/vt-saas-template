@@ -61,11 +61,7 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
               {' '}
               {new Date(page.lastModified).toLocaleDateString()}
             </time>
-            <ShareWidget
-              url={pageUrl}
-              title={page.title}
-              description={page.description}
-            />
+            <ShareWidget url={pageUrl} title={page.title} description={page.description} />
           </div>
         </header>
 
