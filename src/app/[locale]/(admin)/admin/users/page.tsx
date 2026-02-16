@@ -5,6 +5,8 @@ import { UserTable } from '@/components/admin/UserTable';
 import { getUsersList } from '@/libs/queries/users';
 import { createClient } from '@/libs/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 type AdminUsersPageProps = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{

@@ -67,9 +67,10 @@ export function AsyncErrorThrower({ message = 'Async test error', delayMs = 100 
   delayMs?: number;
 }) {
   React.useEffect(() => {
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
       throw new Error(message);
     }, delayMs);
+    return () => clearTimeout(timerId);
   }, [message, delayMs]);
 
   return <div>Async error component</div>;

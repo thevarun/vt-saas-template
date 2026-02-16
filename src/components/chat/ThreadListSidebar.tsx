@@ -2,7 +2,7 @@
 
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +34,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const fetchThreads = async (showLoading = true) => {
+  const fetchThreads = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true);
@@ -80,12 +80,12 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // AC #2: Fetch threads on mount
   useEffect(() => {
     fetchThreads();
-  }, []);
+  }, [fetchThreads]);
 
   // Refetch when window regains focus (no polling to avoid flickering)
   useEffect(() => {
@@ -97,7 +97,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [fetchThreads]);
 
   // Listen for thread updates (title edits) and update optimistically
   useEffect(() => {
@@ -116,16 +116,20 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   // AC #13: Listen for new thread creation and refetch to show in sidebar
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
     const handleThreadCreated = () => {
       // Refetch threads after a short delay to allow server to complete thread creation
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         fetchThreads(false); // false = don't show loading skeleton
       }, 500);
     };
 
     window.addEventListener('thread-created', handleThreadCreated);
-    return () => window.removeEventListener('thread-created', handleThreadCreated);
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('thread-created', handleThreadCreated);
+    };
+  }, [fetchThreads]);
 
   // AC #3: Navigate to new thread (empty composer)
   const handleNewThread = () => {

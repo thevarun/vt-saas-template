@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 import { AnalyticsDashboard } from '@/components/admin/analytics/AnalyticsDashboard';
 import { AnalyticsSkeleton } from '@/components/admin/analytics/AnalyticsSkeleton';
 
+export const dynamic = 'force-dynamic';
+
 type AnalyticsPageProps = {
   params: Promise<{ locale: string }>;
 };

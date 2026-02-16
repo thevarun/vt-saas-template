@@ -75,6 +75,7 @@ export function NavItem({
       // AC #9: ARIA accessibility
       // Fix #8: Removed role="listitem" - the parent <li> already has implicit listitem role
       aria-current={isActive ? 'page' : undefined}
+      prefetch={!disabled}
     >
       {/* Icon - size-5 (20px) per MagicPatterns, no container background */}
       <Icon className="size-5 shrink-0" />

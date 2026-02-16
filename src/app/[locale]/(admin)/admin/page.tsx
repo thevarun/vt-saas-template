@@ -10,6 +10,8 @@ import {
   getTotalUsersCount,
 } from '@/libs/queries/metrics';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Dashboard Page
  * Overview page for the admin panel showing key system metrics.
