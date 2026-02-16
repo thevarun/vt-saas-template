@@ -87,14 +87,20 @@
 
     "^test\\s+-[dfeL]\\s+[^|;&]+$",
 
-    "^xxd\\s+[^|;&]+$"
+    "^xxd\\s+[^|;&]+$",
+
+    "^npm\\s+(test|run\\s+[\\w:-]+)(\\s+--\\s+[^|;&]*)?(\\s*2>&1)?\\s*\\|\\s*(grep|head|tail|wc)(\\s+[^|;&]*)?$",
+    "^ls\\s+[^|;&]+\\|\\s*(grep|head|tail|wc)(\\s+[^|;&]*)?$",
+    "^curl\\s+[^|;&]*https?://localhost[:/][^|;&]*(\\s*2>&1)?(\\s*2>/dev/null)?$",
+    "^npx\\s+(--yes\\s+)?semantic-release\\s+--dry-run[^|;&]*$",
+    "^rm\\s+-rf?\\s+\\.next(/)?$"
   ],
 
   "deny_patterns": [
     "^sudo\\b",
     "^doas\\b",
-    "(?<!git\\s)\\brm\\s+.*(-r|-rf|-fr|--recursive)",
-    "(?<!git\\s)\\brm\\s+-[^\\s]*r",
+    "(?<!git\\s)\\brm\\s+(?!-rf?\\s+\\.next).*(-r|-rf|-fr|--recursive)",
+    "(?<!git\\s)\\brm\\s+(?!-rf?\\s+\\.next)-[^\\s]*r",
     "^rm\\s+/$",
     "^rm\\s+/(etc|usr|var|bin|sbin|lib|boot|dev|proc|sys|root|home)\\b",
     "\\bmkfs\\.",
@@ -143,7 +149,7 @@
     "\\.netrc$",
     "\\bsecrets?\\b",
     "\\bpassw(?:ord)?s?\\.(txt|json|env|yaml|yml|ini|conf|cfg)$",
-    "\\btokens?\\b",
+    "\\btokens?\\.(txt|json|env|yaml|yml|ini|conf|cfg)$",
     "\\.docker/config\\.json",
     "\\.kube/config"
   ]
