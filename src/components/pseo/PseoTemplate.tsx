@@ -40,15 +40,12 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-4xl px-4 py-8">
+      <div className="container mx-auto max-w-5xl px-4 py-12">
         {/* Breadcrumb navigation */}
         <Breadcrumbs category={category} pageTitle={page.title} locale={locale} articlesLabel="Articles" />
 
         {/* Article header */}
         <header className="mb-8">
-          <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            {category.name}
-          </div>
           <h1 className="mb-4 text-4xl font-bold text-foreground">
             {page.title}
           </h1>

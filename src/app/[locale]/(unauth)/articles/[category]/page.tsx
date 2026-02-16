@@ -54,6 +54,10 @@ export default async function CategoryPage(props: CategoryPageProps) {
       <div className="container mx-auto max-w-5xl px-4 py-12">
         <header className="mb-8">
           <nav className="mb-4 text-sm text-muted-foreground">
+            <Link href={`/${locale}`} className="hover:text-foreground">
+              Home
+            </Link>
+            <span className="mx-2">/</span>
             <Link href={`/${locale}/articles`} className="hover:text-foreground">
               Articles
             </Link>

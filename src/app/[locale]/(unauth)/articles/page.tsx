@@ -35,6 +35,14 @@ export default async function ArticlesIndexPage(props: ArticlesPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-5xl px-4 py-12">
+        <nav className="mb-6 text-sm text-muted-foreground">
+          <Link href={`/${locale}`} className="hover:text-foreground">
+            Home
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="font-medium text-foreground">Articles</span>
+        </nav>
+
         <header className="mb-12">
           <h1 className="mb-3 text-4xl font-bold text-foreground">Articles</h1>
           <p className="text-lg text-muted-foreground">
