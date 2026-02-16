@@ -69,18 +69,18 @@ describe('shareWidget', () => {
     });
   });
 
-  describe('share modal', () => {
-    it('opens modal when Share button is clicked', async () => {
+  describe('share popover', () => {
+    it('opens popover when Share button is clicked', async () => {
       const user = userEvent.setup();
       render(<ShareWidget {...defaultProps} />);
 
       await user.click(screen.getByRole('button', { name: /share/i }));
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Share' })).toBeInTheDocument();
+      expect(screen.getByText('Share on X')).toBeInTheDocument();
+      expect(screen.getByText('Copy link')).toBeInTheDocument();
     });
 
-    it('shows all platform buttons inside modal', async () => {
+    it('shows all platform options inside popover', async () => {
       const user = userEvent.setup();
       render(<ShareWidget {...defaultProps} />);
 
@@ -110,7 +110,7 @@ describe('shareWidget', () => {
     });
   });
 
-  describe('share actions from modal', () => {
+  describe('share actions', () => {
     it('opens Twitter in a new tab when X button is clicked', async () => {
       const user = userEvent.setup();
       render(<ShareWidget {...defaultProps} />);
@@ -197,7 +197,7 @@ describe('shareWidget', () => {
       expect(trigger).toBeInTheDocument();
     });
 
-    it('has proper aria-labels on modal buttons', async () => {
+    it('has proper aria-labels on popover buttons', async () => {
       const user = userEvent.setup();
       render(<ShareWidget {...defaultProps} />);
 
