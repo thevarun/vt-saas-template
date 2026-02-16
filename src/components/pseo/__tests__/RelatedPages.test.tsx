@@ -83,8 +83,8 @@ describe('RelatedPages Component', () => {
     const links = screen.getAllByRole('link');
 
     expect(links).toHaveLength(2);
-    expect(links[0]).toHaveAttribute('href', '/en/productivity/time-management');
-    expect(links[1]).toHaveAttribute('href', '/en/productivity/focus-techniques');
+    expect(links[0]).toHaveAttribute('href', '/en/articles/productivity/time-management');
+    expect(links[1]).toHaveAttribute('href', '/en/articles/productivity/focus-techniques');
   });
 
   it('should not render if no pages provided', () => {

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { getAllPageParams, getPageBySlug } from '@/libs/pseo/data';
+import { getAllCategoryParams, getAllPageParams, getPageBySlug } from '@/libs/pseo/data';
 import { AppConfig } from '@/utils/AppConfig';
 import { getBaseUrl } from '@/utils/Helpers';
 
@@ -41,6 +41,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // },
   ];
 
+  // Articles index and category pages
+  const categoryParams = await getAllCategoryParams();
+  const articlePages: MetadataRoute.Sitemap = [];
+
+  for (const locale of AppConfig.locales) {
+    // Articles index page
+    articlePages.push({
+      url: `${baseUrl}/${locale}/articles`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    });
+
+    // Category pages
+    for (const param of categoryParams) {
+      articlePages.push({
+        url: `${baseUrl}/${locale}/articles/${param.category}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      });
+    }
+  }
+
   // pSEO pages - generate entries for all programmatic SEO pages
   const pseoParams = await getAllPageParams();
   const pseoPages: MetadataRoute.Sitemap = [];
@@ -50,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const page = await getPageBySlug(param.category, param.slug);
       if (page) {
         pseoPages.push({
-          url: `${baseUrl}/${locale}/${param.category}/${param.slug}`,
+          url: `${baseUrl}/${locale}/articles/${param.category}/${param.slug}`,
           lastModified: new Date(page.lastModified),
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -60,5 +84,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Combine all pages
-  return [...staticPages, ...pseoPages];
+  return [...staticPages, ...articlePages, ...pseoPages];
 }

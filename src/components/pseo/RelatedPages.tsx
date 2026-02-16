@@ -32,7 +32,7 @@ export function RelatedPages({ pages, categorySlug, locale }: RelatedPagesProps)
         {pages.map(page => (
           <Link
             key={page.id}
-            href={`/${locale}/${categorySlug}/${page.slug}`}
+            href={`/${locale}/articles/${categorySlug}/${page.slug}`}
             className="group block"
           >
             <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">

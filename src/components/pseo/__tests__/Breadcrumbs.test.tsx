@@ -39,11 +39,12 @@ describe('Breadcrumbs Component', () => {
     );
 
     expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Articles')).toBeInTheDocument();
     expect(screen.getByText('Productivity')).toBeInTheDocument();
     expect(screen.getByText('Time Management')).toBeInTheDocument();
   });
 
-  it('should make home and category links clickable', () => {
+  it('should make home, articles, and category links clickable', () => {
     render(
       <Breadcrumbs
         category={mockCategory}
@@ -56,9 +57,13 @@ describe('Breadcrumbs Component', () => {
 
     expect(homeLink).toHaveAttribute('href', '/en');
 
+    const articlesLink = screen.getByRole('link', { name: 'Articles' });
+
+    expect(articlesLink).toHaveAttribute('href', '/en/articles');
+
     const categoryLink = screen.getByRole('link', { name: 'Productivity' });
 
-    expect(categoryLink).toHaveAttribute('href', '/en/productivity');
+    expect(categoryLink).toHaveAttribute('href', '/en/articles/productivity');
   });
 
   it('should not make current page clickable', () => {
@@ -93,7 +98,7 @@ describe('Breadcrumbs Component', () => {
       const jsonLd = JSON.parse(script.textContent || '{}');
 
       expect(jsonLd['@type']).toBe('BreadcrumbList');
-      expect(jsonLd.itemListElement).toHaveLength(3);
+      expect(jsonLd.itemListElement).toHaveLength(4);
     }
   });
 });

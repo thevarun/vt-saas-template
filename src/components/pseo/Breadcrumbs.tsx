@@ -18,12 +18,14 @@ type BreadcrumbsProps = {
   category: PseoCategory;
   pageTitle: string;
   locale: string;
+  articlesLabel?: string;
 };
 
-export function Breadcrumbs({ category, pageTitle, locale }: BreadcrumbsProps) {
+export function Breadcrumbs({ category, pageTitle, locale, articlesLabel = 'Articles' }: BreadcrumbsProps) {
   const items = [
     { name: 'Home', href: `/${locale}` },
-    { name: category.name, href: `/${locale}/${category.slug}` },
+    { name: articlesLabel, href: `/${locale}/articles` },
+    { name: category.name, href: `/${locale}/articles/${category.slug}` },
     { name: pageTitle, href: null }, // Current page, not a link
   ];
 

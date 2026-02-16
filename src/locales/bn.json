@@ -309,6 +309,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "পরিবর্তন লগ",
     "community": "Community",
     "company": "Company"
   },
@@ -366,6 +367,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "পরিবর্তন লগ",
     "community": "Community",
     "company": "Company",
     "terms_of_service": "Terms Of Service",
@@ -767,7 +769,22 @@
     "noReleases": "এখনও কোনো রিলিজ নেই",
     "noReleasesDescription": "প্রথম সংস্করণ মূল শাখায় প্রকাশিত হওয়ার পরে এখানে রিলিজ প্রদর্শিত হবে।"
   },
+  "ShareLinks": {
+    "title": "শেয়ার লিংক",
+    "description": "আপনার সম্পদের জন্য শেয়ারযোগ্য লিংক তৈরি এবং পরিচালনা করুন।",
+    "createLink": "শেয়ার লিংক তৈরি করুন",
+    "noLinks": "এখনও কোনো শেয়ার লিংক নেই",
+    "noLinksDescription": "শুরু করতে আপনার প্রথম শেয়ার লিংক তৈরি করুন।"
+  },
+  "Articles": {
+    "title": "নিবন্ধ",
+    "description": "বিভিন্ন বিষয়ে আমাদের নিবন্ধ সংগ্রহ ব্রাউজ করুন।",
+    "readMore": "আরও পড়ুন",
+    "viewAll": "সব দেখুন",
+    "noArticles": "এই বিভাগে এখনও কোনো নিবন্ধ নেই।"
+  },
   "Pseo": {
+    "articles": "নিবন্ধ",
     "breadcrumbs": {
       "home": "হোম"
     },

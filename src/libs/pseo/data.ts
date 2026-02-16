@@ -126,6 +126,14 @@ export async function getRelatedPages(
 }
 
 /**
+ * Get all category slugs for static generation of category pages
+ */
+export async function getAllCategoryParams(): Promise<Array<{ category: string }>> {
+  const categories = await loadCategories();
+  return categories.map(cat => ({ category: cat.slug }));
+}
+
+/**
  * Get all category/page combinations for static generation
  * This powers generateStaticParams in the route
  */

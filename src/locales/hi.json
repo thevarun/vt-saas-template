@@ -309,6 +309,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "परिवर्तन लॉग",
     "community": "Community",
     "company": "Company"
   },
@@ -366,6 +367,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "परिवर्तन लॉग",
     "community": "Community",
     "company": "Company",
     "terms_of_service": "Terms Of Service",
@@ -767,7 +769,22 @@
     "noReleases": "अभी तक कोई रिलीज़ नहीं",
     "noReleasesDescription": "पहला संस्करण मुख्य शाखा में प्रकाशित होने के बाद यहां रिलीज़ दिखाई देंगे।"
   },
+  "ShareLinks": {
+    "title": "शेयर लिंक",
+    "description": "अपने संसाधनों के लिए साझा करने योग्य लिंक बनाएं और प्रबंधित करें।",
+    "createLink": "शेयर लिंक बनाएं",
+    "noLinks": "अभी तक कोई शेयर लिंक नहीं",
+    "noLinksDescription": "शुरू करने के लिए अपना पहला शेयर लिंक बनाएं।"
+  },
+  "Articles": {
+    "title": "लेख",
+    "description": "विभिन्न विषयों पर हमारे लेखों का संग्रह ब्राउज़ करें।",
+    "readMore": "और पढ़ें",
+    "viewAll": "सभी देखें",
+    "noArticles": "इस श्रेणी में अभी तक कोई लेख नहीं।"
+  },
   "Pseo": {
+    "articles": "लेख",
     "breadcrumbs": {
       "home": "होम"
     },
