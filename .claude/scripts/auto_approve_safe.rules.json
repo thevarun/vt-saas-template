@@ -1,5 +1,5 @@
 {
-  "_doc_allow": "Groups: system info, file reading, version checks, git, node/npm/yarn/pnpm, python, rust/go, search/text tools, network (localhost only), filesystem, github CLI, process management, background tasks",
+  "_doc_allow": "Groups: system info, file reading, version checks, git, node/npm/yarn/pnpm, python, rust/go, search/text tools, network (localhost only), filesystem, github CLI, vercel CLI, process management, background tasks",
   "_doc_deny": "Blocks: privilege escalation, destructive rm, system modification, fork bombs, pipe-to-shell, mass kill, xargs rm, netcat, crontab",
   "_doc_sensitive": "Protects: env files, crypto keys, SSH, cloud credentials, package registry configs, secrets/tokens, Docker/K8s configs",
 
@@ -26,6 +26,7 @@
     "^pnpm\\s+(test|run\\s+(test|lint|typecheck|type-check|check|build|dev|start)|install|i|add|remove)(\\s+.*)?$",
     "^npm\\s+(test|install|i|ci)(\\s+.*)?$",
     "^npm\\s+run\\s+[\\w:-]+(\\s+[^|;&]*)?(\\s*2>&1)?(\\s*&)?$",
+    "^npm\\s+(run\\s+[\\w:-]+|test)(\\s+[^|;&]*)?\\s*2>&1\\s*\\|\\s*(grep|head|tail|wc)(\\s+[^|;&]*)*$",
     "^npm\\s+whoami$",
     "^npm\\s+list(\\s+(-g|--global))?(\\s+[\\w@/-]+)?$",
     "^npm\\s+ls(\\s+[\\w@/-]+)*$",
@@ -65,6 +66,8 @@
     "^rmdir\\s+[^|;&]+$",
 
     "^gh\\s+(pr|issue|repo|release|workflow|run|api|auth)(\\s+.*)?$",
+
+    "^vercel\\s+(env|inspect|whoami|ls|project|logs|--version|deployments)(\\s+[^|;&]*)?$",
     "^npm\\s+update\\s+[@\\w/-]+$",
 
     "^sleep\\s+[0-9.]+$",
@@ -72,7 +75,7 @@
     "^chmod\\s+[0-6][0-7][0-7]\\s+[^|;&]+$",
 
     "^lsof\\s+(-[a-zA-Z]+\\s+)*-?i\\s*[:\\d]+",
-    "^lsof\\s+-ti:\\d+(\\s+2>/dev/null)?$",
+    "^lsof\\s+-ti:[\\d-]+(\\s+2>/dev/null)?$",
     "^npm\\s+run\\s+clean(\\s+.*)?$",
     "^npm\\s+(dedupe|cache\\s+clean)(\\s+.*)?$",
 
