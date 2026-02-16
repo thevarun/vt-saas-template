@@ -161,7 +161,8 @@
       "mcp__shadcn__list_items_in_registries",
       "Bash(python3:*)",
       "Bash(identify:*)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
