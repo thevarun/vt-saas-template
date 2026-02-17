@@ -47,18 +47,23 @@ export type ConversationUpdate = {
 export async function getConversationById(
   _supabase: SupabaseClient,
   conversationId: string,
+  userId?: string,
 ): Promise<{ data: VercelConversation | null; error: any }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
       message: 'Fetching conversation by ID',
-      data: { conversationId },
+      data: { conversationId, userId },
     });
+
+    const whereClause = userId
+      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
+      : eq(vercelConversations.id, conversationId);
 
     const result = await db
       .select()
       .from(vercelConversations)
-      .where(eq(vercelConversations.id, conversationId))
+      .where(whereClause)
       .limit(1);
 
     return {
@@ -138,12 +143,13 @@ export async function updateConversation(
   _supabase: SupabaseClient,
   conversationId: string,
   updates: ConversationUpdate,
+  userId?: string,
 ): Promise<{ data: VercelConversation | null; error: any }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
       message: 'Updating conversation',
-      data: { conversationId, updates },
+      data: { conversationId, updates, userId },
     });
 
     const updateData: any = {
@@ -160,10 +166,14 @@ export async function updateConversation(
       updateData.archived = updates.archived;
     }
 
+    const whereClause = userId
+      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
+      : eq(vercelConversations.id, conversationId);
+
     const result = await db
       .update(vercelConversations)
       .set(updateData)
-      .where(eq(vercelConversations.id, conversationId))
+      .where(whereClause)
       .returning();
 
     logger.info({ conversationId }, 'Conversation updated');
@@ -253,17 +263,22 @@ export async function listUserConversations(
 export async function deleteConversation(
   _supabase: SupabaseClient,
   conversationId: string,
+  userId?: string,
 ): Promise<{ data: VercelConversation | null; error: any }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
       message: 'Deleting conversation',
-      data: { conversationId },
+      data: { conversationId, userId },
     });
+
+    const whereClause = userId
+      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
+      : eq(vercelConversations.id, conversationId);
 
     const result = await db
       .delete(vercelConversations)
-      .where(eq(vercelConversations.id, conversationId))
+      .where(whereClause)
       .returning();
 
     logger.info({ conversationId }, 'Conversation deleted (messages cascade deleted)');

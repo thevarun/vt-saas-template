@@ -160,20 +160,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     let activeConversationId: string;
 
     if (conversationId) {
-      // Verify conversation exists and belongs to user
+      // Verify conversation exists and belongs to user (userId filter enforces ownership)
       const { data: existingConversation, error: fetchError } = await getConversationById(
         supabase,
         conversationId,
+        user.id,
       );
 
       if (fetchError || !existingConversation) {
         // Return 404 for not found (security: don't reveal existence)
         return invalidRequestError('Conversation not found');
-      }
-
-      // Verify ownership (RLS should handle this, but double-check)
-      if (existingConversation.userId !== user.id) {
-        return unauthorizedError();
       }
 
       activeConversationId = conversationId;
@@ -309,6 +305,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           {
             lastMessagePreview,
           },
+          user.id,
         );
 
         if (updateError) {

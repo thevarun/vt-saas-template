@@ -24,6 +24,7 @@ import { createClient } from '@/libs/supabase/server';
 // Zod schema for PATCH /api/chat/vercel/conversations/[id] request validation
 const updateConversationSchema = z.object({
   title: z.string().optional(),
+  archived: z.boolean().optional(),
 });
 
 /**
@@ -56,8 +57,8 @@ export async function GET(
     // Get conversation ID from params
     const { id } = await params;
 
-    // Fetch conversation - RLS ensures user ownership
-    const { data: conversation, error: dbQueryError } = await getConversationById(supabase, id);
+    // Fetch conversation - userId filter ensures user ownership
+    const { data: conversation, error: dbQueryError } = await getConversationById(supabase, id, user.id);
 
     // Return 404 if conversation not found or not owned by user
     // (Security through obscurity - don't reveal existence)
@@ -139,16 +140,17 @@ export async function PATCH(
       return validationError(errors);
     }
 
-    const { title } = validationResult.data;
+    const { title, archived } = validationResult.data;
 
     // Get conversation ID from params
     const { id } = await params;
 
-    // Update conversation - RLS ensures user ownership
+    // Update conversation - userId filter ensures user ownership
     const { data: updatedConversation, error: dbUpdateError } = await updateConversation(
       supabase,
       id,
-      { title },
+      { title, archived },
+      user.id,
     );
 
     // Return 404 if conversation not found or not owned by user
@@ -209,11 +211,12 @@ export async function DELETE(
     // Get conversation ID from params
     const { id } = await params;
 
-    // Delete conversation - RLS ensures user ownership
+    // Delete conversation - userId filter ensures user ownership
     // Messages are automatically deleted via cascade (schema: onDelete: 'cascade')
     const { data: deletedConversation, error: dbDeleteError } = await deleteConversation(
       supabase,
       id,
+      user.id,
     );
 
     // Return 404 if conversation not found or not owned by user
