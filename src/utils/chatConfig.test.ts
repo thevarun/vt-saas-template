@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { getChatConfig, getPublicChatConfig } from './chatConfig';
+import { getChatConfig } from './chatConfig';
 
 describe('chatConfig', () => {
   beforeEach(() => {
@@ -9,9 +9,6 @@ describe('chatConfig', () => {
     delete process.env.DIFY_API_KEY;
     delete process.env.OPENAI_API_KEY;
     delete process.env.ANTHROPIC_API_KEY;
-    delete process.env.NEXT_PUBLIC_DIFY_API_URL;
-    delete process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-    delete process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY;
   });
 
   describe('getChatConfig', () => {
@@ -77,53 +74,6 @@ describe('chatConfig', () => {
 
       expect(config.dify.configured).toBe(true);
       expect(config.vercel.configured).toBe(true);
-    });
-  });
-
-  describe('getPublicChatConfig', () => {
-    it('should return both unconfigured when no public env vars are set', () => {
-      const config = getPublicChatConfig();
-
-      expect(config.dify.configured).toBe(false);
-      expect(config.vercel.configured).toBe(false);
-    });
-
-    it('should detect Dify configuration from public env var', () => {
-      process.env.NEXT_PUBLIC_DIFY_API_URL = 'https://api.dify.ai/v1';
-
-      const config = getPublicChatConfig();
-
-      expect(config.dify.configured).toBe(true);
-      expect(config.dify.url).toBe('https://api.dify.ai/v1');
-    });
-
-    it('should detect OpenAI configuration from public env var', () => {
-      process.env.NEXT_PUBLIC_OPENAI_API_KEY = 'configured';
-
-      const config = getPublicChatConfig();
-
-      expect(config.vercel.configured).toBe(true);
-      expect(config.vercel.provider).toBe('openai');
-    });
-
-    it('should detect Anthropic configuration from public env var', () => {
-      process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY = 'configured';
-
-      const config = getPublicChatConfig();
-
-      expect(config.vercel.configured).toBe(true);
-      expect(config.vercel.provider).toBe('anthropic');
-    });
-
-    it('should not use server-side env vars', () => {
-      // Set only server-side vars (should not affect getPublicChatConfig)
-      process.env.DIFY_API_KEY = 'test-key';
-      process.env.OPENAI_API_KEY = 'sk-test';
-
-      const config = getPublicChatConfig();
-
-      expect(config.dify.configured).toBe(false);
-      expect(config.vercel.configured).toBe(false);
     });
   });
 });

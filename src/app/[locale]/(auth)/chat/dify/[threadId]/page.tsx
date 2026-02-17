@@ -5,7 +5,6 @@ import { getTranslations } from 'next-intl/server';
 import { AppShell } from '@/components/chat/AppShell';
 import { ThreadListSidebar } from '@/components/chat/ThreadListSidebar';
 import { ThreadView } from '@/components/chat/ThreadView';
-import { TitleBar } from '@/features/dashboard/TitleBar';
 import { createClient } from '@/libs/supabase/server';
 import { getThreadById } from '@/libs/supabase/threads';
 
@@ -28,7 +27,6 @@ export default async function ThreadPage(props: {
   params: Promise<{ locale: string; threadId: string }>;
 }) {
   const { locale, threadId } = await props.params;
-  const t = await getTranslations({ locale, namespace: 'ChatPage' });
 
   // Fetch thread data server-side
   const cookieStore = await cookies();
@@ -49,12 +47,7 @@ export default async function ThreadPage(props: {
   }
 
   return (
-    <div className="flex h-full flex-col gap-6">
-      <TitleBar
-        title={t('title')}
-        description={t('description')}
-      />
-
+    <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1">
         <AppShell sidebar={<ThreadListSidebar />}>
           <ThreadView thread={thread} />
