@@ -21,7 +21,7 @@ test.describe('Multi-Thread Chat', () => {
       }
     });
 
-    await authenticatedPage.goto('/chat');
+    await authenticatedPage.goto('/chat/dify');
     await authenticatedPage.waitForLoadState('domcontentloaded');
 
     // Verify composer is ready

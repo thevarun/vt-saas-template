@@ -3,11 +3,13 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
-import * as Spotlight from '@spotlightjs/spotlight';
 
 Sentry.init({
   // Sentry DSN
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+  // Enable Spotlight in development
+  spotlight: process.env.NODE_ENV === 'development',
 
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
@@ -30,7 +32,3 @@ Sentry.init({
     }),
   ],
 });
-
-if (process.env.NODE_ENV === 'development') {
-  Spotlight.init();
-}

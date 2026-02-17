@@ -586,6 +586,26 @@ git commit --no-verify
 
 ---
 
+## Advanced Patterns
+
+### SSE Streaming for AI Chat
+
+This template includes comprehensive Server-Sent Events (SSE) implementations for real-time AI streaming. Two complete patterns are available:
+
+**Dify SSE Proxy Pattern:**
+- Zero-copy streaming from external API to client
+- API key stays server-side (secure)
+- Reference: `src/app/api/chat/route.ts`
+
+**Vercel AI SDK Pattern:**
+- Built-in streaming with `streamText` and `useChat` hook
+- Automatic state management
+- Reference: `src/app/api/chat/vercel/route.ts`
+
+**Full Documentation:** [SSE Streaming Pattern](patterns/sse-streaming.md) - Complete guide with examples, error handling, troubleshooting, and performance considerations.
+
+---
+
 ## Helpful Resources
 
 - **Next.js Docs:** https://nextjs.org/docs

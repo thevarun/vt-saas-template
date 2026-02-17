@@ -166,11 +166,15 @@
       "Bash(exit:*)",
       "Bash(kill:*)",
       "Bash(lsof:*)",
+      "Bash(pkill:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(printf:*)",
+      "Bash(tee:*)",
+      "Bash(npm uninstall:*)",
       "Bash(python3:*)",
       "Bash(PORT=3005 npm run dev:next:*)",
       "Bash(identify:*)",
-      "Bash(sips:*)",
-      "Bash(pkill:*)"
+      "Bash(sips:*)"
     ],
     "deny": [],
     "ask": []

@@ -111,14 +111,14 @@ describe('WelcomeDashboard', () => {
     expect(buttons).toHaveLength(3);
   });
 
-  it('navigates to /chat when Start a Conversation is clicked', async () => {
+  it('navigates to /chat/dify when Start a Conversation is clicked', async () => {
     const user = userEvent.setup();
     render(<WelcomeDashboard userName="Sarah" />);
 
     const buttons = screen.getAllByRole('button', { name: /Get Started/i });
     await user.click(buttons[0]!);
 
-    expect(mockPush).toHaveBeenCalledWith('/chat');
+    expect(mockPush).toHaveBeenCalledWith('/chat/dify');
   });
 
   it('navigates to /dashboard/user-profile when Complete Your Profile is clicked', async () => {

@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ScrollText,
   Settings,
+  Sparkles,
   User,
   UserPlus,
 } from 'lucide-react';
@@ -61,7 +62,8 @@ export function MainAppShell({ children }: MainAppShellProps) {
   // AC #2: Navigation items configuration
   const navItems: NavItemConfig[] = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    { icon: MessageSquare, label: 'Chat', href: '/chat' },
+    { icon: MessageSquare, label: 'Chat (Dify)', href: '/chat/dify' },
+    { icon: Sparkles, label: 'Chat (AI SDK)', href: '/chat/vercel' },
     { icon: ScrollText, label: 'Changelog', href: '/changelog', external: true },
     { icon: Link2, label: 'Share Links', href: '/dashboard/share-links' },
     { icon: Inbox, label: 'DS - Empty States', href: '/design-system/empty-states' },

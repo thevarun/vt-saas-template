@@ -47,8 +47,15 @@
     {
       "idx": 6,
       "version": "7",
+      "when": 1770722095213,
+      "tag": "0006_narrow_demogoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
       "when": 1770605393149,
-      "tag": "0006_famous_omega_red",
+      "tag": "0007_famous_omega_red",
       "breakpoints": true
     }
   ]
