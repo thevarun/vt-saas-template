@@ -1,4 +1,17 @@
+import type { Metadata } from 'next';
+
 import { AdminLayoutClient } from '@/components/admin/AdminLayoutClient';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+  // Override parent layout's hreflang alternates — protected pages should not have language alternates
+  alternates: {
+    languages: {},
+  },
+};
 
 /**
  * Admin Layout

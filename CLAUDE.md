@@ -81,6 +81,44 @@ The project includes **two chat implementations**. Users can choose between them
 - **Middleware**: Handles locale detection and prefix routing
 - **Config**: `src/utils/AppConfig.ts`
 
+### SEO Configuration
+- **Site URL**: Configured via `NEXT_PUBLIC_SITE_URL` env var (auto-detected on Vercel)
+- **Hreflang Tags**: Automatically added to all public pages via root layout
+  - Includes alternates for all locales: en, hi, bn
+  - Includes x-default pointing to English version
+  - Uses absolute URLs with site domain
+- **Social Metadata**: Open Graph and Twitter Card tags for rich social sharing
+  - Default metadata set in root layout (`src/app/[locale]/layout.tsx`)
+  - Page-specific overrides via `generateMetadata()` function
+  - Utilities: `src/libs/seo/opengraph.ts`
+  - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
+  - Default OG image: `public/og-image.png` (1200x630, static fallback)
+- **Dynamic OG Images**: Edge-generated images at `/api/og` (`src/app/api/og/route.tsx`)
+  - Runs on Vercel Edge Runtime for fast worldwide generation
+  - Query params: `?title=Page+Title&description=Page+Description`
+  - Auto-used by `generateSocialMetadata()` when no custom image provided
+  - Brand colors and Inter font, 1200x630 PNG output
+  - Fallback: returns static `/og-image.png` on generation failure
+  - Helper: `buildOgImageUrl()` from `src/libs/seo/opengraph.ts`
+- **Robots.txt**: Configures search engine crawling rules (`src/app/robots.ts`)
+  - Allows all public pages by default (`Allow: /`)
+  - Disallows: `/dashboard`, `/admin`, `/api`, `/onboarding`, `/chat`, `/sign-out`, `/design-system`
+  - References sitemap location with absolute URL
+  - Auto-generated at build time, served at `/robots.txt`
+- **Sitemap**: XML sitemap for search engine indexing (`src/app/sitemap.ts`)
+  - Dynamically generated for all public pages
+  - Includes localized versions (en, hi, bn) of each page
+  - Absolute URLs with domain
+  - Auto-generated at build time, served at `/sitemap.xml`
+  - Auto-updates on each deployment (no manual sitemap.xml editing needed)
+  - **Adding New Public Pages**: Add route to `publicRoutes` array in `src/app/sitemap.ts` with appropriate priority/changeFrequency
+- **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
+- **Implementation**: `src/libs/seo/` - SEO utilities (hreflang, Open Graph, constants)
+- **Validation Tools**:
+  - Sitemap: [XML Sitemaps Validator](https://www.xml-sitemaps.com/validate-xml-sitemap.html)
+  - Robots.txt: [Google Search Console Robots Tester](https://support.google.com/webmasters/answer/6062598)
+  - Submit sitemap to Google Search Console after deployment
+
 ### Email Integration
 - **Provider**: Resend (https://resend.com)
 - **Email Service**: `src/libs/email/`
@@ -164,6 +202,9 @@ RESEND_API_KEY=           # Resend API key (optional in dev - logs to console)
 EMAIL_FROM_ADDRESS=       # Sender email (default: noreply@example.com)
 EMAIL_FROM_NAME=          # Sender name (default: VT SaaS Template)
 EMAIL_REPLY_TO=           # Reply-to address (optional)
+
+# SEO - Site URL (required for hreflang, Open Graph, sitemaps)
+NEXT_PUBLIC_SITE_URL=     # Absolute site URL (optional - auto-detected on Vercel)
 ```
 
 ### Sensitive (.env.local only)
@@ -245,6 +286,46 @@ This template includes two complete Server-Sent Events (SSE) implementations for
 - Automatic SSE formatting and state management
 
 **Documentation:** See [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) for complete SSE streaming patterns, examples, and troubleshooting.
+
+### Adding Social Metadata to Pages
+1. Import utilities from `@/libs/seo`:
+   ```typescript
+   import type { Metadata } from 'next';
+   import { generateSocialMetadata } from '@/libs/seo/opengraph';
+   import { SITE_NAME } from '@/libs/seo/constants';
+   ```
+
+2. Create `generateMetadata` function in page:
+   ```typescript
+   export async function generateMetadata(props: {
+     params: Promise<{ locale: string }>;
+   }): Promise<Metadata> {
+     const { locale } = await props.params;
+
+     const title = `Page Title | ${SITE_NAME}`;
+     const description = 'Page-specific description for social sharing';
+
+     return {
+       title,
+       description,
+       ...generateSocialMetadata({
+         title,
+         description,
+         path: `/${locale}/your-path`,
+       }),
+     };
+   }
+   ```
+
+3. For custom Open Graph images:
+   ```typescript
+   ...generateSocialMetadata({
+     title,
+     description,
+     image: '/custom-og-image.png', // Must be 1200x630
+     path: `/${locale}/your-path`,
+   })
+   ```
 
 ### Error Handling
 

@@ -47,6 +47,9 @@ describe('OnboardingPreferences', () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
+    // Use fake timers to prevent setTimeout leaks between tests
+    // shouldAdvanceTime keeps natural time flow so waitFor/userEvent work unchanged
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     (useRouter as any).mockReturnValue({ push: mockPush });
     (useTranslations as any).mockReturnValue(mockTranslate);
@@ -57,6 +60,9 @@ describe('OnboardingPreferences', () => {
   });
 
   afterEach(() => {
+    // Clear any pending timers (e.g. redirect setTimeout) to prevent leaks
+    vi.clearAllTimers();
+    vi.useRealTimers();
     // Restore original window.location
     (window as any).location = originalLocation;
   });
