@@ -11,6 +11,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgSchema,
@@ -43,11 +44,11 @@ export const userProfiles = pgTable(
   }),
 );
 
-// Create dedicated health_companion schema
-export const healthCompanionSchema = pgSchema('health_companion');
+// Create dedicated vt_saas schema (consolidates all project tables)
+export const vtSaasSchema = pgSchema('vt_saas');
 
-// Threads table for multi-threaded chat conversations
-export const threads = healthCompanionSchema.table(
+// Threads table for multi-threaded chat conversations (Dify implementation)
+export const threads = vtSaasSchema.table(
   'threads',
   {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -76,7 +77,7 @@ export const threads = healthCompanionSchema.table(
 );
 
 // User preferences table for this project (isolated from public.user_profiles)
-export const userPreferences = healthCompanionSchema.table(
+export const userPreferences = vtSaasSchema.table(
   'user_preferences',
   {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -99,7 +100,7 @@ export const userPreferences = healthCompanionSchema.table(
 );
 
 // Admin audit log table for tracking admin actions
-export const adminAuditLog = healthCompanionSchema.table(
+export const adminAuditLog = vtSaasSchema.table(
   'admin_audit_log',
   {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -127,7 +128,7 @@ export const feedbackTypeEnum = pgEnum('feedback_type', ['bug', 'feature', 'prai
 export const feedbackStatusEnum = pgEnum('feedback_status', ['pending', 'reviewed', 'archived']);
 
 // Feedback table for user feedback collection
-export const feedback = healthCompanionSchema.table(
+export const feedback = vtSaasSchema.table(
   'feedback',
   {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -146,5 +147,130 @@ export const feedback = healthCompanionSchema.table(
     statusIdx: index('idx_feedback_status').on(table.status),
     createdAtIdx: index('idx_feedback_created_at').on(table.createdAt),
     statusCreatedIdx: index('idx_feedback_status_created').on(table.status, table.createdAt),
+  }),
+);
+
+// Vercel AI SDK conversations table (parallel to Dify threads)
+export const vercelConversations = vtSaasSchema.table(
+  'vercel_conversations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').notNull(),
+    title: text('title'),
+    lastMessagePreview: text('last_message_preview'),
+    archived: boolean('archived').default(false).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    userIdIdx: index('idx_vercel_conversations_user_id').on(table.userId),
+    userArchivedIdx: index('idx_vercel_conversations_user_archived').on(
+      table.userId,
+      table.archived,
+    ),
+  }),
+);
+
+// Shareable links table for private share URLs
+export const shareableLinks = vtSaasSchema.table(
+  'shareable_links',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    token: text('token').notNull().unique(),
+    resourceType: text('resource_type').notNull(),
+    resourceId: uuid('resource_id').notNull(),
+    createdBy: uuid('created_by').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    accessCount: integer('access_count').default(0).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    tokenIdx: index('idx_shareable_links_token').on(table.token),
+    createdByIdx: index('idx_shareable_links_created_by').on(table.createdBy),
+    resourceIdx: index('idx_shareable_links_resource').on(
+      table.resourceType,
+      table.resourceId,
+    ),
+  }),
+);
+
+// Vercel AI SDK messages table
+export const vercelMessages = vtSaasSchema.table(
+  'vercel_messages',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => vercelConversations.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(), // 'user' | 'assistant' | 'system'
+    content: text('content').notNull(),
+    tokenCount: integer('token_count'),
+    latencyMs: integer('latency_ms'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    conversationIdIdx: index('idx_vercel_messages_conversation_id').on(
+      table.conversationId,
+    ),
+    createdAtIdx: index('idx_vercel_messages_created_at').on(table.createdAt),
+  }),
+);
+
+// Mem0 memories table for extracted facts/preferences
+export const mem0Memories = vtSaasSchema.table(
+  'mem0_memories',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').notNull(),
+    conversationId: uuid('conversation_id'),
+    memoryText: text('memory_text').notNull(),
+    memoryType: text('memory_type'), // 'fact' | 'preference' | 'context'
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  table => ({
+    userIdIdx: index('idx_mem0_memories_user_id').on(table.userId),
+    conversationIdIdx: index('idx_mem0_memories_conversation_id').on(
+      table.conversationId,
+    ),
+  }),
+);
+
+// Memory extraction jobs table for async processing
+export const memoryExtractionJobs = vtSaasSchema.table(
+  'memory_extraction_jobs',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    conversationId: uuid('conversation_id').notNull(),
+    status: text('status').notNull(), // 'pending' | 'processing' | 'completed' | 'failed'
+    errorMessage: text('error_message'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  table => ({
+    conversationIdIdx: index('idx_memory_jobs_conversation_id').on(
+      table.conversationId,
+    ),
+    statusIdx: index('idx_memory_jobs_status').on(table.status),
+    createdAtIdx: index('idx_memory_jobs_created_at').on(table.createdAt),
   }),
 );

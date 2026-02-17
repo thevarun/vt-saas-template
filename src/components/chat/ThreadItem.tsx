@@ -19,7 +19,7 @@ type ThreadItemProps = {
  *
  * Acceptance Criteria:
  * - AC #2: ThreadList displays user's threads fetched from GET /api/threads
- * - AC #4: Clicking thread navigates to /chat/[threadId]
+ * - AC #4: Clicking thread navigates to /chat/dify/[threadId]
  * - AC #5: Active thread highlighted in sidebar (visual indicator)
  * - AC #6: Archive button per thread (archives thread, removes from sidebar)
  */
@@ -28,12 +28,12 @@ export function ThreadItem({ thread, onArchive, onNavigate, collapsed }: ThreadI
   const pathname = usePathname();
 
   // AC #5: Determine if this thread is active (matches current URL)
-  // Use endsWith to handle locale prefix (pathname = "/en/chat/abc", not "/chat/abc")
-  const isActive = pathname.endsWith(`/chat/${thread.id}`);
+  // Use endsWith to handle locale prefix (pathname = "/en/chat/dify/abc", not "/chat/dify/abc")
+  const isActive = pathname.endsWith(`/chat/dify/${thread.id}`);
 
   // AC #4: Navigate to thread on click
   const handleClick = () => {
-    router.push(`/chat/${thread.id}`);
+    router.push(`/chat/dify/${thread.id}`);
     onNavigate?.();
   };
 

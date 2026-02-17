@@ -22,7 +22,27 @@ import {
 } from '@/libs/supabase/threads';
 
 /**
+ * POST /api/chat
+ *
+ * Chat API endpoint for the Dify implementation.
+ * Proxies chat requests to Dify API while keeping the API key server-side.
+ * Used by the /chat/dify route.
+ *
+ * Note: This route serves the Dify chat implementation. The Vercel AI SDK
+ * implementation (Story 10.7) will use a separate endpoint at /api/chat/vercel.
+ *
+ * SSE Streaming Pattern: Proxy external API stream to client
+ * See: docs/patterns/sse-streaming.md for full documentation
+ */
+
+/**
  * Parse SSE event data from chunk
+ *
+ * Extracts JSON data from Server-Sent Events (SSE) format.
+ * SSE format: "data: {json}\n\n"
+ *
+ * @param chunk Raw SSE chunk string
+ * @returns Parsed JSON object or null if parsing fails
  */
 function parseSSEEvent(chunk: string): Record<string, any> | null {
   try {
@@ -41,6 +61,7 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
 
 /**
  * Create or update thread after receiving Dify response
+ *
  * AC #2: Thread auto-created in database after first Dify response
  * AC #3: Thread creation happens asynchronously (doesn't block chat response)
  * AC #4: Thread updated_at timestamp updates on new messages
@@ -48,6 +69,11 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
  * AC #6: Duplicate conversation_id handled gracefully
  *
  * Uses Supabase client for RLS enforcement - user can only access their own threads
+ *
+ * @param supabase Supabase client instance (with user context for RLS)
+ * @param userId User ID who owns the thread
+ * @param conversationId Dify conversation ID
+ * @param messageText Last message text for preview generation
  */
 async function createOrUpdateThread(
   supabase: SupabaseClient,
@@ -215,12 +241,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     const stream = await difyClient.chatMessages(difyRequest);
 
     // AC #4: Stream SSE response back to client
+    // The Dify API returns a ReadableStream in streaming mode
     if (!(stream instanceof ReadableStream)) {
       // Should not happen for streaming mode, but handle gracefully
       return NextResponse.json(stream);
     }
 
     // Story 3.2 AC #1: Capture conversation_id and message from SSE stream
+    // We use a TransformStream to intercept the SSE data while streaming to client
+    // This allows us to extract metadata without blocking the response
+    // See: docs/patterns/sse-streaming.md#dify-api-integration
     let capturedConversationId: string | null = null;
     let capturedAnswer = '';
     const decoder = new TextDecoder();
@@ -271,12 +301,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     // Pipe Dify stream through transform
     const transformedStream = stream.pipeThrough(transformStream);
 
-    // Return streaming response with proper headers
+    // Return streaming response with proper SSE headers
+    // See: docs/patterns/sse-streaming.md#required-headers
     return new Response(transformedStream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        'Content-Type': 'text/event-stream', // Required: Tells browser this is SSE
+        'Cache-Control': 'no-cache', // Prevent caching of stream
+        'Connection': 'keep-alive', // Keep connection open
       },
     });
   } catch (error: any) {

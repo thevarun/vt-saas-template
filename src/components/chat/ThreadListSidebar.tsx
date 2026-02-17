@@ -19,8 +19,8 @@ import { ThreadListSkeleton } from './ThreadListSkeleton';
  *
  * Acceptance Criteria:
  * - AC #2: ThreadList displays user's threads fetched from GET /api/threads
- * - AC #3: "New Thread" button navigates to /chat (empty composer)
- * - AC #4: Clicking thread navigates to /chat/[threadId]
+ * - AC #3: "New Thread" button navigates to /chat/dify (empty composer)
+ * - AC #4: Clicking thread navigates to /chat/dify/[threadId]
  * - AC #5: Active thread highlighted in sidebar (visual indicator)
  * - AC #6: Archive button per thread (archives thread, removes from sidebar)
  * - AC #10: Loading state shows skeletons during thread fetch
@@ -133,7 +133,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   // AC #3: Navigate to new thread (empty composer)
   const handleNewThread = () => {
-    router.push('/chat');
+    router.push('/chat/dify');
     onNavigate?.();
   };
 
@@ -172,21 +172,22 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
       )}
     >
       {/* Header with collapse toggle */}
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-        <div
-          className={cn(
-            'space-y-0.5 transition-opacity duration-150',
-            collapsed && 'pointer-events-none opacity-0',
-          )}
-        >
-          <p className="text-sm font-semibold">Chat</p>
-          <p className="text-xs text-muted-foreground">Your conversations</p>
-        </div>
+      <div className={cn(
+        'flex items-center border-b px-3 py-2',
+        collapsed ? 'justify-center' : 'justify-between gap-2',
+      )}
+      >
+        {!collapsed && (
+          <div className="min-w-0 space-y-0.5">
+            <p className="text-sm font-semibold">Chat</p>
+            <p className="truncate text-xs text-muted-foreground">Your conversations</p>
+          </div>
+        )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(prev => !prev)}
-          className="size-9 rounded-full border bg-background shadow-sm hover:bg-accent"
+          className="size-9 shrink-0 rounded-full border bg-background shadow-sm hover:bg-accent"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}

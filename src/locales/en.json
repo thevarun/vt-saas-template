@@ -336,6 +336,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "Changelog",
     "community": "Community",
     "company": "Company"
   },
@@ -393,6 +394,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "Changelog",
     "community": "Community",
     "company": "Company",
     "terms_of_service": "Terms Of Service",
@@ -480,9 +482,35 @@
     "home": "Home",
     "chat": "Chat"
   },
+  "Navigation": {
+    "chat_dify": "Chat (Dify)",
+    "chat_vercel": "Chat (AI SDK)",
+    "chat_dify_description": "Simple, managed chat with Dify",
+    "chat_vercel_description": "Full control with Vercel AI SDK",
+    "chat_setup_required": "Setup Required"
+  },
   "Chat": {
     "meta_title": "AI Assistant Chat",
-    "meta_description": "Chat with your AI assistant for personalized guidance and support"
+    "meta_description": "Chat with your AI assistant for personalized guidance and support",
+    "vercel_meta_title": "Chat (AI SDK) - VT SaaS Template",
+    "vercel_meta_description": "AI chat powered by Vercel AI SDK",
+    "vercel_title": "Chat (AI SDK)",
+    "vercel_description": "Ask questions and get AI-powered responses using Vercel AI SDK"
+  },
+  "ChatSelection": {
+    "meta_title": "Choose Your Chat Experience",
+    "meta_description": "Select between Dify and Vercel AI SDK chat implementations",
+    "title": "Choose Your Chat Experience",
+    "subtitle": "Select the chat implementation that works best for you",
+    "dify_title": "Dify Chat",
+    "dify_description": "Managed AI chat with simple setup. Perfect for quick prototyping and getting started.",
+    "dify_features": "Simple setup, Managed infrastructure, Quick to deploy",
+    "vercel_title": "Vercel AI SDK Chat",
+    "vercel_description": "Full-control chat with conversation management. Ideal for production applications.",
+    "vercel_features": "Full control, Conversation management, Production-ready",
+    "get_started": "Get Started",
+    "setup_required_title": "Configuration Required",
+    "setup_required_description": "To use this chat option, you need to configure environment variables. See documentation for details."
   },
   "ChatPage": {
     "title": "Chat",
@@ -796,5 +824,41 @@
     "timeout": "Loading is taking longer than expected",
     "retry": "Retry",
     "slowConnection": "Slow connection detected"
+  },
+  "Changelog": {
+    "title": "Changelog",
+    "description": "Product updates and release notes",
+    "noReleases": "No releases yet",
+    "noReleasesDescription": "Releases will appear here once the first version is published to main."
+  },
+  "ShareLinks": {
+    "title": "Share Links",
+    "description": "Create and manage shareable links for your resources.",
+    "createLink": "Create Share Link",
+    "noLinks": "No share links yet",
+    "noLinksDescription": "Create your first share link to get started."
+  },
+  "Articles": {
+    "title": "Articles",
+    "description": "Browse our collection of articles across various topics.",
+    "readMore": "Read more",
+    "viewAll": "View all",
+    "noArticles": "No articles in this category yet."
+  },
+  "Pseo": {
+    "articles": "Articles",
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "relatedPages": {
+      "title": "Related Articles",
+      "readMore": "Read more"
+    },
+    "metadata": {
+      "lastUpdated": "Last updated"
+    },
+    "topics": {
+      "title": "Topics"
+    }
   }
 }

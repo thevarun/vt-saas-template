@@ -60,7 +60,11 @@ export const Navbar = () => {
         </li>
 
         <li>
-          <Link href="/sign-up">{t('blog')}</Link>
+          <Link href="/articles">{t('blog')}</Link>
+        </li>
+
+        <li>
+          <Link href="/changelog">{t('changelog')}</Link>
         </li>
 
         <li>

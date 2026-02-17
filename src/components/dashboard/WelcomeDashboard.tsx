@@ -19,7 +19,7 @@ export function WelcomeDashboard({ userName }: WelcomeDashboardProps) {
       title: t('actionStartChat'),
       description: t('actionStartChatDesc'),
       ctaText: t('actionButtonLabel'),
-      href: '/chat',
+      href: '/chat/dify',
       variant: 'primary' as const,
     },
     {

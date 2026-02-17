@@ -8,32 +8,70 @@ import { Toaster as SonnerToaster } from 'sonner';
 import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+} from '@/libs/seo/constants';
+import { generateHreflangLinks } from '@/libs/seo/hreflang';
+import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { AllLocales } from '@/utils/AppConfig';
 
-export const metadata: Metadata = {
-  icons: [
-    {
-      rel: 'apple-touch-icon',
-      url: '/apple-touch-icon.png',
+export function generateMetadata(): Metadata {
+  // Root layout provides default metadata for the home page.
+  // Individual pages should override with their own generateMetadata
+  // for correct path-specific hreflang and social metadata.
+  const pathname = '/';
+
+  // Generate hreflang links for all locales
+  const hreflangLinks = generateHreflangLinks(pathname);
+
+  // Convert to Next.js Metadata alternates.languages format
+  const languages = hreflangLinks.reduce(
+    (acc, link) => {
+      acc[link.hreflang] = link.href;
+      return acc;
     },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon-32x32.png',
+    {} as Record<string, string>,
+  );
+
+  // Generate social metadata (Open Graph & Twitter Cards)
+  const socialMetadata = generateSocialMetadata({
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    path: pathname,
+  });
+
+  return {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    alternates: {
+      languages,
     },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon-16x16.png',
-    },
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
-  ],
-};
+    ...socialMetadata,
+    icons: [
+      {
+        rel: 'apple-touch-icon',
+        url: '/apple-touch-icon.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        url: '/favicon-32x32.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        url: '/favicon-16x16.png',
+      },
+      {
+        rel: 'icon',
+        url: '/favicon.ico',
+      },
+    ],
+  };
+}
 
 export function generateStaticParams() {
   return AllLocales.map(locale => ({ locale }));
