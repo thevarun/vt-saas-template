@@ -3,13 +3,21 @@
 import { AssistantRuntimeProvider } from '@assistant-ui/react';
 import { AssistantChatTransport, useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { DevToolsModal } from '@assistant-ui/react-devtools';
+import { useMemo } from 'react';
 
 import { CardErrorFallback, ErrorBoundary } from '@/components/errors';
 
 import { Thread } from '../Thread';
 
+type InitialMessage = {
+  id: string;
+  role: 'system' | 'user' | 'assistant';
+  parts: { type: 'text'; text: string }[];
+};
+
 type VercelChatInterfaceProps = {
   conversationId?: string;
+  initialMessages?: InitialMessage[];
 };
 
 /**
@@ -34,17 +42,24 @@ type VercelChatInterfaceProps = {
  * - AC #6: Error messages display clearly when requests fail
  * - AC #7: UI is fully responsive on mobile, tablet, and desktop
  */
-function VercelChatInterfaceInner({ conversationId }: VercelChatInterfaceProps = {}) {
+function VercelChatInterfaceInner({ conversationId, initialMessages }: VercelChatInterfaceProps = {}) {
+  // Memoize transport so it's not recreated on every render
+  const transport = useMemo(
+    () => new AssistantChatTransport({
+      api: '/api/chat/vercel',
+      body: { conversationId },
+    }),
+    [conversationId],
+  );
+
   // AC #1, #2, #4: useChatRuntime with AssistantChatTransport
   // This hook automatically handles SSE stream parsing and state updates
   // Messages are streamed token-by-token from the server via SSE
   // See: docs/patterns/sse-streaming.md#vercel-ai-sdk-usechat-hook
   const runtime = useChatRuntime({
     id: conversationId,
-    transport: new AssistantChatTransport({
-      api: '/api/chat/vercel',
-      body: { conversationId },
-    }),
+    messages: initialMessages,
+    transport,
   });
 
   return (

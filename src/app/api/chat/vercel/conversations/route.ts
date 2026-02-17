@@ -64,25 +64,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       return dbError('Failed to fetch conversations');
     }
 
-    // For total count, fetch all conversations (needed for pagination UI)
-    const { data: allConversations, error: countError } = await listUserConversations(
-      supabase,
-      user.id,
-      false,
-    );
-
-    if (countError) {
-      logDbError('count conversations', countError, {
-        endpoint: '/api/chat/vercel/conversations',
-        method: 'GET',
-        userId: user.id,
-      });
-      // Continue with paginated results, just return count of paginated data
-    }
-
     return NextResponse.json({
       conversations: conversations ?? [],
-      total: allConversations?.length ?? conversations?.length ?? 0,
+      total: conversations?.length ?? 0,
     });
   } catch (error: any) {
     logApiError(error, {
