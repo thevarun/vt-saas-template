@@ -59,18 +59,78 @@ Runs on every push to `main` and on all pull requests.
 
 Runs automatically after successful CI completion on `main` branch.
 
-- **Trigger:** CI workflow completion
-- **Tool:** semantic-release
+- **Trigger:** CI workflow completion (on successful CI run)
+- **Tool:** semantic-release with automated changelog generation
 - **Actions:**
-  - Analyzes conventional commits
-  - Generates CHANGELOG.md
-  - Creates GitHub releases
-  - Updates version in package.json
+  - Analyzes conventional commits since last release
+  - Determines version bump based on commit types
+  - Generates release notes grouped by commit type (Features, Bug Fixes, etc.)
+  - Updates `docs/CHANGELOG.md` with new release notes
+  - Updates version in `package.json` and `package-lock.json`
+  - Commits changes back to main with `[skip ci]` flag
+  - Creates GitHub Release with generated notes
   - Does NOT publish to npm (`npmPublish: false`)
 - **Permissions:**
-  - `contents: write` - Create releases
-  - `issues: write` - Comment on issues
-  - `pull-requests: write` - Comment on PRs
+  - `contents: write` - Create releases and commit changelog
+  - `issues: write` - Comment on released issues
+  - `pull-requests: write` - Comment on released PRs
+
+#### Version Bumping Rules
+
+semantic-release uses Conventional Commits to determine version bumps:
+
+| Commit Type | Example | Version Bump |
+|-------------|---------|--------------|
+| `feat:` | `feat(auth): add OAuth support` | Minor (1.8.0 → 1.9.0) |
+| `fix:` | `fix(api): handle null user` | Patch (1.8.0 → 1.8.1) |
+| `perf:` | `perf(db): optimize queries` | Patch (1.8.0 → 1.8.1) |
+| `revert:` | `revert: undo feature X` | Patch (1.8.0 → 1.8.1) |
+| `BREAKING CHANGE:` | `feat!: redesign API` | Major (1.8.0 → 2.0.0) |
+| `docs:`, `chore:`, `refactor:`, `test:` | Any non-code changes | No release |
+
+**Breaking changes** trigger a major version bump via two syntaxes:
+1. Add `!` after the type: `feat!: redesign API` or `feat(api)!: redesign API`
+2. Include a `BREAKING CHANGE:` footer in the commit body
+
+#### Changelog Generation
+
+**Output Location:** `docs/CHANGELOG.md`
+
+**Format:** Grouped by release version and commit type:
+- Features
+- Bug Fixes
+- Performance Improvements
+- Reverts
+- Documentation (visible in changelog)
+
+**Example Release Entry:**
+```markdown
+# [1.9.0](https://github.com/USER/REPO/compare/v1.8.0...v1.9.0) (2026-02-10)
+
+### Features
+
+* **share:** add share widget component ([abc123f](https://github.com/USER/REPO/commit/abc123f))
+* **changelog:** add changelog page ([def456a](https://github.com/USER/REPO/commit/def456a))
+
+### Bug Fixes
+
+* **auth:** prevent null reference in login flow ([789ghij](https://github.com/USER/REPO/commit/789ghij))
+```
+
+**Changelog Directory:** `docs/changelog/` is reserved for individual release files (used by Story 8.4 - Changelog Page).
+
+#### Testing Release Automation
+
+**Dry-run (local):**
+```bash
+npx semantic-release --dry-run --no-ci
+```
+
+This command:
+- Analyzes commits since last release
+- Shows what version would be released
+- Shows what changelog would be generated
+- Does NOT create actual release or commits
 
 ## Quality Gates
 

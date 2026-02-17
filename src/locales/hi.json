@@ -309,6 +309,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "परिवर्तन लॉग",
     "community": "Community",
     "company": "Company"
   },
@@ -366,6 +367,7 @@
     "product": "Product",
     "docs": "Docs",
     "blog": "Blog",
+    "changelog": "परिवर्तन लॉग",
     "community": "Community",
     "company": "Company",
     "terms_of_service": "Terms Of Service",
@@ -453,9 +455,35 @@
     "home": "Home",
     "chat": "Chat"
   },
+  "Navigation": {
+    "chat_dify": "चैट (Dify)",
+    "chat_vercel": "चैट (AI SDK)",
+    "chat_dify_description": "Dify के साथ सरल, प्रबंधित चैट",
+    "chat_vercel_description": "Vercel AI SDK के साथ पूर्ण नियंत्रण",
+    "chat_setup_required": "सेटअप आवश्यक"
+  },
   "Chat": {
     "meta_title": "AI Assistant Chat",
-    "meta_description": "Chat with your AI assistant for personalized guidance and support"
+    "meta_description": "Chat with your AI assistant for personalized guidance and support",
+    "vercel_meta_title": "चैट (AI SDK) - VT SaaS Template",
+    "vercel_meta_description": "Vercel AI SDK द्वारा संचालित AI चैट",
+    "vercel_title": "चैट (AI SDK)",
+    "vercel_description": "Vercel AI SDK का उपयोग करके प्रश्न पूछें और AI-संचालित उत्तर प्राप्त करें"
+  },
+  "ChatSelection": {
+    "meta_title": "अपना चैट अनुभव चुनें",
+    "meta_description": "Dify और Vercel AI SDK चैट कार्यान्वयन के बीच चयन करें",
+    "title": "अपना चैट अनुभव चुनें",
+    "subtitle": "वह चैट कार्यान्वयन चुनें जो आपके लिए सबसे अच्छा काम करता है",
+    "dify_title": "Dify चैट",
+    "dify_description": "सरल सेटअप के साथ प्रबंधित AI चैट। त्वरित प्रोटोटाइपिंग और शुरुआत के लिए बिल्कुल सही।",
+    "dify_features": "सरल सेटअप, प्रबंधित बुनियादी ढांचा, तेज़ी से तैनात करें",
+    "vercel_title": "Vercel AI SDK चैट",
+    "vercel_description": "बातचीत प्रबंधन के साथ पूर्ण-नियंत्रण चैट। उत्पादन अनुप्रयोगों के लिए आदर्श।",
+    "vercel_features": "पूर्ण नियंत्रण, बातचीत प्रबंधन, उत्पादन-तैयार",
+    "get_started": "शुरू करें",
+    "setup_required_title": "कॉन्फ़िगरेशन आवश्यक",
+    "setup_required_description": "इस चैट विकल्प का उपयोग करने के लिए, आपको पर्यावरण चर कॉन्फ़िगर करने की आवश्यकता है। विवरण के लिए दस्तावेज़ देखें।"
   },
   "ChatPage": {
     "title": "Chat",
@@ -765,5 +793,41 @@
     "timeout": "लोड करने में अपेक्षा से अधिक समय लग रहा है",
     "retry": "पुनः प्रयास करें",
     "slowConnection": "धीमा कनेक्शन पाया गया"
+  },
+  "Changelog": {
+    "title": "परिवर्तन लॉग",
+    "description": "उत्पाद अपडेट और रिलीज़ नोट्स",
+    "noReleases": "अभी तक कोई रिलीज़ नहीं",
+    "noReleasesDescription": "पहला संस्करण मुख्य शाखा में प्रकाशित होने के बाद यहां रिलीज़ दिखाई देंगे।"
+  },
+  "ShareLinks": {
+    "title": "शेयर लिंक",
+    "description": "अपने संसाधनों के लिए साझा करने योग्य लिंक बनाएं और प्रबंधित करें।",
+    "createLink": "शेयर लिंक बनाएं",
+    "noLinks": "अभी तक कोई शेयर लिंक नहीं",
+    "noLinksDescription": "शुरू करने के लिए अपना पहला शेयर लिंक बनाएं।"
+  },
+  "Articles": {
+    "title": "लेख",
+    "description": "विभिन्न विषयों पर हमारे लेखों का संग्रह ब्राउज़ करें।",
+    "readMore": "और पढ़ें",
+    "viewAll": "सभी देखें",
+    "noArticles": "इस श्रेणी में अभी तक कोई लेख नहीं।"
+  },
+  "Pseo": {
+    "articles": "लेख",
+    "breadcrumbs": {
+      "home": "होम"
+    },
+    "relatedPages": {
+      "title": "संबंधित लेख",
+      "readMore": "और पढ़ें"
+    },
+    "metadata": {
+      "lastUpdated": "अंतिम अपडेट"
+    },
+    "topics": {
+      "title": "विषय"
+    }
   }
 }

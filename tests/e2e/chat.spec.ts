@@ -18,7 +18,7 @@ test.describe('Chat Interface', () => {
       await chatPage.goto();
 
       // Should load chat page successfully (not redirect to sign-in)
-      await expect(authenticatedPage).toHaveURL(/\/chat/);
+      await expect(authenticatedPage).toHaveURL(/\/chat\/dify/);
 
       // Verify chat interface elements are present
       const composer = chatPage.getComposer();

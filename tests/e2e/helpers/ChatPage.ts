@@ -10,7 +10,7 @@ export class ChatPage {
 
   // Navigation
   async goto() {
-    await this.page.goto('/chat');
+    await this.page.goto('/chat/dify');
   }
 
   // Message interaction methods
@@ -119,7 +119,7 @@ export class ChatPage {
 
   // Thread navigation
   async gotoThread(threadId: string) {
-    await this.page.goto(`/chat/${threadId}`);
+    await this.page.goto(`/chat/dify/${threadId}`);
   }
 
   // History/scroll methods for regression testing

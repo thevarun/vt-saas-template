@@ -34,6 +34,18 @@ The project includes:
 - Auth redirects to `/{locale}/sign-in` for unauthenticated users
 
 ### Chat/AI Integration
+
+The project includes **two chat implementations**. Users can choose between them at `/chat`:
+- **Dify Chat** (`/chat/dify`) - Simple, managed chat with minimal setup
+- **Vercel AI SDK Chat** (`/chat/vercel`) - Full control with conversation management
+
+**Configuration Detection:**
+- Both implementations support graceful degradation
+- Navigation automatically shows/hides options based on environment variables
+- Use `getChatConfig()` (server) or `getPublicChatConfig()` (client) from `src/utils/chatConfig.ts`
+- If neither is configured, chat selection page shows setup instructions
+
+**Dify Implementation** (`/chat/dify`):
 - **API Route**: `/api/chat` (`src/app/api/chat/route.ts`)
   - Validates Supabase session
   - Proxies requests to Dify API (keeps API key server-side only)
@@ -49,6 +61,12 @@ The project includes:
   - Maintains conversation context
   - Client-side only (requires authentication via middleware)
 
+**Vercel AI SDK Implementation** (`/chat/vercel`):
+- **API Routes**: `/api/chat/vercel/*` for chat operations, `/api/conversations/*` for management
+- **Conversation Management**: Create, list, delete conversations with Postgres storage
+- **Chat UI**: Uses Vercel AI SDK `useChat` hook with streaming support
+- **Features**: Conversation persistence, memory integration (optional with Mem0), observability (optional with LangFuse)
+
 ### Database
 - **ORM**: Drizzle ORM with PostgreSQL
 - **Schema**: `src/models/Schema.ts`
@@ -62,6 +80,44 @@ The project includes:
 - **Location**: Translation files in `src/locales/`
 - **Middleware**: Handles locale detection and prefix routing
 - **Config**: `src/utils/AppConfig.ts`
+
+### SEO Configuration
+- **Site URL**: Configured via `NEXT_PUBLIC_SITE_URL` env var (auto-detected on Vercel)
+- **Hreflang Tags**: Automatically added to all public pages via root layout
+  - Includes alternates for all locales: en, hi, bn
+  - Includes x-default pointing to English version
+  - Uses absolute URLs with site domain
+- **Social Metadata**: Open Graph and Twitter Card tags for rich social sharing
+  - Default metadata set in root layout (`src/app/[locale]/layout.tsx`)
+  - Page-specific overrides via `generateMetadata()` function
+  - Utilities: `src/libs/seo/opengraph.ts`
+  - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
+  - Default OG image: `public/og-image.png` (1200x630, static fallback)
+- **Dynamic OG Images**: Edge-generated images at `/api/og` (`src/app/api/og/route.tsx`)
+  - Runs on Vercel Edge Runtime for fast worldwide generation
+  - Query params: `?title=Page+Title&description=Page+Description`
+  - Auto-used by `generateSocialMetadata()` when no custom image provided
+  - Brand colors and Inter font, 1200x630 PNG output
+  - Fallback: returns static `/og-image.png` on generation failure
+  - Helper: `buildOgImageUrl()` from `src/libs/seo/opengraph.ts`
+- **Robots.txt**: Configures search engine crawling rules (`src/app/robots.ts`)
+  - Allows all public pages by default (`Allow: /`)
+  - Disallows: `/dashboard`, `/admin`, `/api`, `/onboarding`, `/chat`, `/sign-out`, `/design-system`
+  - References sitemap location with absolute URL
+  - Auto-generated at build time, served at `/robots.txt`
+- **Sitemap**: XML sitemap for search engine indexing (`src/app/sitemap.ts`)
+  - Dynamically generated for all public pages
+  - Includes localized versions (en, hi, bn) of each page
+  - Absolute URLs with domain
+  - Auto-generated at build time, served at `/sitemap.xml`
+  - Auto-updates on each deployment (no manual sitemap.xml editing needed)
+  - **Adding New Public Pages**: Add route to `publicRoutes` array in `src/app/sitemap.ts` with appropriate priority/changeFrequency
+- **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
+- **Implementation**: `src/libs/seo/` - SEO utilities (hreflang, Open Graph, constants)
+- **Validation Tools**:
+  - Sitemap: [XML Sitemaps Validator](https://www.xml-sitemaps.com/validate-xml-sitemap.html)
+  - Robots.txt: [Google Search Console Robots Tester](https://support.google.com/webmasters/answer/6062598)
+  - Submit sitemap to Google Search Console after deployment
 
 ### Email Integration
 - **Provider**: Resend (https://resend.com)
@@ -125,9 +181,18 @@ sendEmailAsync(
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-# Dify API (Server-side only)
-DIFY_API_URL=           # e.g., https://api.dify.ai/v1
-DIFY_API_KEY=           # Keep in .env.local
+# Dify API (Server-side only) - Optional
+# If not configured, chat page shows setup message (graceful degradation)
+DIFY_API_URL=                     # e.g., https://api.dify.ai/v1
+DIFY_API_KEY=                     # Get from https://dify.ai - Keep in .env.local
+NEXT_PUBLIC_DIFY_API_URL=         # For UI config detection only (not sensitive)
+
+# Vercel AI SDK (Server-side only) - Optional
+# If not configured, chat/vercel route shows setup message
+OPENAI_API_KEY=                   # or ANTHROPIC_API_KEY
+NEXT_PUBLIC_OPENAI_API_KEY=       # Set to "configured" for UI detection (not actual key!)
+AI_PROVIDER=openai                # or anthropic
+DEFAULT_AI_MODEL=gpt-4o-mini      # Model to use
 
 # Database
 DATABASE_URL=           # PostgreSQL connection string
@@ -137,6 +202,9 @@ RESEND_API_KEY=           # Resend API key (optional in dev - logs to console)
 EMAIL_FROM_ADDRESS=       # Sender email (default: noreply@example.com)
 EMAIL_FROM_NAME=          # Sender name (default: VT SaaS Template)
 EMAIL_REPLY_TO=           # Reply-to address (optional)
+
+# SEO - Site URL (required for hreflang, Open Graph, sitemaps)
+NEXT_PUBLIC_SITE_URL=     # Absolute site URL (optional - auto-detected on Vercel)
 ```
 
 ### Sensitive (.env.local only)
@@ -203,6 +271,62 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
    );
    ```
 
+### SSE Streaming for AI Chat
+
+This template includes two complete Server-Sent Events (SSE) implementations for AI streaming:
+
+**Dify Implementation:**
+- API Route: `src/app/api/chat/route.ts` (SSE proxy pattern)
+- Pattern: Fetch from external API, stream to client
+- Zero-copy streaming (response.body passthrough)
+
+**Vercel AI SDK Implementation:**
+- API Route: `src/app/api/chat/vercel/route.ts` (streamText pattern)
+- Pattern: Vercel AI SDK with useChat hook
+- Automatic SSE formatting and state management
+
+**Documentation:** See [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) for complete SSE streaming patterns, examples, and troubleshooting.
+
+### Adding Social Metadata to Pages
+1. Import utilities from `@/libs/seo`:
+   ```typescript
+   import type { Metadata } from 'next';
+   import { generateSocialMetadata } from '@/libs/seo/opengraph';
+   import { SITE_NAME } from '@/libs/seo/constants';
+   ```
+
+2. Create `generateMetadata` function in page:
+   ```typescript
+   export async function generateMetadata(props: {
+     params: Promise<{ locale: string }>;
+   }): Promise<Metadata> {
+     const { locale } = await props.params;
+
+     const title = `Page Title | ${SITE_NAME}`;
+     const description = 'Page-specific description for social sharing';
+
+     return {
+       title,
+       description,
+       ...generateSocialMetadata({
+         title,
+         description,
+         path: `/${locale}/your-path`,
+       }),
+     };
+   }
+   ```
+
+3. For custom Open Graph images:
+   ```typescript
+   ...generateSocialMetadata({
+     title,
+     description,
+     image: '/custom-og-image.png', // Must be 1200x630
+     path: `/${locale}/your-path`,
+   })
+   ```
+
 ### Error Handling
 
 See [docs/error-handling-guide.md](docs/error-handling-guide.md) for complete patterns.
@@ -230,6 +354,8 @@ npm run lint && npm run check-types && npm test && npm run build
 **Quality Gates:** ESLint, TypeScript, Vitest, Build, Playwright E2E
 
 **Deployment:** Preview on PRs (Vercel), Production on merge to main
+
+**Release Automation:** semantic-release runs after CI on main. Conventional Commits determine version bumps (`feat:`→minor, `fix:`→patch, `feat!:`→major). Changelog generated at `docs/CHANGELOG.md`. See [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) for details.
 
 **Required GitHub Secrets:** `DIFY_API_KEY`, `DIFY_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 

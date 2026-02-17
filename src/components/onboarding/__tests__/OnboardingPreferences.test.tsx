@@ -47,6 +47,7 @@ describe('OnboardingPreferences', () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     (useRouter as any).mockReturnValue({ push: mockPush });
     (useTranslations as any).mockReturnValue(mockTranslate);
@@ -57,6 +58,11 @@ describe('OnboardingPreferences', () => {
   });
 
   afterEach(() => {
+    // Flush any pending timers synchronously BEFORE restoring location,
+    // preventing leaked setTimeout callbacks from firing in subsequent tests
+    vi.runOnlyPendingTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
     // Restore original window.location
     (window as any).location = originalLocation;
   });
@@ -182,6 +188,11 @@ describe('OnboardingPreferences', () => {
     await user.click(submitButton);
 
     expect(screen.getByText('saving')).toBeInTheDocument();
+
+    // Let the 100ms fetch mock resolve and component settle to avoid act() warnings
+    await waitFor(() => {
+      expect(screen.getByText('successMessage')).toBeInTheDocument();
+    });
   });
 
   it('shows success message and redirects on successful submission', async () => {

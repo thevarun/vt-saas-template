@@ -53,3 +53,4 @@ local
 
 # vercel
 .vercel
+.env.local.backup
