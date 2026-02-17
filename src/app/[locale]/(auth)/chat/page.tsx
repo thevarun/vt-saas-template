@@ -1,15 +1,23 @@
+import { MessageSquare, Sparkles } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
-import { AppShell } from '@/components/chat/AppShell';
-import { ChatInterface } from '@/components/chat/ChatInterface';
-import { ThreadListSidebar } from '@/components/chat/ThreadListSidebar';
-import { TitleBar } from '@/features/dashboard/TitleBar';
+import { ChatOptionCard } from '@/components/chat/ChatOptionCard';
 
+/**
+ * Chat Selection Page
+ *
+ * Allows users to choose between different chat implementations:
+ * - Dify Chat: Simple, managed chat with minimal setup
+ * - Vercel AI SDK Chat: Full control with conversation management
+ *
+ * Only configured options are shown. If neither is configured,
+ * displays setup instructions.
+ */
 export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
   const t = await getTranslations({
     locale,
-    namespace: 'Chat',
+    namespace: 'ChatSelection',
   });
 
   return {
@@ -19,24 +27,48 @@ export async function generateMetadata(props: { params: Promise<{ locale: string
 }
 
 export default async function ChatPage() {
-  const t = await getTranslations('ChatPage');
+  const t = await getTranslations('ChatSelection');
 
-  // AC #7.1, #7.2: Root /chat route shows empty state when no threadId
   return (
-    <div className="flex h-full flex-col gap-6">
-      <TitleBar
-        title={t('title')}
-        description={t('description')}
-      />
+    <div className="min-h-screen bg-slate-50/50 p-4 dark:bg-slate-950 md:p-8 lg:p-12">
+      <div className="mx-auto max-w-screen-xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
+            {t('title')}
+          </h1>
+          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+            {t('subtitle')}
+          </p>
+        </div>
 
-      <div className="min-h-0 flex-1">
-        <AppShell sidebar={<ThreadListSidebar />}>
-          {/* Show ChatInterface with composer (ThreadPrimitive.Empty handles empty state) */}
-          <ChatInterface />
-        </AppShell>
+        {/* Chat Options Grid */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Dify Chat Option */}
+          <ChatOptionCard
+            title={t('dify_title')}
+            description={t('dify_description')}
+            features={t('dify_features')}
+            href="/chat/dify"
+            configured={true}
+            icon={MessageSquare}
+            setupMessage={t('setup_required_description')}
+            ctaLabel={t('get_started')}
+          />
+
+          {/* Vercel AI SDK Chat Option */}
+          <ChatOptionCard
+            title={t('vercel_title')}
+            description={t('vercel_description')}
+            features={t('vercel_features')}
+            href="/chat/vercel"
+            configured={true}
+            icon={Sparkles}
+            setupMessage={t('setup_required_description')}
+            ctaLabel={t('get_started')}
+          />
+        </div>
       </div>
     </div>
   );
 }
-
-export const dynamic = 'force-dynamic';

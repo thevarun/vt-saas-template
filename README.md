@@ -247,6 +247,27 @@ E2E tests are in the `tests/` directory
 - Prettier: Auto-formatting enabled
 - Conventional Commits: Required (use `npm run commit`)
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+### Core Documentation
+- **[API Error Handling](docs/api-error-handling.md)** - Error handling patterns for API routes
+- **[Error Handling Guide](docs/error-handling-guide.md)** - Error boundaries and error handling strategies
+- **[Development Guide](docs/development-guide.md)** - Development workflows and best practices
+- **[CI/CD Pipeline](docs/ci-cd-pipeline.md)** - Continuous integration and deployment setup
+- **[Admin Setup](docs/admin-setup.md)** - Admin user configuration
+- **[Email System](docs/email-system.md)** - Email integration with Resend
+
+### Patterns & Architecture
+- **[API Proxy Pattern](docs/patterns/api-proxy.md)** - Securely integrate external APIs by proxying requests server-side
+- **[SSE Streaming Pattern](docs/patterns/sse-streaming.md)** - Learn how to implement Server-Sent Events for AI streaming
+
+### Customization Guides
+- **[Removing Dify Chat](docs/customization/removing-dify-chat.md)** - Remove Dify implementation while keeping Vercel AI SDK
+- **[Removing Vercel AI SDK Chat](docs/customization/removing-vercel-chat.md)** - Remove Vercel implementation while keeping Dify
+- **[Removing All Chat Features](docs/customization/removing-all-chat.md)** - Completely remove all chat functionality
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

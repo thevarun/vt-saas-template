@@ -159,10 +159,16 @@
       "mcp__shadcn__view_items_in_registries",
       "mcp__shadcn__get_item_examples_from_registries",
       "mcp__shadcn__list_items_in_registries",
+      "Bash(lsof:*)",
+      "Bash(pkill:*)",
+      "Bash(exit:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(printf:*)",
+      "Bash(tee:*)",
+      "Bash(npm uninstall:*)",
       "Bash(python3:*)",
       "Bash(identify:*)",
-      "Bash(sips:*)",
-      "Bash(pkill:*)"
+      "Bash(sips:*)"
     ],
     "deny": [],
     "ask": []

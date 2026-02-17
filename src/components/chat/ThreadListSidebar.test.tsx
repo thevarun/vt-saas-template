@@ -8,7 +8,7 @@ import { ThreadListSidebar } from './ThreadListSidebar';
 
 // Mock next/navigation
 const mockPush = vi.fn();
-const mockPathname = '/chat';
+const mockPathname = '/chat/dify';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
@@ -89,7 +89,7 @@ describe('ThreadListSidebar', () => {
   });
 
   describe('AC #3: New Thread button', () => {
-    it('should navigate to /chat when New Thread button is clicked', async () => {
+    it('should navigate to /chat/dify when New Thread button is clicked', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ threads: mockThreads, count: 2 }),
@@ -104,12 +104,12 @@ describe('ThreadListSidebar', () => {
       const newButton = screen.getByRole('button', { name: /new/i });
       await userEvent.click(newButton);
 
-      expect(mockPush).toHaveBeenCalledWith('/chat');
+      expect(mockPush).toHaveBeenCalledWith('/chat/dify');
     });
   });
 
   describe('AC #4: Thread navigation', () => {
-    it('should navigate to /chat/[threadId] when thread is clicked', async () => {
+    it('should navigate to /chat/dify/[threadId] when thread is clicked', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ threads: mockThreads, count: 2 }),
@@ -124,7 +124,7 @@ describe('ThreadListSidebar', () => {
       const threadItem = screen.getByText('Health Tips');
       await userEvent.click(threadItem);
 
-      expect(mockPush).toHaveBeenCalledWith('/chat/1');
+      expect(mockPush).toHaveBeenCalledWith('/chat/dify/1');
     });
   });
 

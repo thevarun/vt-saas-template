@@ -453,9 +453,35 @@
     "home": "Home",
     "chat": "Chat"
   },
+  "Navigation": {
+    "chat_dify": "চ্যাট (Dify)",
+    "chat_vercel": "চ্যাট (AI SDK)",
+    "chat_dify_description": "Dify সহ সহজ, পরিচালিত চ্যাট",
+    "chat_vercel_description": "Vercel AI SDK এর সাথে সম্পূর্ণ নিয়ন্ত্রণ",
+    "chat_setup_required": "সেটআপ প্রয়োজন"
+  },
   "Chat": {
     "meta_title": "AI Assistant Chat",
-    "meta_description": "Chat with your AI assistant for personalized guidance and support"
+    "meta_description": "Chat with your AI assistant for personalized guidance and support",
+    "vercel_meta_title": "চ্যাট (AI SDK) - VT SaaS Template",
+    "vercel_meta_description": "Vercel AI SDK দ্বারা চালিত AI চ্যাট",
+    "vercel_title": "চ্যাট (AI SDK)",
+    "vercel_description": "Vercel AI SDK ব্যবহার করে প্রশ্ন জিজ্ঞাসা করুন এবং AI-চালিত উত্তর পান"
+  },
+  "ChatSelection": {
+    "meta_title": "আপনার চ্যাট অভিজ্ঞতা বেছে নিন",
+    "meta_description": "Dify এবং Vercel AI SDK চ্যাট বাস্তবায়নের মধ্যে নির্বাচন করুন",
+    "title": "আপনার চ্যাট অভিজ্ঞতা বেছে নিন",
+    "subtitle": "আপনার জন্য সবচেয়ে ভাল কাজ করে এমন চ্যাট বাস্তবায়ন নির্বাচন করুন",
+    "dify_title": "Dify চ্যাট",
+    "dify_description": "সহজ সেটআপ সহ পরিচালিত AI চ্যাট। দ্রুত প্রোটোটাইপিং এবং শুরু করার জন্য নিখুঁত।",
+    "dify_features": "সহজ সেটআপ, পরিচালিত অবকাঠামো, দ্রুত স্থাপন করুন",
+    "vercel_title": "Vercel AI SDK চ্যাট",
+    "vercel_description": "কথোপকথন ব্যবস্থাপনা সহ সম্পূর্ণ-নিয়ন্ত্রণ চ্যাট। উৎপাদন অ্যাপ্লিকেশনের জন্য আদর্শ।",
+    "vercel_features": "সম্পূর্ণ নিয়ন্ত্রণ, কথোপকথন ব্যবস্থাপনা, উৎপাদন-প্রস্তুত",
+    "get_started": "শুরু করুন",
+    "setup_required_title": "কনফিগারেশন প্রয়োজন",
+    "setup_required_description": "এই চ্যাট বিকল্পটি ব্যবহার করতে, আপনাকে এনভায়রনমেন্ট ভেরিয়েবল কনফিগার করতে হবে। বিস্তারিত জানতে ডকুমেন্টেশন দেখুন।"
   },
   "ChatPage": {
     "title": "Chat",

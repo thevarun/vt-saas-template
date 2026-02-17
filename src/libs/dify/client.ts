@@ -84,7 +84,9 @@ export class DifyClient {
    * Get conversation message history
    * @param conversationId The conversation ID
    * @param userId The user ID (must match the user who created the conversation)
-   * @param options Optional query parameters (limit, firstId)
+   * @param options Optional query parameters
+   * @param options.limit Maximum number of messages to retrieve
+   * @param options.firstId ID of first message to start pagination from
    * @returns Message history response
    */
   async getMessages(

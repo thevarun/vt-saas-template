@@ -34,6 +34,18 @@ The project includes:
 - Auth redirects to `/{locale}/sign-in` for unauthenticated users
 
 ### Chat/AI Integration
+
+The project includes **two chat implementations**. Users can choose between them at `/chat`:
+- **Dify Chat** (`/chat/dify`) - Simple, managed chat with minimal setup
+- **Vercel AI SDK Chat** (`/chat/vercel`) - Full control with conversation management
+
+**Configuration Detection:**
+- Both implementations support graceful degradation
+- Navigation automatically shows/hides options based on environment variables
+- Use `getChatConfig()` (server) or `getPublicChatConfig()` (client) from `src/utils/chatConfig.ts`
+- If neither is configured, chat selection page shows setup instructions
+
+**Dify Implementation** (`/chat/dify`):
 - **API Route**: `/api/chat` (`src/app/api/chat/route.ts`)
   - Validates Supabase session
   - Proxies requests to Dify API (keeps API key server-side only)
@@ -48,6 +60,12 @@ The project includes:
   - Streams responses in real-time
   - Maintains conversation context
   - Client-side only (requires authentication via middleware)
+
+**Vercel AI SDK Implementation** (`/chat/vercel`):
+- **API Routes**: `/api/chat/vercel/*` for chat operations, `/api/conversations/*` for management
+- **Conversation Management**: Create, list, delete conversations with Postgres storage
+- **Chat UI**: Uses Vercel AI SDK `useChat` hook with streaming support
+- **Features**: Conversation persistence, memory integration (optional with Mem0), observability (optional with LangFuse)
 
 ### Database
 - **ORM**: Drizzle ORM with PostgreSQL
@@ -163,9 +181,18 @@ sendEmailAsync(
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-# Dify API (Server-side only)
-DIFY_API_URL=           # e.g., https://api.dify.ai/v1
-DIFY_API_KEY=           # Keep in .env.local
+# Dify API (Server-side only) - Optional
+# If not configured, chat page shows setup message (graceful degradation)
+DIFY_API_URL=                     # e.g., https://api.dify.ai/v1
+DIFY_API_KEY=                     # Get from https://dify.ai - Keep in .env.local
+NEXT_PUBLIC_DIFY_API_URL=         # For UI config detection only (not sensitive)
+
+# Vercel AI SDK (Server-side only) - Optional
+# If not configured, chat/vercel route shows setup message
+OPENAI_API_KEY=                   # or ANTHROPIC_API_KEY
+NEXT_PUBLIC_OPENAI_API_KEY=       # Set to "configured" for UI detection (not actual key!)
+AI_PROVIDER=openai                # or anthropic
+DEFAULT_AI_MODEL=gpt-4o-mini      # Model to use
 
 # Database
 DATABASE_URL=           # PostgreSQL connection string
@@ -244,6 +271,22 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
    );
    ```
 
+### SSE Streaming for AI Chat
+
+This template includes two complete Server-Sent Events (SSE) implementations for AI streaming:
+
+**Dify Implementation:**
+- API Route: `src/app/api/chat/route.ts` (SSE proxy pattern)
+- Pattern: Fetch from external API, stream to client
+- Zero-copy streaming (response.body passthrough)
+
+**Vercel AI SDK Implementation:**
+- API Route: `src/app/api/chat/vercel/route.ts` (streamText pattern)
+- Pattern: Vercel AI SDK with useChat hook
+- Automatic SSE formatting and state management
+
+**Documentation:** See [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) for complete SSE streaming patterns, examples, and troubleshooting.
+
 ### Adding Social Metadata to Pages
 1. Import utilities from `@/libs/seo`:
    ```typescript
@@ -283,18 +326,6 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
      path: `/${locale}/your-path`,
    })
    ```
-
-**Social Validation Tools:**
-- Facebook: https://developers.facebook.com/tools/debug/
-- Twitter: https://cards-dev.twitter.com/validator
-- LinkedIn: https://www.linkedin.com/post-inspector/
-
-**OG Image Requirements:**
-- Dimensions: 1200x630 pixels
-- Format: PNG or JPG (PNG preferred for quality)
-- Location: `public/` directory
-- Size: < 1MB recommended
-- Content: Keep important text/logo in center (edges may be cropped)
 
 ### Error Handling
 

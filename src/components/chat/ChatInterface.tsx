@@ -14,6 +14,11 @@ import { Thread } from './Thread';
 /**
  * Helper to create a full ThreadMessage for user messages
  * Based on internal fromThreadMessageLike conversion
+ *
+ * @param id Unique message identifier
+ * @param text Message content text
+ * @param createdAt Timestamp when message was created
+ * @returns Formatted user message object compatible with Assistant UI
  */
 function createUserMessage(id: string, text: string, createdAt: Date) {
   return {
@@ -31,6 +36,11 @@ function createUserMessage(id: string, text: string, createdAt: Date) {
 /**
  * Helper to create a full ThreadMessage for assistant messages
  * Based on internal fromThreadMessageLike conversion
+ *
+ * @param id Unique message identifier
+ * @param text Message content text
+ * @param createdAt Timestamp when message was created
+ * @returns Formatted assistant message object compatible with Assistant UI
  */
 function createAssistantMessage(id: string, text: string, createdAt: Date) {
   return {

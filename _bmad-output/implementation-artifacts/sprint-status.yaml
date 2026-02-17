@@ -131,17 +131,17 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: AI Chat Module (Dual Implementation)
-  epic-10: backlog
-  10-1-rename-existing-chat-route: backlog
-  10-2-clean-up-dify-chat-code: backlog
-  10-3-database-schema-consolidation: backlog
-  10-4-vercel-ai-sdk-chat-api: backlog
-  10-5-langfuse-integration: backlog
-  10-6-mem0-memory-integration: backlog
-  10-7-vercel-chat-ui: backlog
-  10-8-conversation-management-api: backlog
-  10-9-navigation-and-showcase-update: backlog
-  10-10-document-sse-streaming-patterns: backlog
-  10-11-document-api-proxy-pattern: backlog
-  10-12-feature-removal-guides: backlog
-  epic-10-retrospective: optional
+  epic-10: done
+  10-1-rename-existing-chat-route: done
+  10-2-clean-up-dify-chat-code: done
+  10-3-database-schema-consolidation: done
+  10-4-vercel-ai-sdk-chat-api: done
+  10-5-langfuse-integration: done
+  10-6-mem0-memory-integration: done
+  10-7-vercel-chat-ui: done
+  10-8-conversation-management-api: done
+  10-9-navigation-and-showcase-update: done
+  10-10-document-sse-streaming-patterns: done
+  10-11-document-api-proxy-pattern: done
+  10-12-feature-removal-guides: done
+  epic-10-retrospective: skipped
