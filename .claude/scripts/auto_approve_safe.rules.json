@@ -87,7 +87,11 @@
 
     "^test\\s+-[dfeL]\\s+[^|;&]+$",
 
-    "^xxd\\s+[^|;&]+$"
+    "^xxd\\s+[^|;&]+$",
+
+    "^(sips|identify)\\s+[^|;&]+$",
+    "^curl\\s+(-[a-zA-Z]+\\s+)*['\"]?https://fonts\\.(googleapis|gstatic)\\.com[^|;&]*$",
+    "^curl\\s+-s\\s+-o\\s+/dev/null\\s+-w\\s+[^|;&]*https?://[^|;&]*$"
   ],
 
   "deny_patterns": [
