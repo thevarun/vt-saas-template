@@ -24,7 +24,6 @@ import { createMessage } from '@/libs/queries/vercelMessages';
 import { createClient } from '@/libs/supabase/server';
 import { createAIProvider } from '@/libs/vercel-ai/client';
 import { isConfigured } from '@/libs/vercel-ai/config';
-import type { VercelChatRequest } from '@/libs/vercel-ai/types';
 
 /**
  * POST /api/chat/vercel
@@ -100,11 +99,32 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     // Extract and validate request body
-    const body: VercelChatRequest = await request.json();
-    const { message, conversationId } = body;
+    // Supports AssistantChatTransport format ({ messages: [{role, parts}...] })
+    // and simple format ({ message: string })
+    const body = await request.json();
+    const conversationId: string | undefined = body.conversationId;
+
+    // Extract message from various formats
+    let message: string;
+    if (Array.isArray(body.messages) && body.messages.length > 0) {
+      // AssistantChatTransport format: messages[].parts[{type:"text", text:"..."}]
+      const lastUserMessage = [...body.messages].reverse().find((m: any) => m.role === 'user');
+      if (lastUserMessage?.parts) {
+        // Parts-based format (AssistantChatTransport)
+        const textPart = lastUserMessage.parts.find((p: any) => p.type === 'text');
+        message = textPart?.text ?? '';
+      } else {
+        // Standard content format (useChat)
+        message = lastUserMessage?.content ?? '';
+      }
+    } else if (typeof body.message === 'string') {
+      message = body.message;
+    } else {
+      message = '';
+    }
 
     // Validate message (required)
-    if (!message || typeof message !== 'string') {
+    if (!message) {
       return invalidRequestError('Message is required');
     }
 
@@ -205,15 +225,15 @@ export async function POST(request: NextRequest): Promise<Response> {
     const memories = await getRelevantMemories(user.id, message);
     const memoryContext = formatMemoriesForPrompt(memories);
 
-    // Get conversation history for context
-    // Note: For now, we'll just send the current message
-    // Future enhancement: Load conversation history from database
-    const messages = [
-      {
-        role: 'user' as const,
-        content: message,
-      },
-    ];
+    // Convert messages to standard {role, content} format for streamText
+    const messages = Array.isArray(body.messages) && body.messages.length > 0
+      ? body.messages.map((m: any) => ({
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.parts
+            ? m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
+            : m.content ?? '',
+        }))
+      : [{ role: 'user' as const, content: message }];
 
     // AC #1 & #7: Stream text using Vercel AI SDK
     // streamText automatically handles SSE formatting and streaming
@@ -244,10 +264,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
 
     // AC #7: Convert to SSE response with proper headers
-    // toDataStreamResponse() returns Next.js Response with SSE headers
-    // Format compatible with useChat hook on client
-    // See: docs/patterns/sse-streaming.md#todatastreamresponse
-    const response = result.toDataStreamResponse();
+    // toUIMessageStreamResponse() is required for AssistantChatTransport (AI SDK v5)
+    const response = result.toUIMessageStreamResponse();
 
     // AC #2 & #5: Persist assistant response after streaming completes
     // Fire-and-forget pattern (doesn't block response)
@@ -259,7 +277,8 @@ export async function POST(request: NextRequest): Promise<Response> {
         const finalUsage = await result.usage;
 
         // AC #5: Extract token count and calculate latency
-        const tokenCount = finalUsage?.totalTokens ?? null;
+        const rawTokenCount = finalUsage?.totalTokens;
+        const tokenCount = (typeof rawTokenCount === 'number' && !Number.isNaN(rawTokenCount)) ? rawTokenCount : null;
         const latencyMs = Date.now() - startTime;
 
         // AC #2: Persist assistant message
