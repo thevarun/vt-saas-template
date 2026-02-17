@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 
+import { getAllCategoryParams, getAllPageParams, getPageBySlug } from '@/libs/pseo/data';
 import { getSiteUrl } from '@/libs/seo/config';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
@@ -8,6 +9,9 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
  *
  * PUBLIC ROUTES (included in sitemap):
  * - / (landing page)
+ * - /articles (pSEO index)
+ * - /articles/[category] (pSEO category pages)
+ * - /articles/[category]/[slug] (pSEO article pages)
  * - Future: /about, /pricing, /blog/[slug], /docs/[...path]
  *
  * PRIVATE ROUTES (excluded from sitemap, disallowed in robots.txt):
@@ -63,7 +67,7 @@ function generateLocalizedUrls(
   });
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Public routes that should be indexed by search engines
   const publicRoutes: Array<{
     path: string;
@@ -84,6 +88,45 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: route.priority,
       }),
     );
+  }
+
+  // Articles index and category pages (pSEO)
+  const categoryParams = await getAllCategoryParams();
+  for (const param of categoryParams) {
+    entries.push(
+      ...generateLocalizedUrls(`/articles/${param.category}`, {
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      }),
+    );
+  }
+
+  // Articles index page
+  entries.push(
+    ...generateLocalizedUrls('/articles', {
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }),
+  );
+
+  // pSEO article pages
+  const pseoParams = await getAllPageParams();
+  const siteUrl = getSiteUrl();
+
+  for (const param of pseoParams) {
+    const page = await getPageBySlug(param.category, param.slug);
+    if (page) {
+      for (const locale of AllLocales) {
+        const isDefaultLocale = locale === AppConfig.defaultLocale;
+        const localePrefix = isDefaultLocale ? '' : `/${locale}`;
+        entries.push({
+          url: `${siteUrl}${localePrefix}/articles/${param.category}/${param.slug}`,
+          lastModified: new Date(page.lastModified),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
+      }
+    }
   }
 
   return entries;

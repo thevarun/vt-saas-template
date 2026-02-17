@@ -112,13 +112,12 @@ development_status:
   epic-7-retrospective: skipped
 
   # Epic 8: Go-To-Market Features
-  epic-8: backlog
-  8-1-share-referral-widget-component: backlog
-  8-2-private-shareable-urls: backlog
-  8-3-pre-launch-landing-page-and-waitlist: backlog
-  8-4-social-proof-widgets: backlog
-  8-5-changelog-to-content-automation: backlog
-  8-6-programmatic-seo-infrastructure: backlog
+  epic-8: done
+  8-1-share-widget-component: done
+  8-2-private-shareable-urls: done
+  8-3-changelog-release-automation: done
+  8-4-changelog-page: done
+  8-5-programmatic-seo-page-generation: done
   epic-8-retrospective: optional
 
   # Epic 9: Analytics & Founder Dashboard

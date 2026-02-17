@@ -11,29 +11,34 @@ vi.mock('@/utils/AppConfig', () => ({
   AllLocales: ['en', 'hi', 'bn'],
   AppConfig: { defaultLocale: 'en' },
 }));
+vi.mock('@/libs/pseo/data', () => ({
+  getAllCategoryParams: vi.fn().mockResolvedValue([]),
+  getAllPageParams: vi.fn().mockResolvedValue([]),
+  getPageBySlug: vi.fn().mockResolvedValue(null),
+}));
 
 describe('sitemap', () => {
   beforeEach(() => {
     vi.spyOn(seoConfig, 'getSiteUrl').mockReturnValue('https://example.com');
   });
 
-  it('generates entries for all locales', () => {
-    const entries = sitemap();
+  it('generates entries for all locales', async () => {
+    const entries = await sitemap();
 
-    // 1 public route × 3 locales = 3 entries
-    expect(entries).toHaveLength(3);
+    // 1 public route × 3 locales + 1 articles index × 3 locales = 6 entries
+    expect(entries).toHaveLength(6);
   });
 
-  it('uses absolute URLs', () => {
-    const entries = sitemap();
+  it('uses absolute URLs', async () => {
+    const entries = await sitemap();
 
     entries.forEach((entry) => {
       expect(entry.url).toMatch(/^https:\/\//);
     });
   });
 
-  it('includes all locales with default locale unprefixed', () => {
-    const entries = sitemap();
+  it('includes all locales with default locale unprefixed', async () => {
+    const entries = await sitemap();
     const urls = entries.map(e => e.url);
 
     // Default locale (en) is unprefixed per localePrefix: 'as-needed'
@@ -42,33 +47,35 @@ describe('sitemap', () => {
     expect(urls).toContain('https://example.com/bn');
   });
 
-  it('sets correct priority for homepage', () => {
-    const entries = sitemap();
+  it('sets correct priority for homepage', async () => {
+    const entries = await sitemap();
 
-    // All homepage entries should have priority 1.0
-    entries.forEach((entry) => {
+    // Homepage entries should have priority 1.0
+    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    homepageEntries.forEach((entry) => {
       expect(entry.priority).toBe(1.0);
     });
   });
 
-  it('sets correct changeFrequency for homepage', () => {
-    const entries = sitemap();
+  it('sets correct changeFrequency for homepage', async () => {
+    const entries = await sitemap();
 
-    entries.forEach((entry) => {
+    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    homepageEntries.forEach((entry) => {
       expect(entry.changeFrequency).toBe('daily');
     });
   });
 
-  it('includes lastModified for all entries', () => {
-    const entries = sitemap();
+  it('includes lastModified for all entries', async () => {
+    const entries = await sitemap();
 
     entries.forEach((entry) => {
       expect(entry.lastModified).toBeInstanceOf(Date);
     });
   });
 
-  it('validates priority values are within range', () => {
-    const entries = sitemap();
+  it('validates priority values are within range', async () => {
+    const entries = await sitemap();
 
     entries.forEach((entry) => {
       expect(entry.priority).toBeGreaterThanOrEqual(0.0);
@@ -76,8 +83,8 @@ describe('sitemap', () => {
     });
   });
 
-  it('validates changeFrequency values are valid', () => {
-    const entries = sitemap();
+  it('validates changeFrequency values are valid', async () => {
+    const entries = await sitemap();
     const validFrequencies: Array<MetadataRoute.Sitemap[0]['changeFrequency']> = [
       'always',
       'hourly',

@@ -110,12 +110,12 @@ test.describe('SEO - Robots and Sitemap', () => {
 
       const html = await page.content();
 
-      // Count <url> elements (should be: public routes × locale count)
-      // Currently: 1 public route (/) × 3 locales = 3 entries
+      // Count <url> elements (should include: static routes + articles index + pSEO pages)
+      // At minimum: 1 public route (/) × 3 locales + articles index × 3 locales = 6+ entries
       const urlMatches = html.match(/<url>/g);
 
       expect(urlMatches).toBeTruthy();
-      expect(urlMatches!.length).toBe(3);
+      expect(urlMatches!.length).toBeGreaterThanOrEqual(6);
     });
 
     test('entries have valid changefreq and priority', async ({ page }) => {

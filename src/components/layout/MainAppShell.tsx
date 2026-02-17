@@ -5,9 +5,11 @@ import {
   CreditCard,
   Home,
   Inbox,
+  Link2,
   Loader2,
   Menu,
   MessageSquare,
+  ScrollText,
   Settings,
   Sparkles,
   User,
@@ -36,6 +38,7 @@ type NavItemConfig = {
   label: string;
   href: string;
   disabled?: boolean;
+  external?: boolean;
 };
 
 /**
@@ -61,6 +64,8 @@ export function MainAppShell({ children }: MainAppShellProps) {
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
     { icon: MessageSquare, label: 'Chat (Dify)', href: '/chat/dify' },
     { icon: Sparkles, label: 'Chat (AI SDK)', href: '/chat/vercel' },
+    { icon: ScrollText, label: 'Changelog', href: '/changelog', external: true },
+    { icon: Link2, label: 'Share Links', href: '/dashboard/share-links' },
     { icon: Inbox, label: 'DS - Empty States', href: '/design-system/empty-states' },
     { icon: Loader2, label: 'DS - Loading', href: '/design-system/loading' },
     { icon: CreditCard, label: 'Pricing', href: '/pricing', disabled: true },
@@ -159,6 +164,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
                     isActive={isActive(item.href)}
                     disabled={item.disabled}
                     collapsed={false}
+                    external={item.external}
                     onNavigate={() => setMobileSheetOpen(false)}
                   />
                 ))}
@@ -224,6 +230,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
                   isActive={isActive(item.href)}
                   disabled={item.disabled}
                   collapsed={!sidebarOpen}
+                  external={item.external}
                 />
               ))}
             </ul>
