@@ -1,5 +1,5 @@
 {
-  "_doc_allow": "Groups: system info, file reading, version checks, git, node/npm/yarn/pnpm, python, rust/go, search/text tools, network (localhost only), filesystem, github CLI, process management, background tasks",
+  "_doc_allow": "Groups: system info, file reading, version checks, git, node/npm/yarn/pnpm, python, rust/go, search/text tools, network (localhost only), filesystem, github CLI, process management, background tasks, vercel CLI (read-only), drizzle-kit, simple rm (non-recursive)",
   "_doc_deny": "Blocks: privilege escalation, destructive rm, system modification, fork bombs, pipe-to-shell, mass kill, xargs rm, netcat, crontab",
   "_doc_sensitive": "Protects: env files, crypto keys, SSH, cloud credentials, package registry configs, secrets/tokens, Docker/K8s configs",
 
@@ -35,6 +35,13 @@
     "^npx\\s+(tsc|eslint|prettier|vitest|jest)(\\s+.*)?$",
     "^npx\\s+shadcn@latest\\s+(add|init)(\\s+[\\w@/-]+)*(\\s+--yes)?(\\s+2>&1)?$",
     "^(PORT=\\d+\\s+)?npx\\s+playwright\\s+(test|install)\\b",
+
+    "^(npx\\s+)?vercel\\s+(ls|list|inspect|logs|whoami|env\\s+ls)(\\s+[^|;&]*)?\\s*(2>&1)?$",
+    "^npm\\s+(view|uninstall|info|show)\\s+[@\\w/-]+(\\s+[\\w.]+)?(\\s+2>&1)?$",
+    "^npm\\s+run\\s+[\\w:-]+(\\s+[^|;&]*)?\\s*(2>&1\\s*)?\\|\\s*(grep|head|tail|wc)(\\s+[^|;&]+)?$",
+    "^npx\\s+drizzle-kit\\s+(generate|push|studio)(\\s+--[\\w-]+(\\s+[\\w._-]+)*)*(\\s*2>&1)?$",
+    "^rm\\s+(?!.*(-r\\b|-rf\\b|-fr\\b|--recursive))[\\w/.@-]+(\\s+[\\w/.@-]+)*$",
+    "^npm\\s+config\\s+(get|list)(\\s+[\\w.-]+)?(\\s+2>/dev/null)?$",
 
     "^pytest(\\s+.*)?$",
     "^python(3)?\\s+-m\\s+pytest(\\s+.*)?$",
