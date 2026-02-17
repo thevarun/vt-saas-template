@@ -167,7 +167,10 @@
       "Bash(kill:*)",
       "Bash(lsof:*)",
       "Bash(python3:*)",
-      "Bash(PORT=3005 npm run dev:next:*)"
+      "Bash(PORT=3005 npm run dev:next:*)",
+      "Bash(identify:*)",
+      "Bash(sips:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

@@ -104,12 +104,12 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: SEO & Social Sharing Foundations
-  epic-7: backlog
-  7-1-internationalization-seo-hreflang: backlog
-  7-2-open-graph-and-twitter-card-metadata: backlog
-  7-3-robotstxt-and-sitemap-configuration: backlog
-  7-4-dynamic-open-graph-images: backlog
-  epic-7-retrospective: optional
+  epic-7: done
+  7-1-internationalization-seo-hreflang: done
+  7-2-open-graph-and-twitter-card-metadata: done
+  7-3-robotstxt-and-sitemap-configuration: done
+  7-4-dynamic-open-graph-images: done
+  epic-7-retrospective: skipped
 
   # Epic 8: Go-To-Market Features
   epic-8: done

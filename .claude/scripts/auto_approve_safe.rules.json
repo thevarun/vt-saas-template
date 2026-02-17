@@ -93,7 +93,10 @@
     "^ls\\s+[^|;&]+\\|\\s*(grep|head|tail|wc)(\\s+[^|;&]*)?$",
     "^curl\\s+[^|;&]*https?://localhost[:/][^|;&]*(\\s*2>&1)?(\\s*2>/dev/null)?$",
     "^npx\\s+(--yes\\s+)?semantic-release\\s+--dry-run[^|;&]*$",
-    "^rm\\s+-rf?\\s+\\.next(/)?$"
+    "^rm\\s+-rf?\\s+\\.next(/)?$",
+    "^(sips|identify)\\s+[^|;&]+$",
+    "^curl\\s+(-[a-zA-Z]+\\s+)*['\"]?https://fonts\\.(googleapis|gstatic)\\.com[^|;&]*$",
+    "^curl\\s+-s\\s+-o\\s+/dev/null\\s+-w\\s+[^|;&]*https?://[^|;&]*$"
   ],
 
   "deny_patterns": [
