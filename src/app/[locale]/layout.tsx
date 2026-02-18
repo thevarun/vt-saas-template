@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Toaster as SonnerToaster } from 'sonner';
 
+import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
 import {
@@ -94,14 +95,16 @@ export default async function RootLayout(props: {
     <html lang={locale} suppressHydrationWarning>
       <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
         <ThemeProvider>
-          <NextIntlClientProvider
-            locale={locale}
-            messages={messages}
-          >
-            {props.children}
-            <Toaster />
-            <SonnerToaster position="bottom-right" />
-          </NextIntlClientProvider>
+          <PostHogProvider>
+            <NextIntlClientProvider
+              locale={locale}
+              messages={messages}
+            >
+              {props.children}
+              <Toaster />
+              <SonnerToaster position="bottom-right" />
+            </NextIntlClientProvider>
+          </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>

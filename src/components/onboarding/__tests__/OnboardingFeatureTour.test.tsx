@@ -11,6 +11,11 @@ vi.mock('next-intl', () => ({
   useLocale: vi.fn(() => 'en'),
 }));
 
+// Mock analytics
+vi.mock('@/libs/analytics', () => ({
+  trackOnboardingStepCompleted: vi.fn(),
+}));
+
 describe('OnboardingFeatureTour', () => {
   const mockTranslations: Record<string, string> = {
     step2Title: 'Discover What You Can Do',

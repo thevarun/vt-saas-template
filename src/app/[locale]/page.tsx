@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
+import { LandingPageTracker } from '@/components/analytics/LandingPageTracker';
 import { SITE_NAME } from '@/libs/seo/constants';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { CTA } from '@/templates/CTA';
@@ -45,6 +46,7 @@ const IndexPage = async (props: { params: Promise<{ locale: string }> }) => {
   // Landing page is statically generated for fast load times and SEO
   return (
     <>
+      <LandingPageTracker />
       <Navbar />
       <Hero />
       <Features />

@@ -5,13 +5,14 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useToast } from '@/hooks/use-toast';
+import { trackEvent } from '@/libs/analytics';
 import { createClient } from '@/libs/supabase/client';
 
 const createSignUpSchema = (t: ReturnType<typeof useTranslations<'SignUp'>>) =>
@@ -46,6 +47,11 @@ export default function SignUpPage() {
     resolver: zodResolver(signUpSchema),
     mode: 'onBlur',
   });
+
+  // Track signup started when page loads
+  useEffect(() => {
+    trackEvent('signup_started', {});
+  }, []);
 
   const handleGoogleSignUp = async () => {
     setOAuthLoading(true);

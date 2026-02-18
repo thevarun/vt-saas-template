@@ -22,6 +22,11 @@ vi.mock('@/hooks/use-toast', () => ({
   })),
 }));
 
+vi.mock('@/libs/analytics', () => ({
+  trackOnboardingStepCompleted: vi.fn(),
+  trackOnboardingCompleted: vi.fn(),
+}));
+
 // Mock fetch globally
 globalThis.fetch = vi.fn();
 

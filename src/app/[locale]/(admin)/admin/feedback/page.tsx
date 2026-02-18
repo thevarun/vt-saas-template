@@ -14,6 +14,8 @@ import {
 import type { FeedbackStatus, FeedbackType } from '@/libs/queries/feedback';
 import { getFeedbackCount, getFeedbackList } from '@/libs/queries/feedback';
 
+export const dynamic = 'force-dynamic';
+
 const ITEMS_PER_PAGE = 20;
 
 const VALID_TYPES = ['bug', 'feature', 'praise'] as const;

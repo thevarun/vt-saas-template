@@ -16,6 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { trackFeatureFirstUse, trackFeedbackSubmitted } from '@/libs/analytics';
+import { trackActivation } from '@/libs/analytics/activation';
 import { createClient } from '@/libs/supabase/client';
 import { cn } from '@/utils/Helpers';
 
@@ -36,8 +38,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
-  // Check authentication status when modal opens
+  // Check authentication status when modal opens and track first use
   useEffect(() => {
     if (open) {
       const checkAuth = async () => {
@@ -46,6 +49,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           const supabase = createClient();
           const { data: { user } } = await supabase.auth.getUser();
           setIsAuthenticated(!!user);
+          if (user?.created_at) {
+            setUserCreatedAt(user.created_at);
+          }
         } catch (err) {
           console.error('[FeedbackModal] Auth check failed:', err);
           setIsAuthenticated(false);
@@ -54,6 +60,17 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         }
       };
       checkAuth();
+
+      // Track feature first use
+      const hasUsedFeedback = localStorage.getItem('feature_used_feedback');
+      if (!hasUsedFeedback) {
+        try {
+          trackFeatureFirstUse('feedback_widget');
+          localStorage.setItem('feature_used_feedback', 'true');
+        } catch (error) {
+          console.error('[FeedbackModal] Failed to track first use:', error);
+        }
+      }
     }
   }, [open]);
 
@@ -119,7 +136,27 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         return;
       }
 
-      // Success
+      // Success - Track feedback submission
+      try {
+        // Map 'praise' to 'general' for analytics (database uses 'praise', analytics uses 'general')
+        const analyticsType = feedbackType === 'praise' ? 'general' : feedbackType;
+        trackFeedbackSubmitted(
+          analyticsType,
+          false, // No screenshot support in current implementation
+        );
+      } catch (error) {
+        console.error('[FeedbackModal] Failed to track feedback submission:', error);
+      }
+
+      // Track user activation if criteria met
+      if (userCreatedAt) {
+        try {
+          trackActivation('feedback_submitted', userCreatedAt);
+        } catch (error) {
+          console.error('[FeedbackModal] Failed to track activation:', error);
+        }
+      }
+
       setIsLoading(false);
       onOpenChange(false);
 

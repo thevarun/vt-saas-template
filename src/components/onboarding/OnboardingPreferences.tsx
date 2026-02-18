@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { trackOnboardingCompleted, trackOnboardingStepCompleted } from '@/libs/analytics';
+import { markOnboardingCompleted } from '@/libs/analytics/activation';
 
 import { ProgressIndicator } from './ProgressIndicator';
 
@@ -77,6 +79,36 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
         const error = await response.json();
         throw new Error(error.error || 'Failed to save preferences');
       }
+
+      // Track step completion
+      try {
+        trackOnboardingStepCompleted(3, 'preferences');
+      } catch (error) {
+        console.error('[OnboardingPreferences] Failed to track step completion:', error);
+      }
+
+      // Calculate onboarding duration
+      const startTime = localStorage.getItem('onboarding_start_time');
+      const durationSeconds = startTime
+        ? Math.floor((Date.now() - Number.parseInt(startTime, 10)) / 1000)
+        : 0;
+
+      // Track onboarding completion
+      try {
+        trackOnboardingCompleted(3, durationSeconds);
+      } catch (error) {
+        console.error('[OnboardingPreferences] Failed to track onboarding completion:', error);
+      }
+
+      // Mark onboarding as completed for activation tracking
+      try {
+        markOnboardingCompleted();
+      } catch (error) {
+        console.error('[OnboardingPreferences] Failed to mark onboarding completed:', error);
+      }
+
+      // Clean up onboarding start time
+      localStorage.removeItem('onboarding_start_time');
 
       setIsComplete(true);
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { UserIdentifier } from '@/components/analytics/UserIdentifier';
 import { MainAppShell } from '@/components/layout/MainAppShell';
 
 export const metadata: Metadata = {
@@ -17,5 +18,10 @@ export default function AuthLayout(props: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  return <MainAppShell>{props.children}</MainAppShell>;
+  return (
+    <>
+      <UserIdentifier />
+      <MainAppShell>{props.children}</MainAppShell>
+    </>
+  );
 }

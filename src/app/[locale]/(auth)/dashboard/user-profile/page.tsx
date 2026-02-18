@@ -10,6 +10,8 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { trackFeatureFirstUse, trackProfileUpdated } from '@/libs/analytics';
+import { trackActivation } from '@/libs/analytics/activation';
 import { createClient } from '@/libs/supabase/client';
 
 const createProfileSchema = (t: ReturnType<typeof useTranslations<'UserProfile'>>) =>
@@ -39,6 +41,8 @@ export default function UserProfilePage() {
   const [userEmail, setUserEmail] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [originalData, setOriginalData] = useState<{ username: string; displayName: string }>({ username: '', displayName: '' });
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
   const profileSchema = createProfileSchema(t);
   type ProfileFormData = z.infer<typeof profileSchema>;
@@ -62,9 +66,20 @@ export default function UserProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        const username = user.user_metadata?.username || '';
+        const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name || '';
+
         setUserEmail(user.email || '');
-        setValue('username', user.user_metadata?.username || '');
-        setValue('displayName', user.user_metadata?.display_name || user.user_metadata?.full_name || '');
+        setValue('username', username);
+        setValue('displayName', displayName);
+
+        // Store original data for tracking changes
+        setOriginalData({ username, displayName });
+
+        // Store user created_at for activation tracking
+        if (user.created_at) {
+          setUserCreatedAt(user.created_at);
+        }
       }
 
       setLoading(false);
@@ -112,6 +127,17 @@ export default function UserProfilePage() {
       return;
     }
 
+    // Track feature first use
+    const hasUsedProfile = localStorage.getItem('feature_used_profile_edit');
+    if (!hasUsedProfile) {
+      try {
+        trackFeatureFirstUse('profile_edit');
+        localStorage.setItem('feature_used_profile_edit', 'true');
+      } catch (error) {
+        console.error('[UserProfile] Failed to track first use:', error);
+      }
+    }
+
     setSaving(true);
 
     try {
@@ -124,6 +150,36 @@ export default function UserProfilePage() {
       if (!response.ok) {
         throw new Error('Failed to update profile');
       }
+
+      // Calculate which fields changed
+      const fieldsUpdated: string[] = [];
+      if (data.username !== originalData.username) {
+        fieldsUpdated.push('username');
+      }
+      if (data.displayName !== originalData.displayName) {
+        fieldsUpdated.push('displayName');
+      }
+
+      // Track profile update with changed fields
+      if (fieldsUpdated.length > 0) {
+        try {
+          trackProfileUpdated(fieldsUpdated);
+        } catch (error) {
+          console.error('[UserProfile] Failed to track profile update:', error);
+        }
+
+        // Track user activation if criteria met
+        if (userCreatedAt) {
+          try {
+            trackActivation('profile_updated', userCreatedAt);
+          } catch (error) {
+            console.error('[UserProfile] Failed to track activation:', error);
+          }
+        }
+      }
+
+      // Update original data after successful save
+      setOriginalData(data);
 
       toast({
         title: t('success_title'),

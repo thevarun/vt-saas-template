@@ -10,6 +10,11 @@ vi.mock('@sentry/nextjs', () => ({
   captureException: vi.fn(),
 }));
 
+// Mock analytics
+vi.mock('@/libs/analytics/helpers', () => ({
+  trackError: vi.fn(),
+}));
+
 // Component that throws an error
 function ErrorThrower({ shouldThrow = true }: { shouldThrow?: boolean }) {
   if (shouldThrow) {

@@ -7,6 +7,7 @@
     "nav": {
       "overview": "Overview",
       "dashboard": "Dashboard",
+      "analytics": "Analytics",
       "management": "Management",
       "users": "Users",
       "feedback": "Feedback",
@@ -47,6 +48,32 @@
         "previous": "Previous",
         "next": "Next",
         "pageOf": "Page {current} of {total}"
+      }
+    },
+    "Analytics": {
+      "title": "Analytics Dashboard",
+      "description": "Monitor key business metrics and user activity",
+      "metrics": {
+        "totalUsers": "Total Users",
+        "signups7d": "Signups (7d)",
+        "signups30d": "Signups (30d)",
+        "activeUsers7d": "Active Users (7d)",
+        "activationRate": "Activation Rate"
+      },
+      "chart": {
+        "signupsOverTime": "Signups Over Time",
+        "last30Days": "Last 30 days"
+      },
+      "completionRates": {
+        "title": "Completion Rates",
+        "onboardingCompletion": "Onboarding Completion",
+        "activationRate": "Activation Rate",
+        "feedbackSubmitted": "Feedback Submitted"
+      },
+      "trends": {
+        "vsLast7d": "vs last 7 days",
+        "vsLast30d": "vs last 30 days",
+        "noChange": "No change"
       }
     },
     "Email": {

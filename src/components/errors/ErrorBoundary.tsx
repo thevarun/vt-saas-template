@@ -2,6 +2,8 @@ import * as Sentry from '@sentry/nextjs';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
+import { trackError } from '@/libs/analytics/helpers';
+
 import { CardErrorFallback } from './ErrorFallback';
 import type { ErrorBoundaryProps, ErrorBoundaryState } from './types';
 
@@ -62,6 +64,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         },
       },
     });
+
+    // Track error in analytics
+    try {
+      const errorLocation = errorInfo.componentStack?.split('\n')[1]?.trim() || 'unknown';
+      trackError(
+        error.name || 'UnknownError',
+        error.message,
+        errorLocation,
+      );
+    } catch (trackingError) {
+      // Don't throw if tracking fails - analytics should never break the app
+      console.error('[ErrorBoundary] Failed to track error:', trackingError);
+    }
 
     // Call optional error callback
     this.props.onError?.(error, errorInfo);

@@ -3,13 +3,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUsernameValidation } from '@/hooks/useUsernameValidation';
+import { trackEvent, trackOnboardingStepCompleted } from '@/libs/analytics';
 
 import { ProgressIndicator } from './ProgressIndicator';
 import { UsernameInput } from './UsernameInput';
@@ -38,6 +39,19 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
+  // Track onboarding start on component mount (first step)
+  useEffect(() => {
+    const onboardingStartTime = localStorage.getItem('onboarding_start_time');
+    if (!onboardingStartTime) {
+      localStorage.setItem('onboarding_start_time', Date.now().toString());
+      try {
+        trackEvent('onboarding_started', {});
+      } catch (error) {
+        console.error('[OnboardingUsername] Failed to track onboarding start:', error);
+      }
+    }
+  }, []);
+
   const {
     handleSubmit,
     watch,
@@ -63,6 +77,12 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const onSubmit = async (data: UsernameFormData) => {
     // If username unchanged and user already exists, just proceed
     if (skipAvailabilityCheck) {
+      // Track step completion
+      try {
+        trackOnboardingStepCompleted(1, 'username');
+      } catch (error) {
+        console.error('[OnboardingUsername] Failed to track step completion:', error);
+      }
       window.location.href = `${localePrefix}/onboarding?step=2`;
       return;
     }
@@ -83,6 +103,13 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
       const result = await response.json();
 
       if (response.ok) {
+        // Track step completion
+        try {
+          trackOnboardingStepCompleted(1, 'username');
+        } catch (error) {
+          console.error('[OnboardingUsername] Failed to track step completion:', error);
+        }
+
         toast({
           title: 'Success',
           description: 'Your username has been saved',

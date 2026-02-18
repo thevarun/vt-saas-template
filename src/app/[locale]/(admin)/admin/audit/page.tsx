@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/card';
 import { getAuditLogCount, getAuditLogs } from '@/libs/queries/auditLog';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Audit Log Page
  * Server component that fetches audit logs with URL-based filtering and pagination.
