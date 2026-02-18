@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
   // Loading state
   if (tokenState === 'loading') {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
           <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <Loader2 className="size-8 animate-spin text-blue-600" />
@@ -176,7 +176,7 @@ export default function ResetPasswordPage() {
     const isExpired = tokenState === 'expired';
 
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-xl">
           {/* Icon */}
           <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-red-100 text-red-600">
@@ -206,7 +206,7 @@ export default function ResetPasswordPage() {
   // Success state (matches MagicPatterns design)
   if (isSuccess) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
+      <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/20 to-slate-100 p-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-xl">
           {/* Icon */}
           <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
@@ -235,7 +235,7 @@ export default function ResetPasswordPage() {
 
   // Form UI (valid token) - Adapted from MagicPatterns
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
+    <div className="relative flex min-h-screen w-full flex-col bg-linear-to-br from-slate-50 via-blue-50/20 to-slate-100">
       {/* Back Link - Positioned at top left */}
       <div className="absolute left-6 top-6 md:left-8 md:top-8">
         <Link
@@ -285,7 +285,7 @@ export default function ResetPasswordPage() {
                 placeholder="••••••••"
                 aria-invalid={!!errors.password}
                 disabled={loading}
-                className={`w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${
                   errors.password
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
                     : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/10'
@@ -318,7 +318,7 @@ export default function ResetPasswordPage() {
                 placeholder="••••••••"
                 aria-invalid={!!errors.confirmPassword}
                 disabled={loading}
-                className={`w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${
                   errors.confirmPassword
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
                     : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/10'

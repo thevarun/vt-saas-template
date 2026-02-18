@@ -48,7 +48,7 @@ export function SocialAuthButtons({
         type="button"
         onClick={onGoogleClick}
         disabled={disabled || loading}
-        className="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading
           ? (
@@ -64,7 +64,7 @@ export function SocialAuthButtons({
         type="button"
         onClick={onGitHubClick}
         disabled={disabled || loading}
-        className="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading
           ? (

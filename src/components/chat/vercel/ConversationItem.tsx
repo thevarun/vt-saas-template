@@ -66,7 +66,7 @@ export function ConversationItem({ conversation, onArchive, onNavigate, collapse
         role="button"
         tabIndex={0}
         aria-label={`Open conversation: ${conversation.title || 'New Conversation'}`}
-        className={`group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-background p-3 text-left shadow-sm transition hover:-translate-y-px hover:shadow-md ${
+        className={`group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-background p-3 text-left shadow-xs transition hover:-translate-y-px hover:shadow-md ${
           isActive ? 'border-primary/40 ring-1 ring-primary/30' : 'border-transparent'
         } ${collapsed ? 'justify-center p-2' : ''}`}
       >

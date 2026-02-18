@@ -139,7 +139,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
 
   if (isComplete) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+      <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
         <div className="w-full max-w-md rounded-2xl border border-slate-100/50 bg-white p-8 text-center shadow-xl duration-500 animate-in fade-in zoom-in dark:border-slate-800/50 dark:bg-slate-900">
           <div className="mb-6 flex justify-center">
             <div className="flex size-20 animate-bounce items-center justify-center rounded-full bg-green-100 dark:bg-green-950">
@@ -166,7 +166,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-md">
         <div className="overflow-hidden rounded-2xl border border-slate-100/50 bg-white shadow-xl dark:border-slate-800/50 dark:bg-slate-900">
           <div className="p-8 md:p-10">
@@ -262,7 +262,7 @@ export function OnboardingPreferences({ initialData }: OnboardingPreferencesProp
             </form>
           </div>
 
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+          <div className="h-1.5 w-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500" />
         </div>
       </div>
     </div>

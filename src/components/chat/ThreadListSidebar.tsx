@@ -187,7 +187,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(prev => !prev)}
-          className="size-9 shrink-0 rounded-full border bg-background shadow-sm hover:bg-accent"
+          className="size-9 shrink-0 rounded-full border bg-background shadow-xs hover:bg-accent"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
@@ -200,7 +200,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
           onClick={handleNewThread}
           variant="outline"
           className={cn(
-            'w-full justify-start gap-2 rounded-xl border bg-background text-sm font-medium shadow-sm transition-all hover:-translate-y-[1px] hover:shadow-md',
+            'w-full justify-start gap-2 rounded-xl border bg-background text-sm font-medium shadow-xs transition-all hover:-translate-y-px hover:shadow-md',
             collapsed && 'justify-center px-0',
           )}
           aria-label="Start new thread"

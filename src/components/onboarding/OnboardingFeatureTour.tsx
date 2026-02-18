@@ -17,7 +17,7 @@ type FeatureCardProps = {
 function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
   return (
     <div className="group cursor-default rounded-xl border border-slate-100 bg-slate-50/50 p-5 transition-all duration-300 hover:border-slate-200 hover:bg-white hover:shadow-lg dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-800">
-      <div className="mb-4 inline-flex size-10 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm transition-colors duration-300 group-hover:border-primary/20 group-hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800">
+      <div className="mb-4 inline-flex size-10 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-xs transition-colors duration-300 group-hover:border-primary/20 group-hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800">
         <Icon className="size-5 text-slate-600 transition-colors duration-300 group-hover:text-primary dark:text-slate-400 dark:group-hover:text-primary" />
       </div>
       <h3 className="mb-1 text-sm font-semibold text-slate-900 transition-colors group-hover:text-slate-950 dark:text-slate-50 dark:group-hover:text-slate-100">
@@ -76,7 +76,7 @@ export function OnboardingFeatureTour() {
   ];
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-100/50 bg-white p-8 shadow-xl dark:border-slate-800/50 dark:bg-slate-900 md:p-10">
         {/* Progress */}
         <ProgressIndicator currentStep={2} totalSteps={3} />

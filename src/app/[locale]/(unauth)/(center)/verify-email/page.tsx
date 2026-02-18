@@ -179,7 +179,7 @@ export default function VerifyEmailPage() {
           href={`/${locale}`}
           className="group flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
         >
-          <div className="mr-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-sm transition-all group-hover:border-slate-300">
+          <div className="mr-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-xs transition-all group-hover:border-slate-300">
             <ArrowLeft className="size-4" />
           </div>
           {t('back_to_home')}
@@ -220,7 +220,7 @@ export default function VerifyEmailPage() {
               disabled={resendStatus !== 'idle' || !email}
               className={`
                 relative flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200
-                ${resendStatus === 'idle' ? 'border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50' : ''}
+                ${resendStatus === 'idle' ? 'border border-slate-300 bg-white text-slate-700 shadow-xs hover:border-slate-400 hover:bg-slate-50' : ''}
                 ${resendStatus === 'loading' ? 'cursor-wait border border-slate-200 bg-slate-50 text-slate-400' : ''}
                 ${resendStatus === 'success' ? 'cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700' : ''}
                 ${resendStatus === 'cooldown' ? 'cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-400' : ''}
@@ -262,7 +262,7 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* Decorative bottom bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-emerald-500 to-blue-500 opacity-80" />
+        <div className="h-1.5 w-full bg-linear-to-r from-blue-500 via-emerald-500 to-blue-500 opacity-80" />
       </div>
 
       {/* Footer Help */}

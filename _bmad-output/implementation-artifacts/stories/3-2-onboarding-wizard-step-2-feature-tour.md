@@ -196,7 +196,7 @@ mcp__magic-patterns__read_files(url: "https://www.magicpatterns.com/c/5imgbchlrj
    - Import `ProgressIndicator` from the same folder
 
 **Visual Consistency Checklist:**
-- [ ] Same outer container: `min-h-screen bg-gradient-to-br from-slate-50 to-blue-50`
+- [ ] Same outer container: `min-h-screen bg-linear-to-br from-slate-50 to-blue-50`
 - [ ] Same card container: `max-w-md rounded-2xl border bg-white p-8 shadow-xl`
 - [ ] Same header styling: `text-2xl font-bold tracking-tight`
 - [ ] Same button styling: `w-full gap-2 shadow-md transition-all hover:-translate-y-0.5`
@@ -271,7 +271,7 @@ src/
      }
 
      return (
-       <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+       <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
          {/* Content */}
        </div>
      )
