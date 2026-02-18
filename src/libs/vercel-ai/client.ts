@@ -36,9 +36,8 @@ export async function createAIProvider(): Promise<LanguageModel> {
     // Lazy load Anthropic to avoid requiring the package if not used
     try {
       // Dynamic ESM import for optional dependency
-      // webpackIgnore prevents webpack from trying to resolve this at build time
       // @ts-expect-error - @ai-sdk/anthropic is an optional dependency
-      const { createAnthropic } = await import(/* webpackIgnore: true */ '@ai-sdk/anthropic');
+      const { createAnthropic } = await import('@ai-sdk/anthropic');
       const anthropic = createAnthropic({
         apiKey: anthropicApiKey,
       });

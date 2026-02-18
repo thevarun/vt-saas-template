@@ -1,3 +1,4 @@
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import withBundleAnalyzer from '@next/bundle-analyzer';
@@ -5,6 +6,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 import createJiti from 'jiti';
 import withNextIntl from 'next-intl/plugin';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const jiti = createJiti(fileURLToPath(import.meta.url));
 
 jiti('./src/libs/Env');
@@ -31,8 +33,8 @@ const securityHeaders = [
 export default withSentryConfig(
   bundleAnalyzer(
     withNextIntlConfig({
-      eslint: {
-        dirs: ['src', 'tests'],
+      turbopack: {
+        root: __dirname,
       },
       poweredByHeader: false,
       reactStrictMode: true,
@@ -70,18 +72,6 @@ export default withSentryConfig(
 
     // Hides source maps from generated client bundles
     hideSourceMaps: true,
-
-    // Webpack-specific options
-    webpack: {
-      // Automatically tree-shake Sentry logger statements to reduce bundle size
-      treeshake: { removeDebugLogging: true },
-
-      // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-      // See the following for more information:
-      // https://docs.sentry.io/product/crons/
-      // https://vercel.com/docs/cron-jobs
-      automaticVercelMonitors: true,
-    },
 
     // Disable Sentry telemetry
     telemetry: false,

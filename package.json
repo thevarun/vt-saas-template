@@ -53,13 +53,14 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^1.0.6",
-    "@sentry/nextjs": "^8.34.0",
+    "@sentry/nextjs": "^10.39.0",
     "@spotlightjs/spotlight": "^2.5.0",
     "@supabase/ssr": "0.8.0",
     "@supabase/supabase-js": "2.93.3",
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-table": "^8.20.5",
+    "@types/react-dom": "^19.2.3",
     "@vercel/otel": "^2.1.1",
     "ai": "^6.0.86",
     "class-variance-authority": "^0.7.0",
@@ -71,7 +72,7 @@
     "langfuse-vercel": "^3.38.6",
     "lucide-react": "^0.563.0",
     "mem0ai": "^2.2.2",
-    "next": "^15.5.11",
+    "next": "^16.1.6",
     "next-intl": "^4.8.2",
     "next-themes": "^0.4.6",
     "pg": "^8.17.1",
@@ -117,7 +118,7 @@
     "@torka/claude-workflows": "^0.10.0",
     "@types/node": "^25.0.7",
     "@types/pg": "^8.11.10",
-    "@types/react": "^19.2.10",
+    "@types/react": "^19.2.14",
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/expect": "^4.0.17",
@@ -162,8 +163,7 @@
     "axios": "^1.13.2",
     "cookie": "^0.7.2",
     "esbuild": "^0.25.1",
-    "glob": "^10.4.6",
-    "webpack": "5.101.2"
+    "glob": "^10.4.6"
   },
   "config": {
     "commitizen": {
