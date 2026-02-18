@@ -49,7 +49,7 @@ function isAdminRoute(pathname: string): boolean {
   return adminPaths.some(path => pathname.includes(path));
 }
 
-export async function middleware(
+export async function proxy(
   request: NextRequest,
   _event: NextFetchEvent,
 ) {
