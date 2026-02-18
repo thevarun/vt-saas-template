@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = bulkActionSchema.safeParse(body);
     if (!parsed.success) {
-      return validationError(parsed.error.errors[0]?.message || 'Invalid request');
+      return validationError(parsed.error.issues[0]?.message || 'Invalid request');
     }
 
     const { action, ids } = parsed.data;

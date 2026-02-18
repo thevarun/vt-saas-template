@@ -17,7 +17,7 @@ import { createClient } from '@/libs/supabase/server';
 const TestEmailSchema = z.object({
   template: z.enum(['welcome', 'password-reset', 'verify-email']),
   email: z.string().email(),
-  data: z.record(z.unknown()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: NextRequest) {

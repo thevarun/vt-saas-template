@@ -17,7 +17,7 @@ import { feedback } from '@/models/Schema';
 // Zod validation schema for feedback submission
 const feedbackSchema = z.object({
   type: z.enum(['bug', 'feature', 'praise'], {
-    errorMap: () => ({ message: 'Type must be bug, feature, or praise' }),
+    error: 'Type must be bug, feature, or praise',
   }),
   message: z
     .string()
