@@ -163,8 +163,7 @@
     "axios": "^1.13.2",
     "cookie": "^0.7.2",
     "esbuild": "^0.25.1",
-    "glob": "^10.4.6",
-    "webpack": "5.101.2"
+    "glob": "^10.4.6"
   },
   "config": {
     "commitizen": {
