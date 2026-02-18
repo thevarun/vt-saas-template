@@ -106,7 +106,7 @@ export function forbiddenError(
  * ```typescript
  * const result = schema.safeParse(body);
  * if (!result.success) {
- *   return validationError(result.error.errors);
+ *   return validationError(result.error.issues);
  * }
  * ```
  */
