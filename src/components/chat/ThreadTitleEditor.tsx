@@ -111,7 +111,7 @@ export function ThreadTitleEditor({ threadId, initialTitle }: ThreadTitleEditorP
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         disabled={isSaving}
-        className="w-full border-b border-primary bg-transparent px-1 py-0.5 text-sm font-medium outline-none transition-colors disabled:opacity-50"
+        className="w-full border-b border-primary bg-transparent px-1 py-0.5 text-sm font-medium outline-hidden transition-colors disabled:opacity-50"
         placeholder="Untitled Conversation"
       />
     );

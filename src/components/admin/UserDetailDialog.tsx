@@ -103,7 +103,7 @@ export function UserDetailDialog({
             {/* User Profile Header */}
             <div className="flex items-center gap-4 border-b pb-6">
               <Avatar className="size-[72px]">
-                <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-2xl font-bold text-primary-foreground">
+                <AvatarFallback className="bg-linear-to-br from-primary to-purple-500 text-2xl font-bold text-primary-foreground">
                   {getUserInitials(displayUser.email, displayUser.user_metadata?.username)}
                 </AvatarFallback>
               </Avatar>

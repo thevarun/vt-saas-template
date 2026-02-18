@@ -171,7 +171,7 @@ export default function SignInFormClient() {
           href={`/${locale}`}
           className="group flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
         >
-          <div className="mr-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-sm transition-all group-hover:border-slate-300">
+          <div className="mr-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-xs transition-all group-hover:border-slate-300">
             <ArrowLeft className="size-4" />
           </div>
           {t('back_to_home')}
@@ -232,7 +232,7 @@ export default function SignInFormClient() {
                   id="email"
                   type="email"
                   placeholder={t('email_placeholder')}
-                  className={`flex h-11 w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  className={`flex h-11 w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 shadow-xs transition-all placeholder:text-slate-400 focus:outline-hidden focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                     errors.email
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                       : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
@@ -253,7 +253,7 @@ export default function SignInFormClient() {
                 <PasswordInput
                   id="password"
                   placeholder={t('password_placeholder')}
-                  className={`h-11 w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  className={`h-11 w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 shadow-xs transition-all placeholder:text-slate-400 focus:outline-hidden focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                       : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
@@ -295,7 +295,7 @@ export default function SignInFormClient() {
             <button
               type="submit"
               disabled={loading || oauthLoading}
-              className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-xs transition-all hover:bg-blue-700 hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading
                 ? (
@@ -342,7 +342,7 @@ export default function SignInFormClient() {
         </div>
 
         {/* Decorative bottom bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 opacity-80" />
+        <div className="h-1.5 w-full bg-linear-to-r from-blue-500 via-blue-400 to-blue-500 opacity-80" />
       </div>
     </div>
   );

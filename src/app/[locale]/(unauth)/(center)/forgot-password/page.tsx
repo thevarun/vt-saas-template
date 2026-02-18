@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
   // Success state UI
   if (isSubmitted) {
     return (
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-linear-to-br from-slate-50 to-blue-50 p-4">
         {/* Background Gradients */}
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
@@ -149,7 +149,7 @@ export default function ForgotPasswordPage() {
 
   // Form UI
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-linear-to-br from-slate-50 to-blue-50 p-4">
       {/* Background Gradients */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute left-[-10%] top-[-10%] size-2/5 rounded-full bg-blue-100 opacity-50 blur-[100px]" />
@@ -226,7 +226,7 @@ export default function ForgotPasswordPage() {
               id="email"
               type="email"
               placeholder={t('email_placeholder')}
-              className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-hidden transition-all placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                 errors.email
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                   : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'

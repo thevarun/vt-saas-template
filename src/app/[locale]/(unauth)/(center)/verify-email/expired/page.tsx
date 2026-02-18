@@ -38,7 +38,7 @@ export default function ExpiredLinkPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 px-4 py-8 sm:px-6 lg:px-8">
       <Link
         href={`/${locale}`}
         className="absolute left-4 top-4 flex items-center text-sm font-medium text-gray-600 transition hover:text-gray-900 sm:left-8 sm:top-8"
@@ -61,7 +61,7 @@ export default function ExpiredLinkPage() {
       <div className="w-full max-w-md">
         <Card className="bg-white/80 backdrop-blur-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gradient-to-r from-red-400 to-rose-500">
+            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-linear-to-r from-red-400 to-rose-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="size-8 text-white"

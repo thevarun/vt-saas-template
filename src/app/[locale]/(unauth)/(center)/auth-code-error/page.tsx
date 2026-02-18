@@ -62,7 +62,7 @@ export default function AuthCodeErrorPage(props: {
           {/* Back to Sign In Button */}
           <Link
             href={`/${locale}/sign-in`}
-            className="group flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="group flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white shadow-xs transition-all hover:bg-blue-700 hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <ArrowLeft className="mr-2 size-5 transition-transform group-hover:-translate-x-1" />
             {t('back_to_sign_in')}
@@ -70,7 +70,7 @@ export default function AuthCodeErrorPage(props: {
         </div>
 
         {/* Decorative bottom bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-red-500 via-red-400 to-red-500 opacity-80" />
+        <div className="h-1.5 w-full bg-linear-to-r from-red-500 via-red-400 to-red-500 opacity-80" />
       </div>
     </div>
   );

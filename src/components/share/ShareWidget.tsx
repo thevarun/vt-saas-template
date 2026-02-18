@@ -118,7 +118,7 @@ export function ShareWidget({
                 className={cn(
                   'flex w-full items-center gap-3 rounded-sm px-3 py-2 text-sm',
                   'text-foreground transition-colors hover:bg-accent',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                 )}
                 aria-label={config.label}
               >

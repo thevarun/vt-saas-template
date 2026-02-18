@@ -47,7 +47,7 @@ function CopyButton({ url }: { url: string }) {
       className={cn(
         'rounded-md p-1.5 transition-colors duration-200',
         'text-muted-foreground hover:bg-muted hover:text-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       )}
       aria-label={copied ? 'Copied' : 'Copy link'}
     >

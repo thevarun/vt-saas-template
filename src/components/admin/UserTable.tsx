@@ -342,7 +342,7 @@ export function UserTable({
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="size-9">
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-primary-foreground">
+                            <AvatarFallback className="bg-linear-to-br from-primary to-purple-500 text-primary-foreground">
                               {getUserInitials(user.email, user.user_metadata?.username)}
                             </AvatarFallback>
                           </Avatar>

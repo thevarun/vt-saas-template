@@ -25,7 +25,7 @@ export const FeedbackTrigger = ({ ref, collapsed = false, className }: FeedbackT
         'text-slate-600 dark:text-slate-400',
         'transition-colors duration-200',
         'hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
         collapsed && 'justify-center px-2',
         className,
       )}

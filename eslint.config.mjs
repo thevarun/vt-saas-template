@@ -4,7 +4,8 @@ import jestDom from 'eslint-plugin-jest-dom';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import playwright from 'eslint-plugin-playwright';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import tailwind from 'eslint-plugin-tailwindcss';
+// TODO: Re-enable eslint-plugin-tailwindcss when stable v4 support ships
+// import tailwind from 'eslint-plugin-tailwindcss';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 export default antfu({
@@ -35,7 +36,7 @@ export default antfu({
     'WARP.md',
     'src/libs/dify/README.md',
   ],
-}, ...tailwind.configs['flat/recommended'], jsxA11y.flatConfigs.recommended, {
+}, jsxA11y.flatConfigs.recommended, {
   plugins: {
     '@next/next': nextPlugin,
   },
@@ -63,13 +64,6 @@ export default antfu({
     '**/*.e2e.ts',
   ],
   ...playwright.configs['flat/recommended'],
-}, {
-  rules: {
-    // Allow shadcn/ui custom class names used for group targeting
-    'tailwindcss/no-custom-classname': ['warn', {
-      whitelist: ['destructive'],
-    }],
-  },
 }, {
   rules: {
     'import/order': 'off', // Avoid conflicts with `simple-import-sort` plugin

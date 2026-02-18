@@ -318,7 +318,7 @@ export function AdminSidebar({ collapsed, mobile, onLinkClick }: AdminSidebarPro
                       : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                   )}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <Icon className="h-5 w-5 shrink-0" />
                   {!collapsed && <span>{item.label}</span>}
                 </Link>
               )

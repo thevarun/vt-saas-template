@@ -369,7 +369,7 @@ src/
      }
 
      return (
-       <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+       <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
          {/* Content */}
        </div>
      )

@@ -48,7 +48,7 @@ export function ActionCard({
         y: -4,
         boxShadow: '0 10px 30px -10px rgba(0,0,0,0.1)',
       }}
-      className={`flex h-full flex-col rounded-xl border p-6 shadow-sm transition-colors ${
+      className={`flex h-full flex-col rounded-xl border p-6 shadow-xs transition-colors ${
         completed
           ? 'border-green-200 bg-green-50/50 dark:border-green-900/50 dark:bg-green-950/20'
           : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800'

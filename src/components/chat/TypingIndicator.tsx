@@ -9,7 +9,7 @@
 export function TypingIndicator() {
   return (
     <div className="mb-4 flex justify-start">
-      <div className="flex max-w-[80%] items-center gap-2 rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-sm">
+      <div className="flex max-w-[80%] items-center gap-2 rounded-2xl rounded-tl-sm bg-muted px-4 py-3 shadow-xs">
         <div className="flex gap-1">
           <span
             className="size-2 animate-bounce rounded-full bg-muted-foreground/60"

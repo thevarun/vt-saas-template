@@ -62,7 +62,7 @@ export function NavItem({
   const linkClasses = cn(
     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
     // AC #3: Active state styling - Exact MagicPatterns style: white bg, blue text, shadow, ring
-    isActive && 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-blue-400 dark:ring-slate-700',
+    isActive && 'bg-white text-blue-600 shadow-xs ring-1 ring-slate-200 dark:bg-slate-800 dark:text-blue-400 dark:ring-slate-700',
     // AC #5: Hover state for non-active items - MagicPatterns style
     !isActive && 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
     // AC #4: Disabled state styling

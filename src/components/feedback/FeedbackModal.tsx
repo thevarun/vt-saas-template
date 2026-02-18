@@ -186,9 +186,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               type="button"
               onClick={() => setFeedbackType('bug')}
               className={cn(
-                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                 feedbackType === 'bug'
-                  ? 'bg-background text-red-600 shadow-sm'
+                  ? 'bg-background text-red-600 shadow-xs'
                   : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
               )}
             >
@@ -199,9 +199,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               type="button"
               onClick={() => setFeedbackType('feature')}
               className={cn(
-                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                 feedbackType === 'feature'
-                  ? 'bg-background text-blue-600 shadow-sm'
+                  ? 'bg-background text-blue-600 shadow-xs'
                   : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
               )}
             >
@@ -212,9 +212,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               type="button"
               onClick={() => setFeedbackType('praise')}
               className={cn(
-                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex flex-col items-center justify-center gap-2 rounded-md py-3 text-xs font-medium transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                 feedbackType === 'praise'
-                  ? 'bg-background text-green-600 shadow-sm'
+                  ? 'bg-background text-green-600 shadow-xs'
                   : 'text-muted-foreground hover:bg-background/50 hover:text-foreground',
               )}
             >

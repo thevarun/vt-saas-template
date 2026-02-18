@@ -31,7 +31,7 @@ export default async function ChatPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 dark:bg-slate-950 md:p-8 lg:p-12">
-      <div className="mx-auto max-w-screen-xl">
+      <div className="mx-auto max-w-(--breakpoint-xl)">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">

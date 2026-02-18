@@ -140,7 +140,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const isFormValid = isZodValid && (skipAvailabilityCheck || (validation.isValid && validation.isAvailable && !validation.isChecking));
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-md rounded-2xl border border-slate-100/50 bg-white p-8 shadow-xl dark:border-slate-800/50 dark:bg-slate-900 md:p-10">
         {/* Progress */}
         <ProgressIndicator currentStep={1} totalSteps={3} />
