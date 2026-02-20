@@ -1,106 +1,113 @@
-# VT SaaS Template Project Documentation
+# VT SaaS Template - Project Documentation
 
-**Generated:** 2026-01-02
-**Scan Type:** Quick Scan (Pattern-based)
-**Project Type:** Monolith - Full-stack Next.js Web Application
+**Generated:** 2026-02-20 | **Scan Type:** Deep Scan | **Version:** 1.8.0
+**Project Type:** Monolith - Full-stack Next.js 16 Web Application
 
 ---
 
 ## Project Overview
 
 - **Repository Type:** Monolith
-- **Primary Language:** TypeScript
-- **Framework:** Next.js 14 (App Router)
-- **Architecture:** Full-stack SSR/SSG with API Routes
+- **Primary Language:** TypeScript 5.9.3
+- **Framework:** Next.js 16 (App Router + Turbopack)
+- **Architecture:** Serverless Full-stack with SSR/SSG + API Routes
 
 ### Quick Reference
 
 **Tech Stack:**
-- **Frontend:** Next.js 14, React 18, TypeScript, Tailwind CSS
-- **Auth:** Supabase (SSR-compatible)
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
+- **Auth:** Supabase SSR
 - **Database:** PostgreSQL (Supabase) + Drizzle ORM
-- **AI/Chat:** Assistant UI + Dify integration
-- **Testing:** Vitest, Playwright, Storybook
-- **CI/CD:** GitHub Actions, Semantic Release
+- **AI/Chat:** Dify (Assistant UI) + Vercel AI SDK (OpenAI/Anthropic)
+- **Validation:** Zod v4
+- **Analytics:** PostHog, LangFuse
+- **Email:** Resend + React Email
+- **Testing:** Vitest, Playwright, Storybook 10
+- **CI/CD:** GitHub Actions, semantic-release, Vercel
 
 **Entry Points:**
-- Main App: `src/middleware.ts` → `src/app/[locale]/`
-- API Routes: `src/app/api/`
-- Database Schema: `src/models/`
-
-**Architecture Pattern:** Full-stack Next.js with:
-- Server-side rendering (SSR)
-- API routes for backend logic
-- Component-based UI architecture
-- Middleware for auth + i18n
+- Middleware: `src/proxy.ts` (auth + i18n + routing)
+- App: `src/app/[locale]/`
+- API: `src/app/api/` (33 endpoints)
+- Schema: `src/models/Schema.ts` (9 tables)
 
 ---
 
 ## Generated Documentation
 
-### Core Documentation
-- [Project Overview](./project-overview.md)
-- [Architecture](./architecture.md)
-- [Source Tree Analysis](./source-tree-analysis.md)
+### Core
+- [Project Overview](./project-overview.md) - Executive summary, stats, tech stack
+- [Architecture](./architecture.md) - System design, request flow, auth, data, chat
+- [Source Tree Analysis](./source-tree-analysis.md) - Annotated directory structure
 
-### Technical Documentation
-- [API Contracts](./api-contracts.md)
-  - 5 API endpoints: chat, messages, threads
-- [Data Models](./data-models.md)
-  - Drizzle ORM schema + 3 migrations
-- [Component Inventory](./component-inventory.md)
-  - 38 React components (chat, layout, ui)
+### Technical
+- [API Contracts](./api-contracts.md) - All 33 API endpoints with auth, request/response
+- [Data Models](./data-models.md) - 9 database tables, relationships, migrations
+- [Component Inventory](./component-inventory.md) - 162 React components categorized
 
-### Development Guides
-- [Development Guide](./development-guide.md)
-  - Prerequisites: Node.js 20.x/22.6, npm
-  - Setup: npm install, .env.local configuration
-  - Commands: dev, build, test, db:*
-- [Deployment Guide](./deployment-guide.md)
-  - Platform: Vercel
-  - CI/CD: GitHub Actions
-  - Required Secrets: Supabase + Dify credentials
+### Development
+- [Development Guide](./development-guide.md) - Setup, commands, testing, patterns
+- [Deployment Guide](./deployment-guide.md) - CI/CD, Vercel, secrets, monitoring
 
 ---
 
 ## Existing Documentation
 
+### Guides
+- [Error Handling Guide](./error-handling-guide.md) - Error boundaries and patterns
+- [API Error Handling](./api-error-handling.md) - Error codes and responses
+- [Email System](./email-system.md) - Resend integration and templates
+- [Admin Setup](./admin-setup.md) - Admin panel configuration
+- [CI/CD Pipeline](./ci-cd-pipeline.md) - Pipeline details
+- [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) - Common CI issues
+
+### Analytics
+- [Analytics Setup](./analytics-setup.md) - PostHog configuration
+- [Analytics Funnels](./analytics-funnels.md) - Conversion tracking
+- [Analytics Privacy](./analytics-privacy.md) - Privacy compliance
+
+### SEO
+- [PSEO Implementation](./pseo-implementation-summary.md) - Programmatic SEO
+- [PSEO Tracking](./pseo-tracking-integration.md) - PostHog + PSEO
+- [PostHog PSEO Dashboard](./posthog-pseo-dashboard.md) - Dashboard setup
+- [Google Search Console](./google-search-console-setup.md) - GSC setup
+
+### Patterns
+- [SSE Streaming](./patterns/sse-streaming.md) - Server-Sent Events patterns
+- [API Proxy](./patterns/api-proxy.md) - API proxy pattern
+
+### Customization
+- [Remove All Chat](./customization/removing-all-chat.md)
+- [Remove Dify Chat](./customization/removing-dify-chat.md)
+- [Remove Vercel Chat](./customization/removing-vercel-chat.md)
+
 ### Root Documentation
 - [README.md](../README.md) - Main project documentation
-- [CLAUDE.md](../CLAUDE.md) - AI-specific project instructions
+- [CLAUDE.md](../CLAUDE.md) - AI development instructions
 - [AGENTS.md](../AGENTS.md) - Agent documentation
 - [CHANGELOG.md](../CHANGELOG.md) - Version history
-
-### Archived Documentation
-- [archive/architecture.md](./archive/architecture.md) - Previous architecture docs
-- [archive/development-guide.md](./archive/development-guide.md) - Previous dev guide
-- [archive/deployment-guide.md](./archive/deployment-guide.md) - Previous deployment guide
-- [archive/source-tree-analysis.md](./archive/source-tree-analysis.md) - Previous source tree
-- **Epic & Story Files** - Historical sprint planning (in archive/)
 
 ---
 
 ## Getting Started
 
 ### For New Developers
-1. **Read:** [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md)
-2. **Setup Environment:**
-   - Install Node.js 20.x or 22.6
-   - Run `npm install`
-   - Copy `.env.example` to `.env.local` and configure
-3. **Start Development:** `npm run dev`
-4. **Run Tests:** `npm test` and `npm run test:e2e`
+1. Read [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md)
+2. Install Node.js 20.x+, run `npm install`
+3. Copy `.env.example` to `.env.local` and configure
+4. Start with `npm run dev`
+5. Run tests: `npm test` and `npm run test:e2e`
 
 ### For AI-Assisted Development
-- Primary reference: [CLAUDE.md](../CLAUDE.md)
-- Architecture decisions: [Architecture](./architecture.md)
-- API documentation: [API Contracts](./api-contracts.md)
-- Component patterns: [Component Inventory](./component-inventory.md)
+- Primary: [CLAUDE.md](../CLAUDE.md)
+- Architecture: [Architecture](./architecture.md)
+- APIs: [API Contracts](./api-contracts.md)
+- Components: [Component Inventory](./component-inventory.md)
+- Schema: [Data Models](./data-models.md)
 
 ### For Brownfield PRD Creation
-When planning new features:
-- Reference this index as the starting point
-- Use [Architecture](./architecture.md) for system design context
+- Start from this index
+- Reference [Architecture](./architecture.md) for system context
 - Check [API Contracts](./api-contracts.md) for existing endpoints
 - Review [Data Models](./data-models.md) for database schema
 
@@ -108,22 +115,19 @@ When planning new features:
 
 ## Project Statistics
 
-- **Lines of Code:** ~15,000+ (estimated)
-- **API Endpoints:** 5
-- **UI Components:** 38
-- **Database Tables:** 3+ (from migrations)
-- **Test Coverage:** Unit (Vitest) + E2E (Playwright) + Visual (Storybook)
-- **Supported Languages:** English, Hindi, Bengali
+| Metric | Value |
+|--------|-------|
+| API Endpoints | 33 |
+| React Components | 162 (~78 client) |
+| Database Tables | 9 |
+| SQL Migrations | 11 |
+| Custom Hooks | 5 |
+| CI/CD Workflows | 6 |
+| Supported Languages | 3 (en, hi, bn) |
+| Documentation Files | 29 |
 
 ---
 
-## Next Steps
-
-**To complete documentation:**
-1. Run this workflow again with "Deep Scan" for detailed analysis
-2. Or select specific documents to generate in the review step
-3. Keep documentation updated as the project evolves
-
 **Generated by:** BMAD Document Project Workflow v1.2.0
-**Scan Level:** Quick (pattern-based, minimal file reading)
-**Last Updated:** 2026-01-02
+**Scan Level:** Deep (file reading in critical directories)
+**Last Updated:** 2026-02-20

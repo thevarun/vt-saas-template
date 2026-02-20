@@ -1,474 +1,193 @@
-# VT SaaS Template - Source Tree Analysis
+# Source Tree Analysis
 
-**Generated:** 2026-01-02
-**Project Type:** Full-stack Next.js Web Application
-**Structure:** Monolith
+**Generated:** 2026-02-20 | **Scan Level:** Deep | **Structure:** Monolith
 
 ---
 
-## Table of Contents
-
-1. [Root Directory Structure](#root-directory-structure)
-2. [Source Directory (`src/`)](#source-directory-src)
-3. [Critical Directories](#critical-directories)
-4. [Entry Points](#entry-points)
-5. [Configuration Files](#configuration-files)
-6. [Build & Output Directories](#build--output-directories)
-
----
-
-## Root Directory Structure
+## Project Root
 
 ```
 vt-saas-template/
-├── .github/                 # GitHub-specific configuration
-│   └── workflows/          # GitHub Actions CI/CD
-├── .husky/                 # Git hooks (pre-commit, commit-msg)
-├── .storybook/             # Storybook configuration
-├── _bmad/                  # BMAD workflow configuration
-│   ├── bmm/               # BMM modules and workflows
-│   └── core/              # BMAD core workflows
-├── docs/                   # Project documentation
-│   ├── archive/           # Archived documentation
-│   └── *.md              # Generated documentation
-├── migrations/             # Database migrations (Drizzle)
-├── public/                 # Static assets (served as-is)
-│   ├── assets/           # Images, icons, etc.
-│   └── apple-touch-icon.png
-├── src/                    # Application source code ⭐ PRIMARY
-├── tests/                  # E2E test files (Playwright)
-├── vitest-setup.ts        # Vitest configuration
-├── next.config.mjs        # Next.js configuration
-├── tailwind.config.ts     # Tailwind CSS configuration
-├── tsconfig.json          # TypeScript configuration
-├── package.json           # Project dependencies
-└── README.md              # Project README
-```
-
-### Directory Purpose Summary
-
-| Directory | Purpose | Generated | Committed |
-|-----------|---------|-----------|-----------|
-| `.github/` | GitHub Actions, PR templates | No | Yes |
-| `.husky/` | Git hooks for code quality | No | Yes |
-| `.next/` | Next.js build output | Yes | No |
-| `.storybook/` | Storybook config | No | Yes |
-| `_bmad/` | BMAD workflow system | No | Yes |
-| `docs/` | Project documentation | Partial | Yes |
-| `migrations/` | Database migrations | Yes | Yes |
-| `node_modules/` | npm dependencies | Yes | No |
-| `public/` | Static assets | No | Yes |
-| `src/` | Application code | No | Yes |
-| `tests/` | E2E tests | No | Yes |
-
----
-
-## Source Directory (`src/`)
-
-The `src/` directory contains all application source code, organized by feature and function.
-
-```
-src/
-├── app/                    # Next.js App Router (pages + API)
-│   ├── [locale]/          # Internationalized routes
-│   │   ├── (auth)/        # Protected pages (dashboard, onboarding)
-│   │   ├── (chat)/        # Chat interface (protected)
-│   │   ├── (unauth)/      # Public pages (landing)
-│   │   ├── layout.tsx     # Root locale layout
-│   │   └── not-found.tsx  # 404 page
-│   ├── api/               # API Routes (serverless functions)
-│   │   ├── chat/          # Chat proxy to Dify
-│   │   └── threads/       # Thread CRUD operations
-│   ├── auth/              # Auth callback handlers
-│   │   └── callback/      # OAuth callback route
-│   ├── layout.tsx         # Root app layout
-│   └── sitemap.ts         # Sitemap generation
-├── components/             # Reusable React components
-│   ├── chat/              # Chat-specific components
-│   ├── layout/            # Layout components
-│   ├── ui/                # shadcn/ui components
-│   └── *.tsx              # Shared components
-├── features/              # Feature-based modules
-│   ├── auth/              # Authentication features
-│   ├── dashboard/         # Dashboard features
-│   └── landing/           # Landing page features
-├── hooks/                 # Custom React hooks
-├── libs/                  # Third-party integrations
-│   ├── dify/              # Dify AI client
-│   └── supabase/          # Supabase clients
-├── locales/               # i18n translation files
-│   ├── en.json            # English
-│   ├── hi.json            # Hindi
-│   └── bn.json            # Bengali
-├── models/                # Database schemas (Drizzle ORM)
-│   └── Schema.ts          # Table definitions
-├── styles/                # Global styles
-│   └── global.css         # Tailwind imports + custom CSS
-├── templates/             # Page templates
-├── types/                 # TypeScript type definitions
-├── utils/                 # Utility functions
-│   ├── AppConfig.ts       # App configuration
-│   ├── Helpers.ts         # Helper functions
-│   └── Logger.ts          # Logging utilities
-└── middleware.ts          # Edge middleware (auth + i18n) ⭐ ENTRY POINT
+├── .github/                    # CI/CD workflows
+│   ├── workflows/
+│   │   ├── CI.yml              # Main test pipeline (lint, unit, e2e)
+│   │   ├── release.yml         # Semantic release on main
+│   │   ├── codex-ci-fixer.yml  # Auto-fix CI failures
+│   │   ├── codex-followup.yml  # Follow-up on review feedback
+│   │   └── dependabot-auto-merge.yml
+│   └── dependabot.yml
+├── migrations/                 # Drizzle SQL migrations (11 files)
+├── public/                     # Static assets
+│   └── og-image.png           # Default OG image (1200x630)
+├── src/                        # Application source
+│   ├── app/                    # Next.js App Router
+│   ├── components/             # React components (148 files)
+│   ├── features/               # Feature modules (14 files)
+│   ├── hooks/                  # Custom React hooks (5 files)
+│   ├── lib/                    # Utility library
+│   ├── libs/                   # Core libraries (22 modules)
+│   ├── locales/                # i18n translations (en, hi, bn)
+│   ├── models/                 # Database schema (Drizzle)
+│   ├── styles/                 # Global styles (Tailwind v4)
+│   ├── templates/              # Email + page templates
+│   ├── types/                  # TypeScript type definitions
+│   ├── utils/                  # Utility functions
+│   ├── instrumentation.ts      # OpenTelemetry + Sentry setup
+│   └── proxy.ts                # Middleware (auth, i18n, routing)
+├── tests/                      # E2E tests (Playwright)
+├── docs/                       # Project documentation (this folder)
+├── _bmad/                      # BMAD workflow system
+├── package.json                # Dependencies & scripts
+├── next.config.mjs             # Next.js 16 config
+├── tsconfig.json               # TypeScript config
+├── drizzle.config.ts           # Database config
+├── vitest.config.mts           # Unit test config
+├── playwright.config.ts        # E2E test config
+├── eslint.config.mjs           # ESLint config
+├── CLAUDE.md                   # AI development instructions
+└── README.md                   # Project README
 ```
 
 ---
 
-## Critical Directories
+## App Router (`src/app/`)
 
-### 1. `src/app/` - Application Routes & API
-
-**Purpose:** Next.js App Router - all pages and API endpoints
-
-**Structure:**
 ```
 app/
-├── [locale]/               # Locale-aware pages
-│   ├── (auth)/            # Route group: Protected pages
-│   │   ├── dashboard/
-│   │   │   └── page.tsx   # /[locale]/dashboard
-│   │   └── onboarding/
-│   │       └── page.tsx   # /[locale]/onboarding
-│   ├── (chat)/            # Route group: Chat interface
-│   │   └── chat/
-│   │       ├── page.tsx   # /[locale]/chat - Main chat UI
-│   │       └── layout.tsx # Chat-specific layout (sidebar)
-│   └── (unauth)/          # Route group: Public pages
-│       └── page.tsx       # /[locale]/ - Landing page
-└── api/                   # API Routes (no locale prefix)
-    ├── chat/
-    │   ├── route.ts       # POST /api/chat - AI chat proxy
-    │   └── messages/
-    │       └── route.ts   # GET /api/chat/messages
-    └── threads/
-        ├── route.ts       # GET/POST /api/threads
-        └── [id]/
-            ├── route.ts   # GET/PUT/DELETE /api/threads/:id
-            └── archive/
-                └── route.ts # POST /api/threads/:id/archive
+├── [locale]/                           # i18n locale prefix
+│   ├── (unauth)/                       # PUBLIC pages
+│   │   ├── (center)/                   # Centered layout
+│   │   │   ├── sign-in/page.tsx
+│   │   │   ├── sign-up/page.tsx
+│   │   │   ├── verify-email/page.tsx
+│   │   │   ├── verify-email/expired/page.tsx
+│   │   │   ├── forgot-password/page.tsx
+│   │   │   ├── reset-password/page.tsx
+│   │   │   ├── auth-code-error/page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── articles/page.tsx           # PSEO articles
+│   │   ├── articles/[category]/page.tsx
+│   │   ├── articles/[category]/[slug]/page.tsx
+│   │   ├── changelog/page.tsx
+│   │   ├── share/[token]/page.tsx      # Public share access
+│   │   └── layout.tsx
+│   │
+│   ├── (auth)/                         # PROTECTED pages
+│   │   ├── chat/page.tsx               # Chat selector
+│   │   ├── chat/dify/page.tsx          # Dify chat
+│   │   ├── chat/dify/[threadId]/page.tsx
+│   │   ├── chat/vercel/page.tsx        # Vercel AI chat
+│   │   ├── chat/vercel/[conversationId]/page.tsx
+│   │   ├── dashboard/page.tsx
+│   │   ├── dashboard/user-profile/page.tsx
+│   │   ├── dashboard/share-links/page.tsx
+│   │   ├── onboarding/page.tsx
+│   │   ├── sign-out/page.tsx
+│   │   ├── design-system/page.tsx      # Component showcase
+│   │   ├── demo-share/page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── (admin)/                        # ADMIN pages
+│   │   ├── admin/page.tsx              # Admin dashboard
+│   │   ├── admin/analytics/page.tsx
+│   │   ├── admin/audit/page.tsx
+│   │   ├── admin/email/page.tsx
+│   │   ├── admin/feedback/page.tsx
+│   │   ├── admin/users/page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── page.tsx                        # Homepage
+│   ├── layout.tsx                      # Root layout
+│   ├── error.tsx                       # Global error boundary
+│   └── not-found.tsx
+│
+├── api/                                # API routes (33 endpoints)
+│   ├── auth/callback/route.ts
+│   ├── auth/verify-complete/route.ts
+│   ├── chat/route.ts                   # Dify SSE proxy
+│   ├── chat/messages/route.ts
+│   ├── chat/vercel/route.ts            # Vercel AI SDK
+│   ├── chat/vercel/conversations/route.ts
+│   ├── chat/vercel/conversations/[id]/route.ts
+│   ├── profile/                        # 5 profile routes
+│   ├── feedback/route.ts
+│   ├── threads/                        # 5 thread routes
+│   ├── share/                          # 4 share routes
+│   ├── email/welcome/route.ts
+│   ├── admin/                          # 9 admin routes
+│   ├── cron/memory-extraction/route.ts
+│   └── og/route.tsx                    # Dynamic OG images
+│
+├── auth/callback/route.ts              # Supabase auth callback
+├── global-error.tsx
+├── robots.ts
+├── sitemap.ts
+└── sitemap.test.ts
 ```
 
-**Key Files:**
-- **`[locale]/layout.tsx`** - Root locale layout (providers, fonts)
-- **`api/chat/route.ts`** - AI chat proxy endpoint ⭐ CRITICAL
-- **`api/threads/route.ts`** - Thread management API
+---
 
-**Route Groups:**
-- **(auth)** - Applies auth layout, requires authentication
-- **(chat)** - Applies chat layout with sidebar
-- **(unauth)** - Public pages, no auth required
+## Libraries (`src/libs/`)
 
-### 2. `src/components/` - UI Components
-
-**Purpose:** Reusable React components
-
-**Organization:**
-```
-components/
-├── ui/                    # shadcn/ui base components
-│   ├── button.tsx        # Button component
-│   ├── input.tsx         # Input component
-│   ├── dialog.tsx        # Dialog/modal component
-│   ├── form.tsx          # Form components
-│   ├── toast.tsx         # Toast notifications
-│   ├── tooltip.tsx       # Tooltip component
-│   ├── dropdown-menu.tsx # Dropdown menus
-│   ├── separator.tsx     # Separator line
-│   ├── sheet.tsx         # Slide-out sheet
-│   ├── skeleton.tsx      # Loading skeletons
-│   ├── table.tsx         # Table components
-│   ├── data-table.tsx    # Enhanced data table
-│   ├── badge.tsx         # Badge component
-│   ├── label.tsx         # Label component
-│   ├── accordion.tsx     # Accordion component
-│   └── toaster.tsx       # Toast container
-├── chat/                 # Chat-specific components
-│   ├── AppShell.tsx      # Chat layout wrapper
-│   ├── ChatInterface.tsx # Main chat UI ⭐ CRITICAL
-│   ├── ThreadListSidebar.tsx # Thread sidebar
-│   ├── ThreadItem.tsx    # Single thread item
-│   ├── ThreadView.tsx    # Thread display area
-│   ├── ThreadTitleEditor.tsx # Inline title editor
-│   ├── Thread.tsx        # Thread wrapper
-│   ├── EmptyThreadState.tsx # Empty state UI
-│   ├── ErrorThreadState.tsx # Error state UI
-│   ├── ThreadListSkeleton.tsx # Loading skeleton
-│   └── TypingIndicator.tsx # Typing animation
-├── layout/               # Layout components
-│   ├── MainAppShell.tsx  # Main app layout
-│   └── NavItem.tsx       # Navigation item
-├── ActiveLink.tsx        # Active link wrapper
-├── Background.tsx        # Background gradient
-├── LocaleSwitcher.tsx    # Language switcher
-└── ToggleMenuButton.tsx  # Menu toggle button
-```
-
-**Component Count:** 38+ components
-
-**Key Components:**
-- **ChatInterface.tsx** - Integrates Assistant UI, handles streaming
-- **ThreadListSidebar.tsx** - Thread management sidebar
-- **MainAppShell.tsx** - Main application shell with navigation
-
-### 3. `src/features/` - Feature Modules
-
-**Purpose:** Feature-based code organization
-
-**Structure:**
-```
-features/
-├── auth/
-│   ├── SignInForm.tsx       # Sign-in form component
-│   ├── SignUpForm.tsx       # Sign-up form component
-│   └── AuthContext.tsx      # Auth context provider (if exists)
-├── dashboard/
-│   ├── DashboardContent.tsx # Dashboard page content
-│   └── DashboardStats.tsx   # Dashboard statistics
-└── landing/
-    ├── Hero.tsx             # Landing hero section
-    ├── Features.tsx         # Features section
-    └── CTA.tsx              # Call-to-action section
-```
-
-**Design Pattern:** Each feature is self-contained with related components, hooks, and utilities.
-
-### 4. `src/libs/` - Integration Layer
-
-**Purpose:** Third-party service integrations
-
-**Structure:**
 ```
 libs/
-├── dify/
-│   └── client.ts           # Dify API wrapper ⭐ CRITICAL
-│       # - chatMessages() - Send chat message with streaming
-│       # - getMessages() - Fetch message history
-│       # Handles SSE streaming, timeout, API key
-└── supabase/
-    ├── client.ts           # Browser Supabase client
-    ├── server.ts           # Server Supabase client ⭐ CRITICAL
-    └── middleware.ts       # Middleware session helper
-        # Different clients for different contexts:
-        # - Browser: createBrowserClient()
-        # - Server: createClient(cookieStore)
-        # - Middleware: createServerClient()
+├── analytics/          # PostHog type-safe events
+├── api/                # API error handling
+│   ├── admin/          # Admin API utilities
+│   ├── client/         # Client error parsing
+│   └── errors/         # Server error builders
+├── audit/              # Admin action logging
+├── auth/               # isAdmin check
+├── constants/          # App constants
+├── dify/               # Dify AI chat client
+├── email/              # Resend email service
+│   └── templates/      # React Email templates
+├── langfuse/           # LLM observability
+├── mem0/               # Memory/context library
+├── pseo/               # Page SEO utilities
+├── queries/            # Database queries
+├── seo/                # SEO metadata (OG, hreflang)
+├── supabase/           # Auth (server/client/middleware)
+├── utils/              # General utilities
+├── vercel-ai/          # Vercel AI SDK config
+├── DB.ts               # Database connection (PGlite dev / PG prod)
+├── Env.ts              # T3 Env validation (Zod)
+├── i18n.ts             # next-intl config
+└── Logger.ts           # Pino + Logtail
 ```
 
-**Key Responsibilities:**
-- **Dify:** AI chat streaming, conversation management
-- **Supabase:** Authentication, database access, session management
+---
 
-### 5. `src/models/` - Database Schema
+## Components (`src/components/`)
 
-**Purpose:** Drizzle ORM schema definitions
-
-**Files:**
 ```
-models/
-└── Schema.ts               # Database table definitions ⭐ CRITICAL
-    # Defines:
-    # - healthCompanionSchema (PostgreSQL schema)
-    # - threads table (uuid, userId, conversationId, etc.)
-    # - Indexes for performance
-```
-
-**Schema:** `health_companion`
-**Tables:** `threads`
-
-### 6. `src/locales/` - Internationalization
-
-**Purpose:** i18n translation files
-
-**Structure:**
-```
-locales/
-├── en.json                 # English translations
-├── hi.json                 # Hindi translations
-└── bn.json                 # Bengali translations
-```
-
-**Usage:** Loaded by next-intl based on URL locale (`/en/`, `/hi/`, `/bn/`)
-
-### 7. `src/utils/` - Utilities
-
-**Purpose:** Shared utility functions and configuration
-
-**Files:**
-```
-utils/
-├── AppConfig.ts            # App configuration ⭐ CRITICAL
-│   # - Locales: ['en', 'hi', 'bn']
-│   # - Default locale: 'en'
-│   # - App name, description, URLs
-├── Helpers.ts              # Helper functions
-│   # - getBaseUrl()
-│   # - String utilities
-│   # - Data transformations
-└── Logger.ts               # Logging utilities
-    # - Pino logger configuration
-    # - Log levels
-    # - Logtail integration
+components/
+├── admin/              # Admin panel (28 files)
+│   └── analytics/      # Dashboard charts
+├── analytics/          # PostHog tracking (4)
+├── auth/               # Auth buttons/toasts (4)
+├── chat/               # Chat interfaces (13)
+│   └── vercel/         # Vercel AI chat (3)
+├── dashboard/          # Dashboard widgets (2)
+├── errors/             # Error boundary (4)
+├── feedback/           # Feedback modal (3)
+├── layout/             # App shell/nav (4)
+├── onboarding/         # Onboarding flow (5)
+├── pseo/               # SEO components (4)
+├── share/              # Share links (5)
+├── theme/              # Dark mode (3)
+└── ui/                 # shadcn primitives (34)
 ```
 
 ---
 
 ## Entry Points
 
-### Application Entry Points
-
-1. **`src/middleware.ts`** ⭐ PRIMARY ENTRY POINT
-   - **Runs:** On every request (edge runtime)
-   - **Purpose:** i18n routing, session refresh, auth protection
-   - **Flow:**
-     1. Apply i18n middleware (locale detection/routing)
-     2. Update Supabase session cookies
-     3. Check if route is protected
-     4. Validate user session
-     5. Redirect if unauthorized
-
-2. **`src/app/layout.tsx`**
-   - **Runs:** Root layout for all pages
-   - **Purpose:** HTML shell, global providers
-   - **Includes:** Font setup, metadata, theme provider
-
-3. **`src/app/[locale]/layout.tsx`**
-   - **Runs:** Locale-specific layout
-   - **Purpose:** i18n providers, locale-specific setup
-   - **Includes:** next-intl provider, locale metadata
-
-### Page Entry Points
-
-| Route | File | Auth | Description |
-|-------|------|------|-------------|
-| `/` | `app/[locale]/(unauth)/page.tsx` | No | Landing page |
-| `/dashboard` | `app/[locale]/(auth)/dashboard/page.tsx` | Yes | User dashboard |
-| `/chat` | `app/[locale]/(chat)/chat/page.tsx` | Yes | Chat interface |
-| `/onboarding` | `app/[locale]/(auth)/onboarding/page.tsx` | Yes | Onboarding flow |
-
-### API Entry Points
-
-| Endpoint | File | Method | Purpose |
-|----------|------|--------|---------|
-| `/api/chat` | `app/api/chat/route.ts` | POST | AI chat proxy |
-| `/api/chat/messages` | `app/api/chat/messages/route.ts` | GET | Message history |
-| `/api/threads` | `app/api/threads/route.ts` | GET, POST | Thread list/create |
-| `/api/threads/[id]` | `app/api/threads/[id]/route.ts` | GET, PUT, DELETE | Thread CRUD |
-| `/api/threads/[id]/archive` | `app/api/threads/[id]/archive/route.ts` | POST | Archive thread |
-
----
-
-## Configuration Files
-
-### Build & Framework Configuration
-
-| File | Purpose |
-|------|---------|
-| `next.config.mjs` | Next.js configuration (plugins, env vars, rewrites) |
-| `tsconfig.json` | TypeScript compiler options (strict mode, paths) |
-| `tailwind.config.ts` | Tailwind CSS configuration (theme, plugins) |
-| `postcss.config.mjs` | PostCSS configuration (Tailwind, autoprefixer) |
-| `drizzle.config.ts` | Drizzle ORM configuration (DB connection, migrations) |
-
-### Development Tools
-
-| File | Purpose |
-|------|---------|
-| `vitest.config.ts` | Vitest test runner configuration |
-| `vitest-setup.ts` | Vitest global setup (testing-library) |
-| `playwright.config.ts` | Playwright E2E test configuration |
-| `.storybook/main.ts` | Storybook configuration |
-| `.storybook/preview.ts` | Storybook global decorators |
-
-### Code Quality
-
-| File | Purpose |
-|------|---------|
-| `eslint.config.js` | ESLint rules (Antfu config) |
-| `.prettierrc` | Prettier formatting rules |
-| `commitlint.config.js` | Commit message linting |
-| `.husky/pre-commit` | Pre-commit hooks (lint-staged) |
-| `.husky/commit-msg` | Commit message validation |
-
-### Package Management
-
-| File | Purpose |
-|------|---------|
-| `package.json` | npm dependencies, scripts, metadata |
-| `package-lock.json` | Lockfile for deterministic installs |
-
-### Environment
-
-| File | Purpose | Committed |
-|------|---------|-----------|
-| `.env.example` | Example environment variables | Yes |
-| `.env.local` | Local environment overrides | No |
-| `.env.production` | Production environment (if exists) | No |
-
----
-
-## Build & Output Directories
-
-### Generated Directories (Not Committed)
-
-```
-.next/                      # Next.js build output
-├── cache/                 # Build cache
-├── server/                # Server bundles
-├── static/                # Static chunks
-└── types/                 # Auto-generated types
-
-node_modules/              # npm dependencies
-
-coverage/                  # Test coverage reports
-
-storybook-static/          # Storybook build output
-
-playwright-report/         # Playwright test reports
-
-.drizzle/                  # Drizzle ORM cache
-```
-
-### Migration Files (Committed)
-
-```
-migrations/                # Drizzle migrations
-├── 0000_*.sql            # Initial migration
-├── 0001_*.sql            # Subsequent migrations
-└── meta/                 # Migration metadata
-```
-
----
-
-## Critical File Summary
-
-### ⭐ Must-Read Files for New Developers
-
-1. **`README.md`** - Project overview and setup instructions
-2. **`CLAUDE.md`** - AI assistant instructions and architecture notes
-3. **`src/middleware.ts`** - Request flow entry point
-4. **`src/app/api/chat/route.ts`** - AI chat proxy logic
-5. **`src/libs/supabase/server.ts`** - Server-side auth client
-6. **`src/libs/dify/client.ts`** - AI service integration
-7. **`src/components/chat/ChatInterface.tsx`** - Main chat UI
-8. **`src/models/Schema.ts`** - Database schema
-9. **`src/utils/AppConfig.ts`** - App configuration
-10. **`package.json`** - Dependencies and scripts
-
-### 🔒 Files Containing Secrets (Never Commit)
-
-- `.env.local`
-- `.env.production`
-- `*.env` (any environment files)
-
-### 📝 Files Modified Frequently
-
-- `src/models/Schema.ts` - Database schema changes
-- `src/app/api/*/route.ts` - API logic
-- `src/components/` - UI components
-- `src/locales/*.json` - Translations
-
----
-
-**Last Updated:** 2026-01-02
-**Generated by:** BMAD Document Project Workflow v1.2.0
+| Entry Point | File | Purpose |
+|-------------|------|---------|
+| Middleware | `src/proxy.ts` | i18n -> session -> auth -> verification -> admin check |
+| App Root | `src/app/[locale]/layout.tsx` | Providers, theme, globals |
+| API Gateway | `src/app/api/` | 33 API route handlers |
+| DB Schema | `src/models/Schema.ts` | 9 tables in vt_saas schema |
+| Instrumentation | `src/instrumentation.ts` | OpenTelemetry + Sentry |
+| Env Validation | `src/libs/Env.ts` | Runtime env validation (Zod) |

@@ -48,6 +48,9 @@ yarn-error.log*
 # serena
 .serena/
 
+# claude code worktrees
+.claude/worktrees/
+
 # local folder
 local
 
