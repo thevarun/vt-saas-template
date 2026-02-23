@@ -1,6 +1,6 @@
 # API Contracts
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep | **Total Routes:** 33
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan) | **Total Routes:** 31
 
 ---
 
@@ -131,16 +131,10 @@ All API routes are under `src/app/api/`. Authentication is handled via Supabase 
 ### GET /api/threads
 - **Auth:** Required | **Response:** `{ threads: [], count }`
 
-### POST /api/threads
-- **Auth:** Required | **Request:** `{ conversationId, title? }` | **Response:** 201
+### GET/DELETE /api/threads/[id]
+- **Auth:** Required | GET: thread details | DELETE: 204 No Content
 
-### PATCH /api/threads/[id]
-- **Auth:** Required | **Request:** `{ title?, lastMessagePreview? }`
-
-### DELETE /api/threads/[id]
-- **Auth:** Required | **Response:** 204
-
-### PATCH /api/threads/[id]/archive
+### POST /api/threads/[id]/archive
 - **Auth:** Required | Toggle archive status
 
 ---
@@ -150,14 +144,8 @@ All API routes are under `src/app/api/`. Authentication is handled via Supabase 
 ### POST /api/share
 - **Auth:** Required | **Request:** `{ resourceType, resourceId, expiresAt? }` | **Response:** 201 `{ token, url }`
 
-### GET /api/share
-- **Auth:** Required | User's share links
-
 ### GET /api/share/[token]
 - **Auth:** Public | **Response:** `{ resourceType, resourceId }` | 410 if expired
-
-### PATCH /api/share/[token]
-- **Auth:** Required (owner) | **Request:** `{ isActive: boolean }`
 
 ---
 
@@ -173,11 +161,14 @@ All API routes are under `src/app/api/`. Authentication is handled via Supabase 
 
 ## Admin
 
-### GET /api/admin/analytics
+### POST /api/admin/analytics
 - **Auth:** Admin | Dashboard metrics
 
-### DELETE /api/admin/users/[userId]
-- **Auth:** Admin | Cannot delete self
+### GET /api/admin/email/test
+- **Auth:** Admin | **Request:** `{ template, email, data? }` | Test email sending
+
+### GET /api/admin/users/[userId]
+- **Auth:** Admin | User details
 
 ### POST /api/admin/users/[userId]/reset-password
 - **Auth:** Admin | Sends reset email
@@ -222,9 +213,9 @@ All API routes are under `src/app/api/`. Authentication is handled via Supabase 
 | Chat (Vercel) | 5 | Required |
 | Profile | 5 | Required |
 | Feedback | 1 | Optional |
-| Threads | 5 | Required |
-| Share | 4 | Mixed |
-| Email | 2 | Required/Admin |
-| Admin | 9 | Admin |
+| Threads | 3 | Required |
+| Share | 2 | Mixed |
+| Email | 1 | Required |
+| Admin | 11 | Admin |
 | Cron | 1 | Bearer |
-| **Total** | **33** | |
+| **Total** | **31** | |

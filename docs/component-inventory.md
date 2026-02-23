@@ -1,6 +1,6 @@
 # Component Inventory
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep | **Total:** 162 components | **Client:** ~78
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan) | **Total:** 138 components | **Client:** ~70
 
 ---
 
@@ -8,23 +8,22 @@
 
 | Category | Count | Location |
 |----------|-------|----------|
-| UI Primitives | 34 | src/components/ui/ |
-| Admin | 28 | src/components/admin/ |
+| UI Primitives | 37 | src/components/ui/ |
+| Admin | 30 | src/components/admin/ |
 | Chat | 16 | src/components/chat/ |
-| Landing Features | 8 | src/features/landing/ |
-| Onboarding | 5 | src/components/onboarding/ |
-| Share/Social | 5 | src/components/share/ |
+| Landing Features | 9 | src/features/landing/ |
+| Onboarding | 8 | src/components/onboarding/ |
+| Share/Social | 8 | src/components/share/ |
+| Analytics | 7 | src/components/analytics/ |
+| PSEO | 7 | src/components/pseo/ |
+| Auth | 6 | src/components/auth/ |
+| Layout | 6 | src/components/layout/ |
 | Custom Hooks | 5 | src/hooks/ |
-| Auth | 4 | src/components/auth/ |
-| Analytics | 4 | src/components/analytics/ |
-| PSEO | 4 | src/components/pseo/ |
-| Errors | 4 | src/components/errors/ |
-| Layout | 4 | src/components/layout/ |
-| Dashboard Features | 4 | src/features/dashboard/ |
+| Dashboard | 5 | src/components/dashboard/ |
+| Errors | 3 | src/components/errors/ |
 | Feedback | 3 | src/components/feedback/ |
-| Theme | 3 | src/components/theme/ |
-| Dashboard | 2 | src/components/dashboard/ |
-| Utilities | 4 | src/components/ |
+| Other | 3 | src/components/ |
+| Theme | 2 | src/components/theme/ |
 
 ---
 

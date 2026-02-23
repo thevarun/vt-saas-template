@@ -1,6 +1,6 @@
 # Source Tree Analysis
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep | **Structure:** Monolith
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan) | **Structure:** Monolith
 
 ---
 
@@ -14,15 +14,16 @@ vt-saas-template/
 │   │   ├── release.yml         # Semantic release on main
 │   │   ├── codex-ci-fixer.yml  # Auto-fix CI failures
 │   │   ├── codex-followup.yml  # Follow-up on review feedback
-│   │   └── dependabot-auto-merge.yml
+│   │   ├── dependabot-auto-merge.yml
+│   │   └── codex-followup.yml  # Follow-up on review feedback
 │   └── dependabot.yml
-├── migrations/                 # Drizzle SQL migrations (11 files)
+├── migrations/                 # Drizzle SQL migrations (7 SQL + meta)
 ├── public/                     # Static assets
 │   └── og-image.png           # Default OG image (1200x630)
 ├── src/                        # Application source
 │   ├── app/                    # Next.js App Router
-│   ├── components/             # React components (148 files)
-│   ├── features/               # Feature modules (14 files)
+│   ├── components/             # React components (138 files)
+│   ├── features/               # Feature modules (9 files)
 │   ├── hooks/                  # Custom React hooks (5 files)
 │   ├── lib/                    # Utility library
 │   ├── libs/                   # Core libraries (22 modules)
@@ -101,7 +102,7 @@ app/
 │   ├── error.tsx                       # Global error boundary
 │   └── not-found.tsx
 │
-├── api/                                # API routes (33 endpoints)
+├── api/                                # API routes (31 endpoints)
 │   ├── auth/callback/route.ts
 │   ├── auth/verify-complete/route.ts
 │   ├── chat/route.ts                   # Dify SSE proxy
@@ -111,10 +112,10 @@ app/
 │   ├── chat/vercel/conversations/[id]/route.ts
 │   ├── profile/                        # 5 profile routes
 │   ├── feedback/route.ts
-│   ├── threads/                        # 5 thread routes
-│   ├── share/                          # 4 share routes
+│   ├── threads/                        # 3 thread routes
+│   ├── share/                          # 2 share routes
 │   ├── email/welcome/route.ts
-│   ├── admin/                          # 9 admin routes
+│   ├── admin/                          # 11 admin routes
 │   ├── cron/memory-extraction/route.ts
 │   └── og/route.tsx                    # Dynamic OG images
 │
@@ -162,21 +163,21 @@ libs/
 
 ```
 components/
-├── admin/              # Admin panel (28 files)
+├── admin/              # Admin panel (30 files)
 │   └── analytics/      # Dashboard charts
-├── analytics/          # PostHog tracking (4)
-├── auth/               # Auth buttons/toasts (4)
-├── chat/               # Chat interfaces (13)
+├── analytics/          # PostHog tracking (7)
+├── auth/               # Auth buttons/toasts (6)
+├── chat/               # Chat interfaces (16)
 │   └── vercel/         # Vercel AI chat (3)
-├── dashboard/          # Dashboard widgets (2)
-├── errors/             # Error boundary (4)
+├── dashboard/          # Dashboard widgets (5)
+├── errors/             # Error boundary (3)
 ├── feedback/           # Feedback modal (3)
-├── layout/             # App shell/nav (4)
-├── onboarding/         # Onboarding flow (5)
-├── pseo/               # SEO components (4)
-├── share/              # Share links (5)
-├── theme/              # Dark mode (3)
-└── ui/                 # shadcn primitives (34)
+├── layout/             # App shell/nav (6)
+├── onboarding/         # Onboarding flow (8)
+├── pseo/               # SEO components (7)
+├── share/              # Share links (8)
+├── theme/              # Dark mode (2)
+└── ui/                 # shadcn primitives (37)
 ```
 
 ---
@@ -187,7 +188,7 @@ components/
 |-------------|------|---------|
 | Middleware | `src/proxy.ts` | i18n -> session -> auth -> verification -> admin check |
 | App Root | `src/app/[locale]/layout.tsx` | Providers, theme, globals |
-| API Gateway | `src/app/api/` | 33 API route handlers |
+| API Gateway | `src/app/api/` | 31 API route handlers |
 | DB Schema | `src/models/Schema.ts` | 9 tables in vt_saas schema |
 | Instrumentation | `src/instrumentation.ts` | OpenTelemetry + Sentry |
 | Env Validation | `src/libs/Env.ts` | Runtime env validation (Zod) |

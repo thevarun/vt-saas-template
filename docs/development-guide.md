@@ -1,6 +1,6 @@
 # Development Guide
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan)
 
 ---
 
