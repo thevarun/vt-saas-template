@@ -35,12 +35,17 @@ Analyze the theme and its findings, then produce an enriched version with these 
    - Check each file in `files` exists in the project
    - Flag any stale references (file doesn't exist or path has changed)
 
-## Return Format
-Return the enriched theme as a structured block:
-- enriched_steps: {original steps + any additions from finding gaps}
-- concrete_tests_before: {specific commands, files, characterization test specs}
-- concrete_tests_after: {specific new test files/cases with assertions}
-- ui_changes: true/false
-- stale_files: [any files that don't exist]
-- gaps: [any finding suggestions not covered by steps]
+## Output Requirement
+
+You MUST write a self-contained implementation brief to this file:
+**`{enrichment_output_file}`**
+
+Create the parent directory if it does not exist.
+
+The brief must follow the template structure at `{enrichment_output_template}` exactly.
+It should be SELF-CONTAINED — an implementation agent reading only this file should have
+ALL context needed to execute the theme: metadata, enriched steps, full finding details,
+validated file list, and concrete test specs.
+
+Write the file using the Write tool. This is the primary deliverable of your task.
 === END TASK ===

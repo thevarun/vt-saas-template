@@ -1,0 +1,76 @@
+# Audit Fix Sidecar State
+# Created by step-01-plan, read/updated by step-01b, step-02, step-03
+# Lean tracker — enrichment lives in refactoring-plan.md, not here
+
+started_at: "2026-02-23T09:55:00Z"
+last_updated: "2026-02-23T10:20:00Z"
+
+git:
+  branch: "refactor/audit-fix-20260223"
+  base: "main"
+
+baseline_validation: "pass"
+
+current_phase: 1
+current_theme: null
+
+themes_completed:
+  - T-003
+themes_pending:
+  - T-004
+  - T-006
+  - T-014
+  - T-011
+  - T-012
+  - T-001
+  - T-002
+  - T-005
+  - T-007
+  - T-008
+  - T-009
+  - T-010
+  - T-013
+themes_skipped: []
+themes_failed: []
+
+execution_plan:
+  phase_1: [T-003, T-004, T-006, T-014]
+  phase_2: [T-011, T-012, T-001, T-002]
+  phase_3: [T-005, T-007, T-008, T-009, T-010]
+  phase_4: [T-013]
+
+execution_log:
+  - theme: "T-003"
+    name: "Remove Dead Code and Stale Artifacts"
+    phase: 1
+    risk: LOW
+    findings_addressed: ["F-032", "F-033", "F-034", "F-035", "F-036", "F-037", "F-043", "F-048", "F-049", "F-057", "F-058", "F-060"]
+    files_changed:
+      - src/features/auth/ProtectFallback.tsx (deleted)
+      - src/features/dashboard/ (4 files deleted)
+      - src/libs/langfuse/client.ts (deleted)
+      - src/models/Schema.ts
+      - src/libs/api/errors/validation.ts
+      - src/libs/api/errors/validation.test.ts
+      - src/libs/api/errors/index.ts
+      - src/libs/api/client/displayError.ts
+      - src/libs/api/client/parseError.ts
+      - src/libs/api/client/index.ts
+      - src/lib/dashboard-utils.ts (moved to libs/utils/)
+      - src/libs/utils/dashboardUtils.ts (new)
+      - src/libs/utils/__tests__/dashboardUtils.test.ts (new)
+      - src/libs/email/mockEmailService.ts
+      - src/components/chat/ChatInterface.tsx
+      - src/components/chat/vercel/VercelChatInterface.tsx
+      - src/locales/en.json
+      - src/locales/hi.json
+      - src/locales/bn.json
+      - package.json
+      - package-lock.json
+      - tests/desk-check-6.1.spec.ts.bak (deleted)
+      - tests/integration/dify-events.test.ts (deleted)
+      - tests/integration/api/threads.test.ts
+    validation: pass
+    visual_check: N/A
+    commit: "f2c7104"
+    completed_at: "2026-02-23T10:20:00Z"
