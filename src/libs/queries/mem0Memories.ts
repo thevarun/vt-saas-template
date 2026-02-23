@@ -34,6 +34,61 @@ export type Memory = {
 };
 
 /**
+ * Batch-insert multiple memories in a single DB round-trip
+ *
+ * @param rows Array of memory values to insert
+ * @returns Created memories or error
+ */
+export async function createMemories(
+  rows: {
+    userId: string;
+    conversationId: string;
+    memoryText: string;
+    memoryType?: string | null;
+    metadata?: any;
+  }[],
+): Promise<{ data: Memory[]; error: any }> {
+  if (rows.length === 0) {
+    return { data: [], error: null };
+  }
+
+  try {
+    Sentry.addBreadcrumb({
+      category: 'mem0-memory',
+      message: `Batch creating ${rows.length} memories`,
+      data: { count: rows.length, userId: rows[0]?.userId },
+    });
+
+    const values = rows.map(r => ({
+      userId: r.userId,
+      conversationId: r.conversationId,
+      memoryText: r.memoryText,
+      memoryType: r.memoryType ?? null,
+      metadata: r.metadata ?? null,
+    }));
+
+    const result = await db
+      .insert(mem0Memories)
+      .values(values)
+      .returning();
+
+    logger.info(
+      { count: result.length, userId: rows[0]?.userId },
+      'Batch memories created',
+    );
+
+    return { data: result, error: null };
+  } catch (error: any) {
+    Sentry.captureException(error);
+    logger.error(
+      { error, count: rows.length },
+      'Failed to batch create memories',
+    );
+    return { data: [], error };
+  }
+}
+
+/**
  * Create a new memory
  *
  * Stores an extracted memory from Mem0 API.

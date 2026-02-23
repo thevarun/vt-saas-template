@@ -2,7 +2,7 @@
 
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const lastFetchRef = useRef<number>(0);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -79,6 +80,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
       });
     } finally {
       setLoading(false);
+      lastFetchRef.current = Date.now();
     }
   }, [toast]);
 
@@ -87,10 +89,14 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
     fetchThreads();
   }, [fetchThreads]);
 
-  // Refetch when window regains focus (no polling to avoid flickering)
+  // Refetch when window regains focus with 30s stale-time guard
   useEffect(() => {
+    const STALE_TIME_MS = 30_000;
     const handleFocus = () => {
-      fetchThreads(false); // false = don't show loading skeleton
+      if (Date.now() - lastFetchRef.current < STALE_TIME_MS) {
+        return;
+      }
+      fetchThreads(false);
     };
     window.addEventListener('focus', handleFocus);
 

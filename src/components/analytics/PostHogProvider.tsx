@@ -1,6 +1,6 @@
 /**
  * PostHog Provider Component
- * Initializes analytics on app mount
+ * Initializes analytics after browser idle to avoid blocking page load
  */
 
 'use client';
@@ -15,7 +15,13 @@ type PostHogProviderProps = {
 
 export function PostHogProvider({ children }: PostHogProviderProps) {
   useEffect(() => {
-    initAnalytics();
+    const init = () => initAnalytics();
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(init);
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = setTimeout(init, 1);
+    return () => clearTimeout(timer);
   }, []);
 
   return children;

@@ -57,7 +57,7 @@ export type AnalyticsProvider = {
    * Initialize the analytics provider
    * @param config - Configuration options
    */
-  init: (config: AnalyticsConfig) => void;
+  init: (config: AnalyticsConfig) => void | Promise<void>;
 
   /**
    * Identify a user in analytics
