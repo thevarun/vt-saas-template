@@ -4,7 +4,7 @@
 
 > Production-ready SaaS template with authentication, AI chat, and modern UI
 
-VT SaaS Template is a modern web application template that provides a solid foundation for building SaaS products. Built with Next.js 14 and powered by Dify AI, it offers authentication, real-time AI chat, and a responsive UI out of the box.
+VT SaaS Template is a modern web application template that provides a solid foundation for building SaaS products. Built with Next.js 16 and powered by Dify AI, it offers authentication, real-time AI chat, and a responsive UI out of the box.
 
 ## Features
 
@@ -13,12 +13,12 @@ VT SaaS Template is a modern web application template that provides a solid foun
 - 💬 **Real-time Chat** - Streaming AI responses with conversation history
 - 🌍 **Multi-language Support** - English, Hindi, and Bengali locales
 - 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
-- ⚡ **Modern Stack** - Built on Next.js 14 App Router with TypeScript
+- ⚡ **Modern Stack** - Built on Next.js 16 App Router with TypeScript
 
 ## Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript (strict mode)
 - **Styling**: Tailwind CSS
 - **UI Components**: Radix UI + shadcn/ui
@@ -59,22 +59,9 @@ VT SaaS Template is a modern web application template that provides a solid foun
 
 3. **Set up environment variables**
 
-   Create a `.env.local` file in the root directory:
-
    ```bash
-   # Supabase (Public)
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-   # Supabase (Server-side - keep in .env.local)
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-   # Dify API (Server-side only)
-   DIFY_API_URL=https://api.dify.ai/v1
-   DIFY_API_KEY=your_dify_api_key
-
-   # Database
-   DATABASE_URL=your_postgresql_connection_string
+   cp .env.example .env.local
+   # Edit .env.local with your Supabase URL, anon key, and other settings
    ```
 
 4. **Run database migrations**
@@ -115,11 +102,11 @@ npm run db:generate      # Generate migration from schema
 
 | Task | Files | Est. Time |
 |------|-------|-----------|
-| Brand Colors | `tailwind.config.js` → `theme.extend.colors` | 30 min |
-| Typography | `src/app/layout.tsx`, `tailwind.config.js` | 20 min |
+| Brand Colors | `src/styles/global.css` → `@theme` colors | 30 min |
+| Typography | `src/app/layout.tsx`, `src/styles/global.css` | 20 min |
 | Logo & Assets | `/public/logo.svg`, `/public/favicon.ico` | 30 min |
 | App Name | Search/replace "VT SaaS Template" throughout `/src/` | 20 min |
-| Theme Variables | `src/app/globals.css` (shadcn/ui theming) | 20 min |
+| Theme Variables | `src/styles/global.css` (shadcn/ui theming) | 20 min |
 
 ### Advanced Customization
 
@@ -181,7 +168,7 @@ Opens Drizzle Studio at `https://local.drizzle.studio`
 
 ### Other Platforms
 
-The application is compatible with any platform that supports Next.js 14:
+The application is compatible with any platform that supports Next.js 16:
 - Netlify
 - Railway
 - Render
@@ -189,19 +176,32 @@ The application is compatible with any platform that supports Next.js 14:
 
 ## Environment Variables
 
-### Required
+See [`.env.example`](.env.example) for the complete list with descriptions. Key variables:
 
+### Required
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `DIFY_API_URL` - Dify API endpoint
-- `DIFY_API_KEY` - Dify API key
-- `DATABASE_URL` - PostgreSQL connection string
 
-### Optional
+### Optional — Chat
+- `DIFY_API_KEY` / `DIFY_API_URL` - Dify AI chat (server-side only)
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` - Vercel AI SDK chat
+- `AI_PROVIDER` / `DEFAULT_AI_MODEL` - AI provider configuration
 
-- `SUPABASE_SERVICE_ROLE_KEY` - For admin operations
-- `SENTRY_DSN` - Error tracking
+### Optional — Features
+- `ADMIN_EMAILS` - Comma-separated admin email addresses
+- `RESEND_API_KEY` - Email via Resend (logs to console without)
+- `NEXT_PUBLIC_POSTHOG_KEY` - PostHog analytics
+- `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` - LLM observability
+- `ENABLE_MEM0` / `MEM0_API_KEY` - Memory extraction
+- `CRON_SECRET` - Cron job authentication
+- `NEXT_PUBLIC_SITE_URL` - SEO (auto-detected on Vercel)
+
+### Optional — Monitoring
+- `NEXT_PUBLIC_SENTRY_DSN` - Sentry error tracking
 - `SENTRY_AUTH_TOKEN` - Source map uploads
+
+### Sensitive (.env.local only)
+- `SUPABASE_SERVICE_ROLE_KEY` - For admin operations
 
 ## Architecture
 
