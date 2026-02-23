@@ -238,11 +238,12 @@ export default function SignInFormClient() {
                       : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
                   }`}
                   aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   disabled={loading || oauthLoading}
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                  <p id="email-error" className="text-sm text-red-600">{errors.email.message}</p>
                 )}
               </div>
 
@@ -259,11 +260,12 @@ export default function SignInFormClient() {
                       : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
                   }`}
                   aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                   disabled={loading || oauthLoading}
                   {...register('password')}
                 />
                 {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                  <p id="password-error" className="text-sm text-red-600">{errors.password.message}</p>
                 )}
               </div>
             </div>

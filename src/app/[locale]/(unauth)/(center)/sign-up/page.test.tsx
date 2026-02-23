@@ -249,4 +249,58 @@ describe('signUpPage', () => {
 
     expect(homeLink).toHaveAttribute('href', '/en');
   });
+
+  describe('accessibility: aria-describedby regression guard (F-093)', () => {
+    it('email error message has id attribute for aria linking', async () => {
+      const user = userEvent.setup();
+      renderWithIntl(<SignUpPage />);
+
+      const emailInput = screen.getByLabelText(/email address/i);
+      await user.type(emailInput, 'invalid-email');
+      await user.tab(); // Trigger onBlur validation
+
+      await waitFor(() => {
+        const errorMsg = screen.getByText(/invalid email address/i);
+
+        expect(errorMsg).toHaveAttribute('id', 'email-error');
+      });
+    });
+
+    it('password error message has id attribute for aria linking', async () => {
+      const user = userEvent.setup();
+      renderWithIntl(<SignUpPage />);
+
+      const passwordInput = screen.getByLabelText(/^password$/i);
+      await user.type(passwordInput, 'short');
+      await user.tab(); // Trigger onBlur validation
+
+      await waitFor(() => {
+        const errorMsg = screen.getByText(/password must be at least 8 characters/i);
+
+        expect(errorMsg).toHaveAttribute('id', 'password-error');
+      });
+    });
+
+    it('email input has aria-describedby pointing to error id when validation error is shown', async () => {
+      const user = userEvent.setup();
+      renderWithIntl(<SignUpPage />);
+
+      const emailInput = screen.getByLabelText(/email address/i);
+      await user.type(emailInput, 'invalid-email');
+      await user.tab(); // Trigger onBlur validation
+
+      await waitFor(() => {
+        expect(emailInput).toHaveAttribute('aria-describedby', 'email-error');
+      });
+    });
+
+    it('email input has no aria-describedby when no validation error is present', () => {
+      renderWithIntl(<SignUpPage />);
+
+      const emailInput = screen.getByLabelText(/email address/i);
+
+      // Before any interaction, no error means no aria-describedby
+      expect(emailInput).not.toHaveAttribute('aria-describedby');
+    });
+  });
 });

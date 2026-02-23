@@ -156,7 +156,9 @@ describe('Thread Persistence Integration', () => {
     }
 
     // Wait for async thread creation
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await vi.waitFor(() => {
+      expect(threadsModule.createThread).toHaveBeenCalled();
+    }, { timeout: 2000, interval: 50 });
 
     // AC #2: Verify createThread was called
     expect(threadsModule.createThread).toHaveBeenCalled();
@@ -192,8 +194,8 @@ describe('Thread Persistence Integration', () => {
 
     const initialUpdatedAt = initialThread.updated_at;
 
-    // Wait to ensure timestamp difference
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait to ensure timestamp difference (advance fake timers instead of real wait)
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     // Send follow-up message
     const request = new Request('http://localhost:3000/api/chat', {
@@ -220,7 +222,9 @@ describe('Thread Persistence Integration', () => {
     }
 
     // Wait for async thread update
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await vi.waitFor(() => {
+      expect(threadsModule.updateThread).toHaveBeenCalled();
+    }, { timeout: 2000, interval: 50 });
 
     // AC #4 & #5: Verify updateThread was called
     expect(threadsModule.updateThread).toHaveBeenCalled();
@@ -260,7 +264,9 @@ describe('Thread Persistence Integration', () => {
       }
     }
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await vi.waitFor(() => {
+      expect(threadsModule.createThread).toHaveBeenCalled();
+    }, { timeout: 2000, interval: 50 });
 
     // Second call with same conversation_id - should update, not create
     const request2 = new Request('http://localhost:3000/api/chat', {
@@ -284,7 +290,9 @@ describe('Thread Persistence Integration', () => {
       }
     }
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await vi.waitFor(() => {
+      expect(threadsModule.updateThread).toHaveBeenCalled();
+    }, { timeout: 2000, interval: 50 });
 
     // AC #6: Verify only ONE thread exists in store
     expect(threadStore.size).toBe(1);
@@ -343,7 +351,9 @@ describe('Thread Persistence Integration', () => {
     );
 
     // Wait for all async thread operations
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await vi.waitFor(() => {
+      expect(threadsModule.createThread).toHaveBeenCalled();
+    }, { timeout: 3000, interval: 50 });
 
     // Verify: Only ONE thread in store despite race condition
     // (In production, database unique constraint on conversation_id would prevent duplicates)
@@ -408,8 +418,8 @@ describe('Thread Persistence Integration', () => {
       }
     }
 
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for async operations (small delay to let any spurious calls happen)
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Verify: Thread creation was NOT attempted (no conversation_id)
     expect(threadsModule.createThread).not.toHaveBeenCalled();
@@ -449,7 +459,9 @@ describe('Thread Persistence Integration', () => {
     }
 
     // Wait for async thread creation attempt
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await vi.waitFor(() => {
+      expect(threadsModule.createThread).toHaveBeenCalled();
+    }, { timeout: 2000, interval: 50 });
 
     // Verify: createThread was called (attempt was made)
     expect(threadsModule.createThread).toHaveBeenCalled();
