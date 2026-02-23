@@ -53,7 +53,7 @@ A production-ready foundation for building SaaS web applications, designed for a
 
 **Serverless full-stack monolith** with:
 - Server-rendered pages (SSR/SSG)
-- 31 API route endpoints
+- 37 API route endpoints
 - Middleware for auth + i18n + routing (`src/proxy.ts`)
 - 138 React components
 - 9 database tables in custom `vt_saas` schema
@@ -64,7 +64,7 @@ A production-ready foundation for building SaaS web applications, designed for a
 
 | Metric | Value |
 |--------|-------|
-| API Endpoints | 31 |
+| API Endpoints | 37 |
 | React Components | 138 (~70 client) |
 | Database Tables | 9 |
 | SQL Migrations | 7 |
@@ -79,7 +79,7 @@ A production-ready foundation for building SaaS web applications, designed for a
 ## Quick Links
 
 - [Architecture](./architecture.md) - System design and patterns
-- [API Contracts](./api-contracts.md) - All 31 API endpoints
+- [API Contracts](./api-contracts.md) - All 37 API endpoints
 - [Data Models](./data-models.md) - Database schema (9 tables)
 - [Component Inventory](./component-inventory.md) - All 138 components
 - [Source Tree](./source-tree-analysis.md) - Directory structure
