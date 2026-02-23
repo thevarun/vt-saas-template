@@ -14,8 +14,8 @@ import {
   unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { createThread, getThreadsByUser } from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
-import { createThread, getThreads } from '@/libs/supabase/threads';
 
 // Zod schema for POST /api/threads request validation
 const createThreadSchema = z.object({
@@ -46,8 +46,8 @@ export async function GET(): Promise<Response> {
       return unauthorizedError();
     }
 
-    // Query threads table - RLS automatically filters by user_id
-    const { data: userThreads, error: dbQueryError } = await getThreads(supabase);
+    // Query threads table - userId WHERE filter enforces ownership
+    const { data: userThreads, error: dbQueryError } = await getThreadsByUser(user.id);
 
     if (dbQueryError) {
       logDbError('fetch threads', dbQueryError, {
@@ -105,12 +105,11 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const { conversationId, title } = validationResult.data;
 
-    // Insert thread record - RLS ensures user_id matches auth.uid()
+    // Insert thread record - userId is set at creation time
     const { data: newThread, error: dbInsertError } = await createThread(
-      supabase,
       user.id,
       {
-        conversation_id: conversationId,
+        conversationId,
         title: title || null,
       },
     );

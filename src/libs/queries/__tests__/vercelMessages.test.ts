@@ -29,8 +29,6 @@ const {
   updateMessageMetadata,
 } = await import('../vercelMessages');
 
-const mockSupabase = {} as any;
-
 describe('vercelMessages queries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,7 +51,7 @@ describe('vercelMessages queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockMessage]);
 
-      const result = await createMessage(mockSupabase, 'conv-1', 'user', 'Hello');
+      const result = await createMessage('conv-1', 'user', 'Hello');
 
       expect(result).toHaveProperty('data');
       expect(result).toHaveProperty('error');
@@ -66,7 +64,7 @@ describe('vercelMessages queries', () => {
         throw new Error('Insert failed');
       });
 
-      const result = await createMessage(mockSupabase, 'conv-1', 'user', 'Hello');
+      const result = await createMessage('conv-1', 'user', 'Hello');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -84,7 +82,7 @@ describe('vercelMessages queries', () => {
       ];
       mockLimit.mockResolvedValueOnce(mockMessages);
 
-      const result = await getConversationMessages(mockSupabase, 'conv-1');
+      const result = await getConversationMessages('conv-1');
 
       expect(result.data).toEqual(mockMessages);
       expect(result.error).toBeNull();
@@ -95,7 +93,7 @@ describe('vercelMessages queries', () => {
         throw new Error('Query failed');
       });
 
-      const result = await getConversationMessages(mockSupabase, 'conv-1');
+      const result = await getConversationMessages('conv-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -115,7 +113,7 @@ describe('vercelMessages queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockMessage]);
 
-      const result = await updateMessageMetadata(mockSupabase, 'msg-1', { tokenCount: 100, latencyMs: 500 });
+      const result = await updateMessageMetadata('msg-1', { tokenCount: 100, latencyMs: 500 });
 
       expect(result.data).toEqual(mockMessage);
       expect(result.error).toBeNull();
@@ -126,7 +124,7 @@ describe('vercelMessages queries', () => {
         throw new Error('Update failed');
       });
 
-      const result = await updateMessageMetadata(mockSupabase, 'msg-1', { tokenCount: 50 });
+      const result = await updateMessageMetadata('msg-1', { tokenCount: 50 });
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();

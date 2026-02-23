@@ -58,7 +58,7 @@ export async function GET(
     const { id } = await params;
 
     // Fetch conversation - userId filter ensures user ownership
-    const { data: conversation, error: dbQueryError } = await getConversationById(supabase, id, user.id);
+    const { data: conversation, error: dbQueryError } = await getConversationById(id, user.id);
 
     // Return 404 if conversation not found or not owned by user
     // (Security through obscurity - don't reveal existence)
@@ -77,7 +77,7 @@ export async function GET(
     }
 
     // Fetch messages for the conversation
-    const { data: messages, error: messagesError } = await getConversationMessages(supabase, id);
+    const { data: messages, error: messagesError } = await getConversationMessages(id);
 
     if (messagesError) {
       logDbError('fetch conversation messages', messagesError, {
@@ -147,7 +147,6 @@ export async function PATCH(
 
     // Update conversation - userId filter ensures user ownership
     const { data: updatedConversation, error: dbUpdateError } = await updateConversation(
-      supabase,
       id,
       { title, archived },
       user.id,
@@ -214,7 +213,6 @@ export async function DELETE(
     // Delete conversation - userId filter ensures user ownership
     // Messages are automatically deleted via cascade (schema: onDelete: 'cascade')
     const { data: deletedConversation, error: dbDeleteError } = await deleteConversation(
-      supabase,
       id,
       user.id,
     );

@@ -125,7 +125,6 @@ describe('/api/chat/vercel/conversations endpoints', () => {
 
       // limit should be capped at 100
       expect(vercelConversationsModule.listUserConversations).toHaveBeenCalledWith(
-        expect.anything(),
         mockUserId,
         false,
         100,

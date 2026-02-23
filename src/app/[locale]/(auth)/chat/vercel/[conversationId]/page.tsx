@@ -1,11 +1,9 @@
-import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 
 import { AppShell } from '@/components/chat/AppShell';
 import { ConversationListSidebar } from '@/components/chat/vercel/ConversationListSidebar';
 import { VercelChatInterface } from '@/components/chat/vercel/VercelChatInterface';
 import { getConversationMessages } from '@/libs/queries/vercelMessages';
-import { createClient } from '@/libs/supabase/server';
 
 export async function generateMetadata(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
@@ -26,9 +24,7 @@ export default async function VercelConversationPage(props: {
   const { conversationId } = await props.params;
 
   // Fetch messages server-side so they're available on first render
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const { data: messages } = await getConversationMessages(supabase, conversationId);
+  const { data: messages } = await getConversationMessages(conversationId);
 
   const initialMessages = (messages ?? []).map(msg => ({
     id: msg.id,

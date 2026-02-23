@@ -13,8 +13,8 @@ import {
   unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { deleteThread, updateThread } from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
-import { deleteThread, updateThread } from '@/libs/supabase/threads';
 
 // Zod schema for PATCH /api/threads/[id] request validation
 const updateThreadSchema = z.object({
@@ -62,14 +62,14 @@ export async function PATCH(
     // Get thread ID from params
     const { id } = await params;
 
-    // Update thread record - RLS ensures user ownership
+    // Update thread record - userId WHERE filter enforces ownership
     const { data: updatedThread, error: dbUpdateError } = await updateThread(
-      supabase,
       id,
       {
         title,
-        last_message_preview: lastMessagePreview,
+        lastMessagePreview,
       },
+      user.id,
     );
 
     // Return 404 if thread not found or not owned by user
@@ -130,10 +130,10 @@ export async function DELETE(
     // Get thread ID from params
     const { id } = await params;
 
-    // Delete thread - RLS ensures user ownership
+    // Delete thread - userId WHERE filter enforces ownership
     const { data: deletedThread, error: dbDeleteError } = await deleteThread(
-      supabase,
       id,
+      user.id,
     );
 
     // Return 404 if thread not found or not owned by user
