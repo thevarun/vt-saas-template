@@ -2,7 +2,7 @@
 
 import type { ChatModelAdapter, ThreadHistoryAdapter } from '@assistant-ui/react';
 import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
-import { DevToolsModal } from '@assistant-ui/react-devtools';
+import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 
 import { CardErrorFallback, ErrorBoundary } from '@/components/errors';
@@ -10,6 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import type { DifyStreamEvent } from '@/libs/dify/types';
 
 import { Thread } from './Thread';
+
+const DevToolsModal = dynamic(
+  () => import('@assistant-ui/react-devtools').then(mod => mod.DevToolsModal),
+  { ssr: false },
+);
 
 /**
  * Helper to create a full ThreadMessage for user messages

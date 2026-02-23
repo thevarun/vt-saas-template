@@ -45,9 +45,5 @@ export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse } from './types
 export { HTTP_STATUS } from './types';
 // Validation formatters
 export {
-  formatFieldName,
   formatZodErrors,
-  formatZodErrorsFlat,
-  formatZodErrorsReadable,
-  getFirstZodError,
 } from './validation';

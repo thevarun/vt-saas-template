@@ -434,25 +434,4 @@ describe('/api/threads endpoints', () => {
       expect(data.code).toBe('NOT_FOUND');
     });
   });
-
-  describe('AC #11: Happy Path Integration', () => {
-    it('should complete full CRUD workflow', async () => {
-      const mockSupabase = {
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: { id: mockUserId } },
-            error: null,
-          }),
-        },
-      };
-      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
-
-      // This test verifies that all operations work in sequence
-      // Actual implementation would orchestrate: CREATE → LIST → UPDATE → ARCHIVE → DELETE
-      // For unit tests, we verify each operation independently (as done above)
-      // Integration tests with real database would test full sequence
-
-      expect(true).toBe(true); // Placeholder - full workflow tested by above tests
-    });
-  });
 });

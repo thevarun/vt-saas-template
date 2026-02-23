@@ -2,12 +2,17 @@
 
 import { AssistantRuntimeProvider } from '@assistant-ui/react';
 import { AssistantChatTransport, useChatRuntime } from '@assistant-ui/react-ai-sdk';
-import { DevToolsModal } from '@assistant-ui/react-devtools';
+import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
 
 import { CardErrorFallback, ErrorBoundary } from '@/components/errors';
 
 import { Thread } from '../Thread';
+
+const DevToolsModal = dynamic(
+  () => import('@assistant-ui/react-devtools').then(mod => mod.DevToolsModal),
+  { ssr: false },
+);
 
 type InitialMessage = {
   id: string;

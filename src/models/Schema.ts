@@ -15,34 +15,10 @@ import {
   jsonb,
   pgEnum,
   pgSchema,
-  pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-
-// DEPRECATED: User profiles table in the public schema
-// This table is shared across multiple projects. Do not use for this project.
-// Use health_companion.user_preferences instead.
-export const userProfiles = pgTable(
-  'user_profiles',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: uuid('user_id').notNull().unique(),
-    username: text('username').unique(),
-    displayName: text('display_name'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  table => ({
-    userIdIdx: index('idx_user_profiles_user_id').on(table.userId),
-    usernameIdx: index('idx_user_profiles_username').on(table.username),
-  }),
-);
 
 // Create dedicated vt_saas schema (consolidates all project tables)
 export const vtSaasSchema = pgSchema('vt_saas');

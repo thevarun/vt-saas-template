@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { db } from '@/libs/DB';
 
-import { isNewUser } from '../dashboard-utils';
+import { isNewUser } from '../dashboardUtils';
 
 // Mock the database
 vi.mock('@/libs/DB', () => ({
