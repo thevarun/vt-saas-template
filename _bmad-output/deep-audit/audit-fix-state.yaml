@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T11:45:00Z"
+last_updated: "2026-02-23T12:00:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -12,15 +12,15 @@ git:
 baseline_validation: "pass"
 
 current_phase: 2
-current_theme: T-011
+current_theme: T-012
 
 themes_completed:
   - T-003
   - T-004
   - T-006
   - T-014
-themes_pending:
   - T-011
+themes_pending:
   - T-012
   - T-001
   - T-002
@@ -140,3 +140,24 @@ execution_log:
     implementation_turns: 37
     fix_turns: 0
     completed_at: "2026-02-23T11:45:00Z"
+  - theme: "T-011"
+    name: "Write Critical Path Test Coverage"
+    phase: 2
+    risk: LOW
+    findings_addressed: ["F-051", "F-052", "F-053", "F-054", "F-055", "F-093"]
+    files_changed:
+      - src/proxy.test.ts (new)
+      - src/app/api/auth/callback/route.test.ts (new)
+      - src/app/api/profile/delete/route.test.ts (new)
+      - tests/integration/api/vercel-conversations.test.ts (new)
+      - tests/integration/api/thread-persistence.test.ts
+      - src/app/[locale]/(unauth)/(center)/sign-up/page.tsx
+      - src/app/[locale]/(unauth)/(center)/sign-up/page.test.tsx
+      - src/app/[locale]/(unauth)/(center)/sign-in/SignInFormClient.tsx
+    validation: pass
+    visual_check: N/A
+    commit: "85f4c21"
+    enrichment_turns: 22
+    implementation_turns: 91
+    fix_turns: 0
+    completed_at: "2026-02-23T12:00:00Z"

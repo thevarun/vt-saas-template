@@ -27,7 +27,7 @@ export type UpdateThreadInput = {
 };
 
 const THREADS_TABLE = 'threads';
-const THREADS_SCHEMA = 'health_companion';
+const THREADS_SCHEMA = 'vt_saas';
 
 /**
  * Get all threads for the authenticated user (ordered by updated_at DESC)

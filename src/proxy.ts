@@ -8,7 +8,7 @@ import {
 /* eslint-enable simple-import-sort/imports */
 
 import { isAdmin } from '@/libs/auth/isAdmin';
-import { createClient, updateSession } from '@/libs/supabase/middleware';
+import { updateSession } from '@/libs/supabase/middleware';
 import { AllLocales, AppConfig } from './utils/AppConfig';
 
 const intlMiddleware = createMiddleware({
@@ -37,16 +37,39 @@ const verificationWhitelist = [
   '/reset-password',
 ];
 
+/**
+ * Extracts the locale prefix from a pathname, if present.
+ * Returns e.g. '/en', '/hi', '/bn', or '' for paths without a locale segment.
+ */
+function getLocalePrefix(pathname: string): string {
+  const segment = pathname.match(/^\/([^/]+)/)?.at(1) ?? '';
+  return AllLocales.includes(segment as any) ? `/${segment}` : '';
+}
+
+/**
+ * Returns true if pathname contains the path as a distinct path segment
+ * (after optional locale prefix). E.g., '/en/dashboard' matches '/dashboard',
+ * '/api/chat' matches '/chat', but '/en/chatty' does NOT match '/chat'.
+ *
+ * Since all segments start with '/', endsWith/includes naturally enforce
+ * boundary checks (e.g., '/chatty'.endsWith('/chat') is false).
+ */
+function containsSegment(pathname: string, segment: string): boolean {
+  const localePrefix = getLocalePrefix(pathname);
+  const stripped = localePrefix ? pathname.slice(localePrefix.length) : pathname;
+  return stripped.endsWith(segment) || stripped.includes(`${segment}/`);
+}
+
 function isProtectedRoute(pathname: string): boolean {
-  return protectedPaths.some(path => pathname.includes(path));
+  return protectedPaths.some(path => containsSegment(pathname, path));
 }
 
 function requiresVerification(pathname: string): boolean {
-  return !verificationWhitelist.some(path => pathname.includes(path));
+  return !verificationWhitelist.some(path => containsSegment(pathname, path));
 }
 
 function isAdminRoute(pathname: string): boolean {
-  return adminPaths.some(path => pathname.includes(path));
+  return adminPaths.some(path => containsSegment(pathname, path));
 }
 
 export async function proxy(
@@ -56,17 +79,11 @@ export async function proxy(
   // Apply internationalization middleware first
   const response = intlMiddleware(request);
 
-  // Update Supabase session cookies on the response
-  await updateSession(request, response);
+  // Single getUser() call — session update and auth check combined
+  const { user } = await updateSession(request, response);
 
   // Check if route requires authentication
   if (isProtectedRoute(request.nextUrl.pathname)) {
-    const supabase = createClient(request, response);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     if (!user) {
       // For API routes, return a JSON 401 instead of redirecting so
       // client-side fetches don't try to parse an HTML error page.
@@ -77,11 +94,7 @@ export async function proxy(
         );
       }
 
-      const locale
-        = request.nextUrl.pathname.match(/^\/([^/]+)/)?.at(1) ?? '';
-      const isLocale = AllLocales.includes(locale as any);
-      const localePrefix = isLocale ? `/${locale}` : '';
-
+      const localePrefix = getLocalePrefix(request.nextUrl.pathname);
       const signInUrl = new URL(`${localePrefix}/sign-in`, request.url);
       // Store intended destination for redirect after sign-in
       signInUrl.searchParams.set('redirect', request.nextUrl.pathname);
@@ -90,11 +103,7 @@ export async function proxy(
 
     // Check email verification for protected routes
     if (user && !user.email_confirmed_at && requiresVerification(request.nextUrl.pathname)) {
-      const locale
-        = request.nextUrl.pathname.match(/^\/([^/]+)/)?.at(1) ?? '';
-      const isLocale = AllLocales.includes(locale as any);
-      const localePrefix = isLocale ? `/${locale}` : '';
-
+      const localePrefix = getLocalePrefix(request.nextUrl.pathname);
       const verifyUrl = new URL(`${localePrefix}/verify-email`, request.url);
       verifyUrl.searchParams.set('email', user.email || '');
       return NextResponse.redirect(verifyUrl);
@@ -103,11 +112,7 @@ export async function proxy(
     // Check admin routes - redirect non-admins to dashboard
     if (user && isAdminRoute(request.nextUrl.pathname)) {
       if (!isAdmin(user)) {
-        const locale
-          = request.nextUrl.pathname.match(/^\/([^/]+)/)?.at(1) ?? '';
-        const isLocale = AllLocales.includes(locale as any);
-        const localePrefix = isLocale ? `/${locale}` : '';
-
+        const localePrefix = getLocalePrefix(request.nextUrl.pathname);
         const dashboardUrl = new URL(`${localePrefix}/dashboard?error=access_denied`, request.url);
         return NextResponse.redirect(dashboardUrl);
       }

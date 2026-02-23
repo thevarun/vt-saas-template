@@ -4,12 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Hoisted mocks so vi.mock factories can reference them
-const { mockGetUser, mockIsAdmin, mockCreateClient, mockUpdateSession } = vi.hoisted(() => {
-  const mockGetUser = vi.fn();
+const { mockIsAdmin, mockUpdateSession } = vi.hoisted(() => {
   const mockIsAdmin = vi.fn().mockReturnValue(false);
-  const mockCreateClient = vi.fn();
-  const mockUpdateSession = vi.fn().mockResolvedValue(undefined);
-  return { mockGetUser, mockIsAdmin, mockCreateClient, mockUpdateSession };
+  const mockUpdateSession = vi.fn();
+  return { mockIsAdmin, mockUpdateSession };
 });
 
 // Mock next-intl/middleware (factory-only, no external vars)
@@ -18,7 +16,6 @@ vi.mock('next-intl/middleware', () => ({
 }));
 
 vi.mock('@/libs/supabase/middleware', () => ({
-  createClient: mockCreateClient,
   updateSession: mockUpdateSession,
 }));
 
@@ -56,10 +53,9 @@ describe('proxy middleware', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsAdmin.mockReturnValue(false);
-    mockUpdateSession.mockResolvedValue(undefined);
-    // Default: set up createClient to return mock supabase
-    mockCreateClient.mockReturnValue({
-      auth: { getUser: mockGetUser },
+    mockUpdateSession.mockResolvedValue({
+      user: null,
+      response: NextResponse.next(),
     });
   });
 
@@ -71,12 +67,15 @@ describe('proxy middleware', () => {
     // Should pass through (not redirect)
     expect(response.status).not.toBe(401);
 
-    // getUser should NOT be called for public routes
-    expect(mockGetUser).not.toHaveBeenCalled();
+    // updateSession is still called for session refresh
+    expect(mockUpdateSession).toHaveBeenCalled();
   });
 
   it('redirects unauthenticated user from /en/dashboard to /en/sign-in', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockUpdateSession.mockResolvedValue({
+      user: null,
+      response: NextResponse.next(),
+    });
 
     const request = makeRequest('/en/dashboard');
     const response = await proxy(request, fakeEvent);
@@ -90,7 +89,10 @@ describe('proxy middleware', () => {
   });
 
   it('returns 401 JSON for unauthenticated request to /api/chat', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockUpdateSession.mockResolvedValue({
+      user: null,
+      response: NextResponse.next(),
+    });
 
     const request = makeRequest('/api/chat');
     const response = await proxy(request, fakeEvent);
@@ -104,7 +106,10 @@ describe('proxy middleware', () => {
   });
 
   it('redirects unverified user from /en/dashboard to /en/verify-email', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: unverifiedUser } });
+    mockUpdateSession.mockResolvedValue({
+      user: unverifiedUser,
+      response: NextResponse.next(),
+    });
 
     const request = makeRequest('/en/dashboard');
     const response = await proxy(request, fakeEvent);
@@ -118,7 +123,10 @@ describe('proxy middleware', () => {
   });
 
   it('redirects non-admin user from /en/admin to /en/dashboard with error param', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: verifiedUser } });
+    mockUpdateSession.mockResolvedValue({
+      user: verifiedUser,
+      response: NextResponse.next(),
+    });
     mockIsAdmin.mockReturnValue(false);
 
     const request = makeRequest('/en/admin');
@@ -133,7 +141,10 @@ describe('proxy middleware', () => {
   });
 
   it('allows admin user to access /en/admin', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: verifiedUser } });
+    mockUpdateSession.mockResolvedValue({
+      user: verifiedUser,
+      response: NextResponse.next(),
+    });
     mockIsAdmin.mockReturnValue(true);
 
     const request = makeRequest('/en/admin');
@@ -150,7 +161,10 @@ describe('proxy middleware', () => {
   });
 
   it('includes /hi locale prefix in sign-in redirect URL', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockUpdateSession.mockResolvedValue({
+      user: null,
+      response: NextResponse.next(),
+    });
 
     const request = makeRequest('/hi/dashboard');
     const response = await proxy(request, fakeEvent);
@@ -163,7 +177,10 @@ describe('proxy middleware', () => {
   });
 
   it('allows verified authenticated user to pass through protected routes', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: verifiedUser } });
+    mockUpdateSession.mockResolvedValue({
+      user: verifiedUser,
+      response: NextResponse.next(),
+    });
 
     const request = makeRequest('/en/dashboard');
     const response = await proxy(request, fakeEvent);
@@ -177,5 +194,35 @@ describe('proxy middleware', () => {
       // No redirect - passed through
       expect(response.status).not.toBe(307);
     }
+  });
+
+  // New tests for precise segment matching (F-030)
+  it('does not trigger auth check for path with protected word in non-segment position', async () => {
+    // 'chatty' includes 'chat' as substring but is not a protected path segment
+    const request = makeRequest('/en/chatty');
+    const response = await proxy(request, fakeEvent);
+
+    expect(mockUpdateSession).toHaveBeenCalled(); // session still updates
+    // Should not redirect — passes through since /chatty is not /chat
+    expect(response.status).not.toBe(307);
+    expect(response.status).not.toBe(401);
+  });
+
+  it('treats /hi/admin as an admin route (locale-prefixed)', async () => {
+    mockUpdateSession.mockResolvedValue({
+      user: verifiedUser,
+      response: NextResponse.next(),
+    });
+    mockIsAdmin.mockReturnValue(false);
+
+    const request = makeRequest('/hi/admin');
+    const response = await proxy(request, fakeEvent);
+
+    expect(response.status).toBe(307);
+
+    const location = response.headers.get('location');
+
+    expect(location).toContain('/hi/dashboard');
+    expect(location).toContain('error=access_denied');
   });
 });

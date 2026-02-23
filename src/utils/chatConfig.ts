@@ -5,6 +5,8 @@
  * Server-side only - used in server components and API routes.
  */
 
+import { Env } from '@/libs/Env';
+
 export type ChatProvider = 'dify' | 'vercel';
 
 export type ChatConfig = {
@@ -29,16 +31,12 @@ export type ChatConfig = {
 export function getChatConfig(): ChatConfig {
   return {
     dify: {
-      configured: Boolean(
-        process.env.DIFY_API_URL && process.env.DIFY_API_KEY,
-      ),
-      url: process.env.DIFY_API_URL,
+      configured: Boolean(Env.DIFY_API_URL && Env.DIFY_API_KEY),
+      url: Env.DIFY_API_URL,
     },
     vercel: {
-      configured: Boolean(
-        process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY,
-      ),
-      provider: process.env.OPENAI_API_KEY ? 'openai' : process.env.ANTHROPIC_API_KEY ? 'anthropic' : undefined,
+      configured: Boolean(Env.OPENAI_API_KEY || Env.ANTHROPIC_API_KEY),
+      provider: Env.OPENAI_API_KEY ? 'openai' : Env.ANTHROPIC_API_KEY ? 'anthropic' : undefined,
     },
   };
 }
