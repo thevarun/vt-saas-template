@@ -20,7 +20,7 @@ test.describe('Forgot Password', () => {
   test('[P1] should show success message after email submission', async ({ page }) => {
     // GIVEN: User is on forgot-password page
     // Mock Supabase auth to prevent actual email sending
-    await page.route('**/auth/v1/recover', async (route) => {
+    await page.route('**/auth/v1/recover**', async (route) => {
       await route.fulfill({
         status: 200,
         body: JSON.stringify({}),
@@ -68,7 +68,7 @@ test.describe('Forgot Password', () => {
   test('[P2] should allow trying another email from success state', async ({ page }) => {
     // GIVEN: User is on forgot-password page
     // Mock Supabase auth
-    await page.route('**/auth/v1/recover', async (route) => {
+    await page.route('**/auth/v1/recover**', async (route) => {
       await route.fulfill({
         status: 200,
         body: JSON.stringify({}),
