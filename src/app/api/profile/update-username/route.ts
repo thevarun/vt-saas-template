@@ -70,21 +70,30 @@ export async function PATCH(request: Request) {
       .limit(1);
 
     const profile = currentProfile[0];
-    if (profile) {
-      await db
-        .update(userPreferences)
-        .set({
+    try {
+      if (profile) {
+        await db
+          .update(userPreferences)
+          .set({
+            username,
+            updatedAt: new Date(),
+          })
+          .where(eq(userPreferences.userId, user.id));
+      } else {
+        await db.insert(userPreferences).values({
+          userId: user.id,
           username,
-          updatedAt: new Date(),
-        })
-        .where(eq(userPreferences.userId, user.id));
-    } else {
-      await db.insert(userPreferences).values({
-        userId: user.id,
-        username,
-        emailNotifications: true,
-        language: 'en',
-      });
+          emailNotifications: true,
+          language: 'en',
+        });
+      }
+    } catch (dbError: unknown) {
+      // Catch UNIQUE constraint violation (race condition safety net)
+      const code = (dbError as Record<string, unknown>)?.code;
+      if (code === '23505') {
+        return usernameTakenError();
+      }
+      throw dbError;
     }
 
     return NextResponse.json({ success: true });

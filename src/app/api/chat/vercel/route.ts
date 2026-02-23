@@ -12,6 +12,7 @@ import {
   timeoutError,
   unauthorizedError,
 } from '@/libs/api/errors';
+import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { queueMemoryExtraction } from '@/libs/mem0/queue';
 import {
@@ -19,7 +20,6 @@ import {
   getRelevantMemories,
 } from '@/libs/mem0/retrieval';
 import {
-  createConversation,
   getConversationById,
   updateConversation,
 } from '@/libs/queries/vercelConversations';
@@ -27,6 +27,7 @@ import { createMessage } from '@/libs/queries/vercelMessages';
 import { createClient } from '@/libs/supabase/server';
 import { createAIProvider } from '@/libs/vercel-ai/client';
 import { isConfigured } from '@/libs/vercel-ai/config';
+import { vercelConversations, vercelMessages } from '@/models/Schema';
 
 const chatMessagePartSchema = z.object({
   type: z.string(),
@@ -134,20 +135,36 @@ export async function POST(request: NextRequest): Promise<Response> {
 
       activeConversationId = conversationId;
     } else {
-      // Create new conversation
+      // Create new conversation + first user message atomically in a transaction
       const title = message.slice(0, 50) || 'New Conversation';
-      const { data: newConversation, error: createError } = await createConversation(
-        supabase,
-        user.id,
-        title,
-      );
 
-      if (createError || !newConversation) {
-        logger.error({ error: createError, userId: user.id }, 'Failed to create conversation');
+      try {
+        const txResult = await db.transaction(async (tx) => {
+          const [newConv] = await tx.insert(vercelConversations).values({
+            userId: user.id,
+            title,
+            lastMessagePreview: null,
+            archived: false,
+          }).returning();
+
+          if (!newConv) {
+            throw new Error('Failed to create conversation');
+          }
+
+          await tx.insert(vercelMessages).values({
+            conversationId: newConv.id,
+            role: 'user',
+            content: message,
+          });
+
+          return { conversationId: newConv.id };
+        });
+
+        activeConversationId = txResult.conversationId;
+      } catch (txError) {
+        logger.error({ error: txError, userId: user.id }, 'Failed to create conversation with message');
         return internalError();
       }
-
-      activeConversationId = newConversation.id;
 
       Sentry.addBreadcrumb({
         category: 'conversation',
@@ -156,20 +173,22 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
     }
 
-    // Persist user message before streaming
-    const { error: userMessageError } = await createMessage(
-      supabase,
-      activeConversationId,
-      'user',
-      message,
-    );
-
-    if (userMessageError) {
-      logger.error(
-        { error: userMessageError, conversationId: activeConversationId },
-        'Failed to persist user message',
+    if (conversationId) {
+      // For existing conversations, persist user message (best-effort, don't block)
+      const { error: userMessageError } = await createMessage(
+        supabase,
+        activeConversationId,
+        'user',
+        message,
       );
-      // Continue anyway - don't block the chat
+
+      if (userMessageError) {
+        logger.error(
+          { error: userMessageError, conversationId: activeConversationId },
+          'Failed to persist user message',
+        );
+        // Continue anyway - don't block the chat
+      }
     }
 
     // Create AI provider and stream response

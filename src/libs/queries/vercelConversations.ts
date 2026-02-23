@@ -50,7 +50,7 @@ export type ConversationUpdate = {
 export async function getConversationById(
   _supabase: SupabaseClient,
   conversationId: string,
-  userId?: string,
+  userId: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
@@ -59,14 +59,10 @@ export async function getConversationById(
       data: { conversationId, userId },
     });
 
-    const whereClause = userId
-      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
-      : eq(vercelConversations.id, conversationId);
-
     const result = await db
       .select()
       .from(vercelConversations)
-      .where(whereClause)
+      .where(and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId)))
       .limit(1);
 
     return {
@@ -77,6 +73,46 @@ export async function getConversationById(
     Sentry.captureException(error);
     const dbError = toDbQueryError(error);
     logger.error({ error, conversationId }, 'Failed to fetch conversation by ID');
+    return {
+      data: null,
+      error: dbError,
+    };
+  }
+}
+
+/**
+ * Get a conversation by ID without user ownership filter (admin/worker use only).
+ *
+ * WARNING: This bypasses user ownership checks. Only use in background workers
+ * or admin contexts where the caller does not know the userId upfront.
+ *
+ * @param conversationId Conversation UUID
+ * @returns Conversation data or null if not found
+ */
+export async function getConversationByIdAdmin(
+  conversationId: string,
+): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
+  try {
+    Sentry.addBreadcrumb({
+      category: 'vercel-conversation',
+      message: 'Fetching conversation by ID (admin)',
+      data: { conversationId },
+    });
+
+    const result = await db
+      .select()
+      .from(vercelConversations)
+      .where(eq(vercelConversations.id, conversationId))
+      .limit(1);
+
+    return {
+      data: result[0] || null,
+      error: null,
+    };
+  } catch (error: unknown) {
+    Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
+    logger.error({ error, conversationId }, 'Failed to fetch conversation by ID (admin)');
     return {
       data: null,
       error: dbError,
@@ -148,7 +184,7 @@ export async function updateConversation(
   _supabase: SupabaseClient,
   conversationId: string,
   updates: ConversationUpdate,
-  userId?: string,
+  userId: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
@@ -171,14 +207,10 @@ export async function updateConversation(
       updateData.archived = updates.archived;
     }
 
-    const whereClause = userId
-      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
-      : eq(vercelConversations.id, conversationId);
-
     const result = await db
       .update(vercelConversations)
       .set(updateData)
-      .where(whereClause)
+      .where(and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId)))
       .returning();
 
     logger.info({ conversationId }, 'Conversation updated');
@@ -270,7 +302,7 @@ export async function listUserConversations(
 export async function deleteConversation(
   _supabase: SupabaseClient,
   conversationId: string,
-  userId?: string,
+  userId: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
@@ -279,13 +311,9 @@ export async function deleteConversation(
       data: { conversationId, userId },
     });
 
-    const whereClause = userId
-      ? and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId))
-      : eq(vercelConversations.id, conversationId);
-
     const result = await db
       .delete(vercelConversations)
-      .where(whereClause)
+      .where(and(eq(vercelConversations.id, conversationId), eq(vercelConversations.userId, userId)))
       .returning();
 
     logger.info({ conversationId }, 'Conversation deleted (messages cascade deleted)');

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -59,7 +59,7 @@ export async function GET(
       await db
         .update(shareableLinks)
         .set({
-          accessCount: link.accessCount + 1,
+          accessCount: sql`${shareableLinks.accessCount} + 1`,
           updatedAt: now,
         })
         .where(eq(shareableLinks.token, token));
