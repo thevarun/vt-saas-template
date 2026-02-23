@@ -13,7 +13,7 @@
 - `src/app`: Next.js App Router routes and API handlers; keep route folders kebab-case.
 - `src/components` & `src/features`: Reusable UI primitives and domain-specific bundles; prefer co-locating styles and tests nearby.
 - `src/libs`, `src/utils`, `src/hooks`: Shared helpers, client/server SDK wrappers, and custom hooks.
-- `src/styles`, `components.json`, `tailwind.config.ts`: Design tokens and Shadcn/Tailwind setup.
+- `src/styles/global.css`, `components.json`: Design tokens and Shadcn/Tailwind v4 setup (CSS-based config).
 - `src/locales`: next-intl translations; update keys alongside feature work.
 - `migrations` & `drizzle.config.ts`: Database schema and Drizzle migrations.
 - `tests/integration`, `tests/e2e`: Vitest + React Testing Library and Playwright suites. Static assets live in `public/`.
@@ -54,5 +54,5 @@
 
 ## Security & Configuration Tips
 - Secrets live in `.env.local` (never commit); use T3 Env schema for new variables and update `.env.example` if present.
-- Sentry and Clerk keys are required for error reporting/auth; provide dummy values for local dev when safe.
+- Sentry and Supabase keys are required for error reporting/auth; provide dummy values for local dev when safe.
 - When working with Drizzle migrations, back up data before running `npm run db:migrate` in shared environments.
