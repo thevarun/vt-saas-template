@@ -47,7 +47,6 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     // Query conversations - RLS automatically filters by user_id
     const { data: conversations, error: dbQueryError } = await listUserConversations(
-      supabase,
       user.id,
       false, // excludeArchived = false (show non-archived only)
       limit,

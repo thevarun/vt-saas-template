@@ -1,12 +1,11 @@
 /**
  * Database query helpers for Vercel AI SDK conversations
  *
- * All queries use Supabase client with RLS (Row Level Security) enabled.
- * Users can only access their own conversations.
+ * All queries use Drizzle ORM with explicit userId WHERE filters for ownership enforcement.
+ * Supabase client is only used for authentication, never for data queries.
  */
 
 import * as Sentry from '@sentry/nextjs';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { and, desc, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
@@ -41,14 +40,13 @@ export type ConversationUpdate = {
 /**
  * Get a conversation by ID
  *
- * RLS ensures only the owner can access their conversations.
+ * Authorization: userId WHERE filter enforces ownership at the query level.
  *
- * @param _supabase Supabase client with user context
  * @param conversationId Conversation UUID
+ * @param userId User ID for ownership enforcement
  * @returns Conversation data or null if not found
  */
 export async function getConversationById(
-  _supabase: SupabaseClient,
   conversationId: string,
   userId: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
@@ -123,15 +121,13 @@ export async function getConversationByIdAdmin(
 /**
  * Create a new conversation
  *
- * RLS ensures the userId matches the authenticated user.
+ * Authorization: userId is set as the owner at creation time.
  *
- * @param _supabase Supabase client with user context
  * @param userId User ID who owns the conversation
  * @param title Conversation title
  * @returns Created conversation data or error
  */
 export async function createConversation(
-  _supabase: SupabaseClient,
   userId: string,
   title: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
@@ -173,15 +169,14 @@ export async function createConversation(
  * Update a conversation's metadata
  *
  * Updates the updatedAt timestamp automatically.
- * RLS ensures only the owner can update their conversations.
+ * Authorization: userId WHERE filter enforces ownership at the query level.
  *
- * @param _supabase Supabase client with user context
  * @param conversationId Conversation UUID
  * @param updates Fields to update
+ * @param userId User ID for ownership enforcement
  * @returns Updated conversation data or error
  */
 export async function updateConversation(
-  _supabase: SupabaseClient,
   conversationId: string,
   updates: ConversationUpdate,
   userId: string,
@@ -234,9 +229,8 @@ export async function updateConversation(
  * List user's conversations with optional pagination
  *
  * Sorted by most recent activity first (updatedAt DESC).
- * RLS ensures users only see their own conversations.
+ * Authorization: userId WHERE filter enforces ownership at the query level.
  *
- * @param _supabase Supabase client with user context
  * @param userId User ID
  * @param includeArchived Whether to include archived conversations (default: false)
  * @param limit Maximum number of conversations to return (optional)
@@ -244,7 +238,6 @@ export async function updateConversation(
  * @returns List of conversations or error
  */
 export async function listUserConversations(
-  _supabase: SupabaseClient,
   userId: string,
   includeArchived: boolean = false,
   limit?: number,
@@ -293,14 +286,13 @@ export async function listUserConversations(
  * Delete a conversation by ID
  *
  * Messages are automatically deleted via cascade (defined in schema).
- * RLS ensures only the owner can delete their conversations.
+ * Authorization: userId WHERE filter enforces ownership at the query level.
  *
- * @param _supabase Supabase client with user context
  * @param conversationId Conversation UUID
+ * @param userId User ID for ownership enforcement
  * @returns Deleted conversation data or null if not found
  */
 export async function deleteConversation(
-  _supabase: SupabaseClient,
   conversationId: string,
   userId: string,
 ): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {

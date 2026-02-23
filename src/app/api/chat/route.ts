@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nextjs';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -14,12 +13,12 @@ import {
 import { createDifyClient } from '@/libs/dify/client';
 import type { DifyChatRequest, DifyStreamEvent } from '@/libs/dify/types';
 import { logger } from '@/libs/Logger';
-import { createClient } from '@/libs/supabase/server';
 import {
   createThread,
   getThreadByConversationId,
   updateThread,
-} from '@/libs/supabase/threads';
+} from '@/libs/queries/threads';
+import { createClient } from '@/libs/supabase/server';
 
 /** Dify chat proxy endpoint. Validates Supabase session and streams SSE responses from Dify API. */
 
@@ -38,9 +37,8 @@ function parseSSEEvent(chunk: string): DifyStreamEvent | null {
   }
 }
 
-/** Create or update a thread record after receiving a Dify response. Uses RLS for ownership enforcement. */
+/** Create or update a thread record after receiving a Dify response. userId filter enforces ownership. */
 async function createOrUpdateThread(
-  supabase: SupabaseClient,
   userId: string,
   conversationId: string,
   messageText: string,
@@ -53,8 +51,8 @@ async function createOrUpdateThread(
     });
 
     const { data: existingThread, error: fetchError } = await getThreadByConversationId(
-      supabase,
       conversationId,
+      userId,
     );
 
     if (fetchError) {
@@ -66,9 +64,9 @@ async function createOrUpdateThread(
       const lastMessagePreview = messageText.slice(0, 100);
 
       const { error: updateError } = await updateThread(
-        supabase,
         existingThread.id,
-        { last_message_preview: lastMessagePreview },
+        { lastMessagePreview },
+        userId,
       );
 
       if (updateError) {
@@ -88,12 +86,11 @@ async function createOrUpdateThread(
       const lastMessagePreview = messageText.slice(0, 100);
 
       const { data: newThread, error: createError } = await createThread(
-        supabase,
         userId,
         {
-          conversation_id: conversationId,
+          conversationId,
           title,
-          last_message_preview: lastMessagePreview,
+          lastMessagePreview,
         },
       );
 
@@ -212,7 +209,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         // Async thread creation after stream completes (fire-and-forget)
         if (capturedConversationId && capturedAnswer) {
           Promise.resolve().then(async () => {
-            await createOrUpdateThread(supabase, user.id, capturedConversationId!, capturedAnswer);
+            await createOrUpdateThread(user.id, capturedConversationId!, capturedAnswer);
           });
         } else {
           logger.warn(

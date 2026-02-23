@@ -3,23 +3,23 @@
  * Integration tests for thread persistence (Story 3.2)
  * Tests that threads are created/updated when chat API is called
  *
- * NOTE: These tests use mocked Supabase thread functions since the API
- * now uses Supabase client for RLS-enforced data access.
+ * NOTE: These tests use mocked Drizzle thread query functions since the API
+ * now uses Drizzle ORM with explicit userId WHERE filters for ownership enforcement.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { POST } from '@/app/api/chat/route';
 import { createDifyClient } from '@/libs/dify/client';
+import type { Thread } from '@/libs/queries/threads';
+import * as threadsModule from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
-import type { Thread } from '@/libs/supabase/threads';
-import * as threadsModule from '@/libs/supabase/threads';
 
 // In-memory storage for threads (simulates database)
 const threadStore: Map<string, Thread> = new Map();
 
 // Mock dependencies
-vi.mock('@/libs/supabase/threads');
+vi.mock('@/libs/queries/threads');
 vi.mock('@/libs/dify/client');
 vi.mock('@/libs/supabase/server');
 vi.mock('@/libs/Logger', () => ({
@@ -87,37 +87,37 @@ describe('Thread Persistence Integration', () => {
     };
     vi.mocked(createDifyClient).mockReturnValue(mockDifyClient as any);
 
-    // Setup Supabase threads mock implementations
-    vi.mocked(threadsModule.getThreadByConversationId).mockImplementation(async (_supabase, conversationId) => {
+    // Setup Drizzle thread query mock implementations
+    vi.mocked(threadsModule.getThreadByConversationId).mockImplementation(async (conversationId, _userId) => {
       const thread = threadStore.get(conversationId);
       return { data: thread || null, error: null };
     });
 
-    vi.mocked(threadsModule.createThread).mockImplementation(async (_supabase, userId, input) => {
-      const now = new Date().toISOString();
+    vi.mocked(threadsModule.createThread).mockImplementation(async (userId, input) => {
+      const now = new Date();
       const thread: Thread = {
         id: `thread-${Date.now()}`,
-        user_id: userId,
-        conversation_id: input.conversation_id,
+        userId,
+        conversationId: input.conversationId,
         title: input.title || null,
-        last_message_preview: input.last_message_preview || null,
-        archived: input.archived ?? false,
-        created_at: now,
-        updated_at: now,
+        lastMessagePreview: input.lastMessagePreview || null,
+        archived: false,
+        createdAt: now,
+        updatedAt: now,
       };
-      threadStore.set(input.conversation_id, thread);
+      threadStore.set(input.conversationId, thread);
       createdThread = thread;
       return { data: thread, error: null };
     });
 
-    vi.mocked(threadsModule.updateThread).mockImplementation(async (_supabase, id, input) => {
+    vi.mocked(threadsModule.updateThread).mockImplementation(async (id, input, _userId) => {
       // Find the thread in the store
       for (const [convId, thread] of threadStore.entries()) {
         if (thread.id === id) {
           const updated: Thread = {
             ...thread,
-            ...(input.last_message_preview !== undefined && { last_message_preview: input.last_message_preview }),
-            updated_at: new Date().toISOString(),
+            ...(input.lastMessagePreview !== undefined && { lastMessagePreview: input.lastMessagePreview }),
+            updatedAt: new Date(),
           };
           threadStore.set(convId, updated);
           return { data: updated, error: null };
@@ -165,34 +165,34 @@ describe('Thread Persistence Integration', () => {
 
     // AC #2: Verify thread was created with correct data
     expect(createdThread).toBeDefined();
-    expect(createdThread!.conversation_id).toBe('test-conv-123');
-    expect(createdThread!.user_id).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(createdThread!.conversationId).toBe('test-conv-123');
+    expect(createdThread!.userId).toBe('550e8400-e29b-41d4-a716-446655440000');
 
     // AC #2: Verify title auto-generated
     expect(createdThread!.title).toBeTruthy();
     expect(createdThread!.title!.length).toBeLessThanOrEqual(50);
 
-    // AC #5: Verify last_message_preview
-    expect(createdThread!.last_message_preview).toBeTruthy();
-    expect(createdThread!.last_message_preview!.length).toBeLessThanOrEqual(100);
+    // AC #5: Verify lastMessagePreview
+    expect(createdThread!.lastMessagePreview).toBeTruthy();
+    expect(createdThread!.lastMessagePreview!.length).toBeLessThanOrEqual(100);
   });
 
   it('updates thread metadata on subsequent messages (AC #4, #5)', async () => {
     // Create initial thread in store
-    const now = new Date().toISOString();
+    const now = new Date();
     const initialThread: Thread = {
       id: 'thread-initial',
-      user_id: '550e8400-e29b-41d4-a716-446655440000',
-      conversation_id: 'test-conv-123',
+      userId: '550e8400-e29b-41d4-a716-446655440000',
+      conversationId: 'test-conv-123',
       title: 'Initial title',
-      last_message_preview: 'Initial preview',
+      lastMessagePreview: 'Initial preview',
       archived: false,
-      created_at: now,
-      updated_at: now,
+      createdAt: now,
+      updatedAt: now,
     };
     threadStore.set('test-conv-123', initialThread);
 
-    const initialUpdatedAt = initialThread.updated_at;
+    const initialUpdatedAt = initialThread.updatedAt;
 
     // Wait to ensure timestamp difference (advance fake timers instead of real wait)
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -234,11 +234,11 @@ describe('Thread Persistence Integration', () => {
 
     expect(updatedThread).toBeDefined();
 
-    // AC #4: Verify updated_at changed
-    expect(updatedThread!.updated_at).not.toBe(initialUpdatedAt);
+    // AC #4: Verify updatedAt changed
+    expect(updatedThread!.updatedAt).not.toBe(initialUpdatedAt);
 
-    // AC #5: Verify last_message_preview updated
-    expect(updatedThread!.last_message_preview).not.toBe('Initial preview');
+    // AC #5: Verify lastMessagePreview updated
+    expect(updatedThread!.lastMessagePreview).not.toBe('Initial preview');
   });
 
   it('handles duplicate conversation_id gracefully (AC #6)', async () => {
@@ -364,11 +364,11 @@ describe('Thread Persistence Integration', () => {
     // What matters is that only one thread exists in the end
     expect(threadsModule.createThread).toHaveBeenCalled();
 
-    // Verify the thread exists with correct conversation_id
+    // Verify the thread exists with correct conversationId
     const thread = threadStore.get('test-conv-123');
 
     expect(thread).toBeDefined();
-    expect(thread!.conversation_id).toBe('test-conv-123');
+    expect(thread!.conversationId).toBe('test-conv-123');
   });
 
   it('handles missing conversation_id gracefully (Task 6.3)', async () => {

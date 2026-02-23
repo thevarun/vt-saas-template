@@ -9,7 +9,6 @@ import {
   updateJobStatus,
 } from '@/libs/queries/memoryJobs';
 import { getConversationMessages } from '@/libs/queries/vercelMessages';
-import { createClient } from '@/libs/supabase/server';
 
 import { getMem0Client } from './client';
 import { isEnabled } from './config';
@@ -53,12 +52,7 @@ export async function processMemoryExtractionJobs(): Promise<{
         },
       });
 
-      const { cookies } = await import('next/headers');
-      const cookieStore = await cookies();
-      const supabase = createClient(cookieStore);
-
       const { data: messages, error: fetchError } = await getConversationMessages(
-        supabase,
         job.conversationId,
       );
 

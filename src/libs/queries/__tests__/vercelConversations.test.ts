@@ -35,8 +35,6 @@ const {
   deleteConversation,
 } = await import('../vercelConversations');
 
-const mockSupabase = {} as any;
-
 describe('vercelConversations queries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -62,7 +60,7 @@ describe('vercelConversations queries', () => {
       };
       mockLimit.mockResolvedValueOnce([mockConversation]);
 
-      const result = await getConversationById(mockSupabase, 'conv-1', 'user-1');
+      const result = await getConversationById('conv-1', 'user-1');
 
       expect(result).toHaveProperty('data');
       expect(result).toHaveProperty('error');
@@ -75,7 +73,7 @@ describe('vercelConversations queries', () => {
         throw new Error('DB connection failed');
       });
 
-      const result = await getConversationById(mockSupabase, 'conv-1', 'user-1');
+      const result = await getConversationById('conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -90,7 +88,7 @@ describe('vercelConversations queries', () => {
         throw { code: '23505', detail: 'duplicate key' };
       });
 
-      const result = await getConversationById(mockSupabase, 'conv-1', 'user-1');
+      const result = await getConversationById('conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -102,7 +100,7 @@ describe('vercelConversations queries', () => {
     it('returns { data: null, error: null } when not found', async () => {
       mockLimit.mockResolvedValueOnce([]);
 
-      const result = await getConversationById(mockSupabase, 'nonexistent', 'user-1');
+      const result = await getConversationById('nonexistent', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeNull();
@@ -112,7 +110,7 @@ describe('vercelConversations queries', () => {
       // DB returns empty when userId doesn't match
       mockLimit.mockResolvedValueOnce([]);
 
-      const result = await getConversationById(mockSupabase, 'conv-1', 'wrong-user');
+      const result = await getConversationById('conv-1', 'wrong-user');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeNull();
@@ -173,7 +171,7 @@ describe('vercelConversations queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockConversation]);
 
-      const result = await createConversation(mockSupabase, 'user-1', 'New Chat');
+      const result = await createConversation('user-1', 'New Chat');
 
       expect(result.data).toEqual(mockConversation);
       expect(result.error).toBeNull();
@@ -184,7 +182,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Insert failed');
       });
 
-      const result = await createConversation(mockSupabase, 'user-1', 'Test');
+      const result = await createConversation('user-1', 'Test');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -198,7 +196,7 @@ describe('vercelConversations queries', () => {
       ];
       mockOffset.mockResolvedValueOnce(mockConversations);
 
-      const result = await listUserConversations(mockSupabase, 'user-1', false, 10, 0);
+      const result = await listUserConversations('user-1', false, 10, 0);
 
       expect(result.data).toEqual(mockConversations);
       expect(result.error).toBeNull();
@@ -209,7 +207,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Query failed');
       });
 
-      const result = await listUserConversations(mockSupabase, 'user-1');
+      const result = await listUserConversations('user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -229,7 +227,7 @@ describe('vercelConversations queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockConversation]);
 
-      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Updated Title' }, 'user-1');
+      const result = await updateConversation('conv-1', { title: 'Updated Title' }, 'user-1');
 
       expect(result.data).toEqual(mockConversation);
       expect(result.error).toBeNull();
@@ -240,7 +238,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Update failed');
       });
 
-      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Fail' }, 'user-1');
+      const result = await updateConversation('conv-1', { title: 'Fail' }, 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -260,7 +258,7 @@ describe('vercelConversations queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockConversation]);
 
-      const result = await deleteConversation(mockSupabase, 'conv-1', 'user-1');
+      const result = await deleteConversation('conv-1', 'user-1');
 
       expect(result.data).toEqual(mockConversation);
       expect(result.error).toBeNull();
@@ -271,7 +269,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Delete failed');
       });
 
-      const result = await deleteConversation(mockSupabase, 'conv-1', 'user-1');
+      const result = await deleteConversation('conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();

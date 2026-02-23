@@ -10,8 +10,8 @@ import {
   notFoundError,
   unauthorizedError,
 } from '@/libs/api/errors';
+import { getThreadById, updateThread } from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
-import { getThreadById, updateThread } from '@/libs/supabase/threads';
 
 /**
  * PATCH /api/threads/[id]/archive
@@ -43,21 +43,21 @@ export async function PATCH(
     const { id } = await params;
 
     // First, fetch the current thread to get its archived status
-    // RLS ensures only user's own thread is returned
+    // userId WHERE filter enforces ownership
     const { data: currentThread, error: fetchError } = await getThreadById(
-      supabase,
       id,
+      user.id,
     );
 
     if (fetchError || !currentThread) {
       return notFoundError('Thread');
     }
 
-    // Toggle the archived status - RLS ensures user ownership
+    // Toggle the archived status - userId WHERE filter enforces ownership
     const { data: updatedThread, error: updateError } = await updateThread(
-      supabase,
       id,
       { archived: !currentThread.archived },
+      user.id,
     );
 
     if (updateError || !updatedThread) {

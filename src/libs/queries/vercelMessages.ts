@@ -1,12 +1,11 @@
 /**
  * Database query helpers for Vercel AI SDK messages
  *
- * All queries use Supabase client with RLS (Row Level Security) enabled.
- * Messages belong to conversations, which belong to users.
+ * All queries use Drizzle ORM. Messages belong to conversations, which belong to users.
+ * Authorization: Caller must verify user ownership before calling (no userId filter applied).
  */
 
 import * as Sentry from '@sentry/nextjs';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { asc, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
@@ -34,8 +33,8 @@ export type VercelMessage = {
  * Create a new message
  *
  * Stores user or assistant messages with optional metadata.
+ * Authorization: Caller must verify user ownership of conversation before calling.
  *
- * @param _supabase Supabase client with user context
  * @param conversationId Conversation UUID
  * @param role Message role (user, assistant, system)
  * @param content Message text
@@ -43,7 +42,6 @@ export type VercelMessage = {
  * @returns Created message data or error
  */
 export async function createMessage(
-  _supabase: SupabaseClient,
   conversationId: string,
   role: MessageRole,
   content: string,
@@ -106,15 +104,13 @@ export async function createMessage(
  * Get conversation messages
  *
  * Retrieves messages in chronological order (oldest first).
- * RLS ensures users can only access messages from their own conversations.
+ * Authorization: Caller must verify user ownership of conversation before calling.
  *
- * @param _supabase Supabase client with user context
  * @param conversationId Conversation UUID
  * @param limit Maximum number of messages to return (default: 100)
  * @returns List of messages or error
  */
 export async function getConversationMessages(
-  _supabase: SupabaseClient,
   conversationId: string,
   limit: number = 100,
 ): Promise<{ data: VercelMessage[] | null; error: DbQueryError | null }> {
@@ -155,14 +151,13 @@ export async function getConversationMessages(
  *
  * Allows updating token counts and latency after message creation.
  * Useful for streaming scenarios where metadata is available after completion.
+ * Authorization: Caller must verify user ownership of parent conversation before calling.
  *
- * @param _supabase Supabase client with user context
  * @param messageId Message UUID
  * @param metadata Token count and/or latency data
  * @returns Updated message data or error
  */
 export async function updateMessageMetadata(
-  _supabase: SupabaseClient,
   messageId: string,
   metadata: MessageMetadata,
 ): Promise<{ data: VercelMessage | null; error: DbQueryError | null }> {
