@@ -50,7 +50,7 @@ describe('ThreadListSidebar', () => {
     it('should fetch threads on mount and display them', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ threads: mockThreads, count: 2 }),
+        json: async () => ({ threads: mockThreads, total: 2 }),
       });
 
       render(<ThreadListSidebar />);
@@ -75,7 +75,7 @@ describe('ThreadListSidebar', () => {
 
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ threads: threadsWithArchived, count: 3 }),
+        json: async () => ({ threads: threadsWithArchived, total: 3 }),
       });
 
       render(<ThreadListSidebar />);
@@ -92,7 +92,7 @@ describe('ThreadListSidebar', () => {
     it('should navigate to /chat/dify when New Thread button is clicked', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ threads: mockThreads, count: 2 }),
+        json: async () => ({ threads: mockThreads, total: 2 }),
       });
 
       render(<ThreadListSidebar />);
@@ -112,7 +112,7 @@ describe('ThreadListSidebar', () => {
     it('should navigate to /chat/dify/[threadId] when thread is clicked', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ threads: mockThreads, count: 2 }),
+        json: async () => ({ threads: mockThreads, total: 2 }),
       });
 
       render(<ThreadListSidebar />);
@@ -133,7 +133,7 @@ describe('ThreadListSidebar', () => {
       (globalThis.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ threads: mockThreads, count: 2 }),
+          json: async () => ({ threads: mockThreads, total: 2 }),
         })
         .mockResolvedValueOnce({
           ok: true,
@@ -160,14 +160,14 @@ describe('ThreadListSidebar', () => {
       (globalThis.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ threads: mockThreads, count: 2 }),
+          json: async () => ({ threads: mockThreads, total: 2 }),
         })
         .mockResolvedValueOnce({
           ok: false,
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ threads: mockThreads, count: 2 }),
+          json: async () => ({ threads: mockThreads, total: 2 }),
         });
 
       render(<ThreadListSidebar />);
@@ -195,7 +195,7 @@ describe('ThreadListSidebar', () => {
               () =>
                 resolve({
                   ok: true,
-                  json: async () => ({ threads: mockThreads, count: 2 }),
+                  json: async () => ({ threads: mockThreads, total: 2 }),
                 }),
               100,
             ),
@@ -213,7 +213,7 @@ describe('ThreadListSidebar', () => {
     it('should display empty state when no threads exist', async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ threads: [], count: 0 }),
+        json: async () => ({ threads: [], total: 0 }),
       });
 
       render(<ThreadListSidebar />);

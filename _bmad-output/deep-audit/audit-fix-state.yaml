@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T15:30:00Z"
+last_updated: "2026-02-23T15:45:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -27,8 +27,8 @@ themes_completed:
   - T-007
   - T-008
   - T-009
-themes_pending:
   - T-010
+themes_pending:
   - T-013
 themes_skipped: []
 themes_failed: []
@@ -373,9 +373,37 @@ execution_log:
       - tests/integration/api/thread-persistence.test.ts
     validation: pass
     visual_check: N/A
-    commit: "pending"
+    commit: "92ee573"
     enrichment_turns: 38
     implementation_turns: 137
     fix_turns: 0
     model: "opus"
     completed_at: "2026-02-23T15:30:00Z"
+  - theme: "T-010"
+    name: "Standardize API Contracts and REST Conventions"
+    phase: 3
+    risk: MEDIUM
+    findings_addressed: ["F-081", "F-085", "F-086", "F-087", "F-088", "F-044"]
+    files_changed:
+      - src/app/api/chat/vercel/helpers.ts
+      - src/app/api/share/[token]/route.ts
+      - src/app/api/chat/messages/route.ts
+      - src/app/api/chat/messages/route.test.ts
+      - src/components/chat/ChatInterface.tsx
+      - src/app/api/threads/route.ts
+      - src/app/api/profile/delete/route.ts
+      - src/app/api/profile/delete/route.test.ts
+      - src/app/[locale]/(unauth)/share/[token]/page.tsx
+      - src/app/api/chat/vercel/__tests__/helpers.test.ts
+      - src/app/api/chat/vercel/__tests__/vercel-chat-route.test.ts
+      - src/app/api/share/__tests__/share-token-route.test.ts
+      - src/components/chat/ThreadListSidebar.test.tsx
+      - tests/integration/api/threads.test.ts
+    validation: pass
+    visual_check: N/A
+    commit: "pending"
+    enrichment_turns: 40
+    implementation_turns: 87
+    fix_turns: 0
+    model: "opus"
+    completed_at: "2026-02-23T15:45:00Z"

@@ -104,12 +104,11 @@ describe('DELETE /api/profile/delete', () => {
     expect(body.code).toBe('INTERNAL_ERROR');
   });
 
-  it('returns 200 and deletes user on valid authenticated request', async () => {
+  it('returns 204 No Content on successful deletion', async () => {
     const response = await DELETE();
-    const body = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(body.message).toBe('Account deleted successfully');
+    expect(response.status).toBe(204);
     expect(mockDeleteUser).toHaveBeenCalledWith(mockUser.id);
+    // 204 responses have no body - do not parse
   });
 });

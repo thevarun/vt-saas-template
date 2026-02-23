@@ -60,7 +60,7 @@ export async function GET(): Promise<Response> {
 
     return NextResponse.json({
       threads: userThreads ?? [],
-      count: userThreads?.length ?? 0,
+      total: userThreads?.length ?? 0,
     });
   } catch (error: unknown) {
     logApiError(error, {

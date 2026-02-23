@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 
-import { invalidRequestError } from '@/libs/api/errors';
+import { notFoundError } from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { queueMemoryExtraction } from '@/libs/mem0/queue';
@@ -100,7 +100,7 @@ export async function ensureConversation(
   if (conversationId) {
     const { data: existing, error } = await getConversationById(conversationId, userId);
     if (error || !existing) {
-      return { ok: false, error: invalidRequestError('Conversation not found') };
+      return { ok: false, error: notFoundError('Conversation') };
     }
     return { ok: true, conversationId, isNew: false };
   }

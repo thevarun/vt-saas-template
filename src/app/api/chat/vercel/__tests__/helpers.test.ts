@@ -8,8 +8,8 @@ vi.mock('@/libs/Logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
 }));
 vi.mock('@/libs/api/errors', () => ({
-  invalidRequestError: vi.fn((msg: string) =>
-    new Response(JSON.stringify({ error: msg, code: 'INVALID_REQUEST' }), { status: 400 }),
+  notFoundError: vi.fn((resource: string) =>
+    new Response(JSON.stringify({ error: `${resource} not found`, code: 'NOT_FOUND' }), { status: 404 }),
   ),
 }));
 
@@ -173,7 +173,7 @@ describe('ensureConversation', () => {
     expect(result).toEqual({ ok: true, conversationId: 'conv-1', isNew: false });
   });
 
-  it('returns ok: false for conversationId not found', async () => {
+  it('returns ok: false with 404 for conversationId not found', async () => {
     mockGetConversationById.mockResolvedValue({
       data: null,
       error: null,
@@ -185,7 +185,7 @@ describe('ensureConversation', () => {
 
     if (!result.ok) {
       expect(result.error).toBeInstanceOf(Response);
-      expect(result.error.status).toBe(400);
+      expect(result.error.status).toBe(404);
     }
   });
 

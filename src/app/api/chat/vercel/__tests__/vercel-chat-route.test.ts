@@ -356,7 +356,7 @@ describe('POST /api/chat/vercel', () => {
   // ─── Conversation Ownership Tests ──────────────────────────────────────────
 
   describe('conversation ownership', () => {
-    it('returns 400 when conversationId not found for user', async () => {
+    it('returns 404 when conversationId not found for user', async () => {
       mockAuth({ id: 'user-1' });
 
       mockGetConversationById.mockResolvedValue({
@@ -369,7 +369,7 @@ describe('POST /api/chat/vercel', () => {
         conversationId: '550e8400-e29b-41d4-a716-446655440001',
       }));
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
 
       const body = await response.json();
 

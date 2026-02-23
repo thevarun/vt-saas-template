@@ -256,7 +256,7 @@ function ChatInterfaceInner({ threadId, conversationId: initialConversationId }:
     return {
       async load() {
         try {
-          const response = await fetch(`/api/chat/messages?conversation_id=${conversationId}`);
+          const response = await fetch(`/api/chat/messages?conversationId=${conversationId}`);
           if (!response.ok) {
             console.error('[ChatInterface] Failed to load message history, status:', response.status);
             return { headId: null, messages: [] };

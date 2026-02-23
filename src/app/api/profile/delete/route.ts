@@ -21,7 +21,7 @@ import { createClient } from '@/libs/supabase/server';
  * 2. SUPABASE_SERVICE_ROLE_KEY configured (admin operations require service role)
  *
  * Returns:
- * - 200: Account deleted successfully
+ * - 204: Account deleted successfully (No Content)
  * - 401: User not authenticated
  * - 503: Service role key not configured
  * - 500: Unexpected error during deletion
@@ -75,10 +75,7 @@ export async function DELETE(): Promise<NextResponse> {
 
     logger.info({ userId: user.id }, 'User account deleted successfully');
 
-    return NextResponse.json(
-      { message: 'Account deleted successfully' },
-      { status: 200 },
-    );
+    return new NextResponse(null, { status: 204 });
   } catch (error: any) {
     logApiError(error, {
       endpoint: '/api/profile/delete',
