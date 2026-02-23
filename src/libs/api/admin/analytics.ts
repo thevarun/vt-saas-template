@@ -1,14 +1,12 @@
 import type { User } from '@supabase/supabase-js';
 
 import { db } from '@/libs/DB';
-import { createAdminClient } from '@/libs/supabase/admin';
+import { fetchAllUsers } from '@/libs/queries/metrics';
+import type { TrendData } from '@/libs/utils/calculateTrend';
+import { calculateTrend } from '@/libs/utils/calculateTrend';
 import { feedback, userPreferences } from '@/models/Schema';
 
-export type TrendData = {
-  direction: 'up' | 'down' | 'neutral';
-  value: string;
-  percentage: number;
-};
+export type { TrendData } from '@/libs/utils/calculateTrend';
 
 export type AnalyticsMetrics = {
   totalUsers: { value: number; trend: TrendData };
@@ -20,82 +18,6 @@ export type AnalyticsMetrics = {
   feedbackCount: { value: number; trend: TrendData };
   signupsChart: Array<{ date: string; signups: number }>;
 };
-
-/**
- * Calculate trend data comparing current vs previous period
- */
-export function calculateTrend(current: number, previous: number): TrendData {
-  if (previous === 0) {
-    if (current === 0) {
-      return {
-        direction: 'neutral',
-        value: 'No change',
-        percentage: 0,
-      };
-    }
-    return {
-      direction: 'up',
-      value: '+100%',
-      percentage: 100,
-    };
-  }
-
-  const percentageChange = ((current - previous) / previous) * 100;
-  const rounded = Math.round(percentageChange * 10) / 10;
-
-  if (rounded > 0) {
-    return {
-      direction: 'up',
-      value: `+${rounded}%`,
-      percentage: rounded,
-    };
-  }
-
-  if (rounded < 0) {
-    return {
-      direction: 'down',
-      value: `${rounded}%`,
-      percentage: rounded,
-    };
-  }
-
-  return {
-    direction: 'neutral',
-    value: 'No change',
-    percentage: 0,
-  };
-}
-
-/**
- * Fetch all users across all pages from Supabase Auth admin API.
- * The API defaults to 50 users per page, so we must paginate.
- */
-async function listAllUsers(): Promise<User[]> {
-  const supabase = createAdminClient();
-  const allUsers: User[] = [];
-  let page = 1;
-  const perPage = 1000;
-
-  while (true) {
-    const { data, error } = await supabase.auth.admin.listUsers({
-      page,
-      perPage,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    allUsers.push(...data.users);
-
-    if (data.users.length < perPage) {
-      break;
-    }
-    page++;
-  }
-
-  return allUsers;
-}
 
 /**
  * Get total users count (all time)
@@ -282,7 +204,7 @@ function getSignupsChartData(users: User[]): Array<{ date: string; signups: numb
 export async function getAnalyticsMetrics(): Promise<AnalyticsMetrics> {
   // Fetch all users (paginated) and feedback count in parallel
   const [users, feedbackCountData] = await Promise.all([
-    listAllUsers(),
+    fetchAllUsers(),
     getFeedbackCount(),
   ]);
 

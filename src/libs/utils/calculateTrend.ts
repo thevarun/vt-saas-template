@@ -29,3 +29,15 @@ export function calculateTrend(current: number, previous: number): TrendData {
     isPositive: change > 0,
   };
 }
+
+/**
+ * Formats a TrendData value into a human-readable string for display.
+ * Examples: "+20%", "-20%", "No change"
+ */
+export function formatTrendValue(trend: TrendData): string {
+  if (trend.direction === 'neutral') {
+    return 'No change';
+  }
+  const prefix = trend.isPositive ? '+' : '-';
+  return `${prefix}${trend.percentage}%`;
+}

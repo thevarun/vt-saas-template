@@ -6,12 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
-type TrendData = {
-  direction: 'up' | 'down' | 'neutral';
-  value: string;
-  percentage: number;
-};
+import type { TrendData } from '@/libs/utils/calculateTrend';
+import { formatTrendValue } from '@/libs/utils/calculateTrend';
 
 type AnalyticsMetricCardProps = {
   label: string;
@@ -66,7 +62,7 @@ export function AnalyticsMetricCard({ label, value, trend }: AnalyticsMetricCard
         {trend && (
           <div className={`flex items-center gap-1 text-sm ${getTrendColor()}`}>
             {getTrendIcon()}
-            <span>{trend.value}</span>
+            <span>{formatTrendValue(trend)}</span>
           </div>
         )}
       </CardHeader>
