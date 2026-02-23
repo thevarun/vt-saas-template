@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T15:45:00Z"
+last_updated: "2026-02-23T16:00:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -11,7 +11,7 @@ git:
 
 baseline_validation: "pass"
 
-current_phase: 3
+current_phase: "complete"
 current_theme: null
 
 themes_completed:
@@ -28,8 +28,8 @@ themes_completed:
   - T-008
   - T-009
   - T-010
-themes_pending:
   - T-013
+themes_pending: []
 themes_skipped: []
 themes_failed: []
 
@@ -401,9 +401,36 @@ execution_log:
       - tests/integration/api/threads.test.ts
     validation: pass
     visual_check: N/A
-    commit: "pending"
+    commit: "c7cefe5"
     enrichment_turns: 40
     implementation_turns: 87
     fix_turns: 0
     model: "opus"
     completed_at: "2026-02-23T15:45:00Z"
+  - theme: "T-013"
+    name: "Fix Remaining Performance Issues"
+    phase: 4
+    risk: MEDIUM
+    findings_addressed: ["F-016", "F-022", "F-023", "F-056", "F-059"]
+    files_changed:
+      - src/libs/mem0/worker.ts
+      - src/libs/queries/mem0Memories.ts
+      - src/components/analytics/PostHogProvider.tsx
+      - src/components/analytics/__tests__/PostHogProvider.test.tsx
+      - src/libs/analytics/providers/posthog.ts
+      - src/libs/analytics/providers/__tests__/posthog.test.ts
+      - src/libs/analytics/types.ts
+      - src/components/chat/vercel/ConversationListSidebar.tsx
+      - src/components/chat/ThreadListSidebar.tsx
+      - .github/workflows/CI.yml
+      - src/components/ui/__tests__/skeleton.test.tsx
+      - src/components/ui/__tests__/spinner.test.tsx
+      - src/components/ui/__tests__/loading-card.test.tsx
+    validation: pass
+    visual_check: N/A
+    commit: "pending"
+    enrichment_turns: 29
+    implementation_turns: 84
+    fix_turns: 0
+    model: "opus"
+    completed_at: "2026-02-23T16:00:00Z"

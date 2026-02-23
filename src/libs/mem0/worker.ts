@@ -3,11 +3,12 @@
 import * as Sentry from '@sentry/nextjs';
 
 import { logger } from '@/libs/Logger';
-import { createMemory } from '@/libs/queries/mem0Memories';
+import { createMemories } from '@/libs/queries/mem0Memories';
 import {
   getPendingJobs,
   updateJobStatus,
 } from '@/libs/queries/memoryJobs';
+import { getConversationByIdAdmin } from '@/libs/queries/vercelConversations';
 import { getConversationMessages } from '@/libs/queries/vercelMessages';
 
 import { getMem0Client } from './client';
@@ -62,8 +63,7 @@ export async function processMemoryExtractionJobs(): Promise<{
         );
       }
 
-      const conversationQuery = await import('@/libs/queries/vercelConversations');
-      const { data: conversation } = await conversationQuery.getConversationByIdAdmin(
+      const { data: conversation } = await getConversationByIdAdmin(
         job.conversationId,
       );
 
@@ -97,20 +97,32 @@ export async function processMemoryExtractionJobs(): Promise<{
       );
 
       if (memories && Array.isArray(memories)) {
-        for (const memoryData of memories) {
-          const memoryText = memoryData.memory
-            || memoryData.data?.memory
-            || '';
-
-          if (memoryText) {
-            await createMemory(
+        const memoryRows = memories
+          .map((memoryData) => {
+            const memoryText = memoryData.memory
+              || memoryData.data?.memory
+              || '';
+            if (!memoryText) {
+              return null;
+            }
+            return {
               userId,
-              job.conversationId,
+              conversationId: job.conversationId,
               memoryText,
-              memoryData.memory_type || undefined,
-              memoryData.metadata || null,
-            );
-          }
+              memoryType: memoryData.memory_type || null,
+              metadata: memoryData.metadata || null,
+            };
+          })
+          .filter(Boolean) as {
+          userId: string;
+          conversationId: string;
+          memoryText: string;
+          memoryType: string | null;
+          metadata: any;
+        }[];
+
+        if (memoryRows.length > 0) {
+          await createMemories(memoryRows);
         }
       }
 
