@@ -21,32 +21,11 @@ import {
   updateThread,
 } from '@/libs/supabase/threads';
 
-/**
- * POST /api/chat
- *
- * Chat API endpoint for the Dify implementation.
- * Proxies chat requests to Dify API while keeping the API key server-side.
- * Used by the /chat/dify route.
- *
- * Note: This route serves the Dify chat implementation. The Vercel AI SDK
- * implementation (Story 10.7) will use a separate endpoint at /api/chat/vercel.
- *
- * SSE Streaming Pattern: Proxy external API stream to client
- * See: docs/patterns/sse-streaming.md for full documentation
- */
+/** Dify chat proxy endpoint. Validates Supabase session and streams SSE responses from Dify API. */
 
-/**
- * Parse SSE event data from chunk
- *
- * Extracts JSON data from Server-Sent Events (SSE) format.
- * SSE format: "data: {json}\n\n"
- *
- * @param chunk Raw SSE chunk string
- * @returns Parsed JSON object or null if parsing fails
- */
+/** Parse JSON data from an SSE-formatted chunk (e.g. "data: {json}\n\n"). */
 function parseSSEEvent(chunk: string): Record<string, any> | null {
   try {
-    // SSE format: "data: {json}\n\n"
     const dataMatch = chunk.match(/data: (.+)/);
     if (!dataMatch?.[1]) {
       return null;
@@ -59,22 +38,7 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
   }
 }
 
-/**
- * Create or update thread after receiving Dify response
- *
- * AC #2: Thread auto-created in database after first Dify response
- * AC #3: Thread creation happens asynchronously (doesn't block chat response)
- * AC #4: Thread updated_at timestamp updates on new messages
- * AC #5: last_message_preview stores first 100 characters of last message
- * AC #6: Duplicate conversation_id handled gracefully
- *
- * Uses Supabase client for RLS enforcement - user can only access their own threads
- *
- * @param supabase Supabase client instance (with user context for RLS)
- * @param userId User ID who owns the thread
- * @param conversationId Dify conversation ID
- * @param messageText Last message text for preview generation
- */
+/** Create or update a thread record after receiving a Dify response. Uses RLS for ownership enforcement. */
 async function createOrUpdateThread(
   supabase: SupabaseClient,
   userId: string,
@@ -88,7 +52,6 @@ async function createOrUpdateThread(
       data: { conversationId, userId },
     });
 
-    // Check if thread already exists - RLS ensures only user's own thread is returned
     const { data: existingThread, error: fetchError } = await getThreadByConversationId(
       supabase,
       conversationId,
@@ -99,7 +62,7 @@ async function createOrUpdateThread(
     }
 
     if (existingThread) {
-      // AC #4 & #5: Update existing thread metadata
+      // Update existing thread metadata
       const lastMessagePreview = messageText.slice(0, 100);
 
       const { error: updateError } = await updateThread(
@@ -120,7 +83,7 @@ async function createOrUpdateThread(
 
       logger.info({ threadId: existingThread.id, conversationId }, 'Thread metadata updated');
     } else {
-      // AC #2: Create new thread - RLS ensures user_id matches auth.uid()
+      // Create new thread
       const title = messageText.slice(0, 50) || 'New Conversation';
       const lastMessagePreview = messageText.slice(0, 100);
 
@@ -149,7 +112,7 @@ async function createOrUpdateThread(
       }
     }
   } catch (error: any) {
-    // AC #3: Errors don't block chat response
+    // Errors don't block chat response
     Sentry.addBreadcrumb({
       category: 'thread',
       level: 'error',
@@ -159,36 +122,13 @@ async function createOrUpdateThread(
 
     Sentry.captureException(error);
     logger.error({ error, conversationId }, 'Thread persistence failed');
-    // Don't throw - chat already succeeded
   }
 }
 
-/**
- * POST /api/chat
- * Chat endpoint that validates Supabase session and proxies to Dify API
- *
- * Acceptance Criteria:
- * - AC #1: Validates Supabase session before proxying requests
- * - AC #2: Unauthorized requests return 401 with appropriate error message
- * - AC #3: Valid requests successfully proxy to Dify API
- * - AC #4: Streaming responses (SSE) work correctly from Dify through proxy to client
- * - AC #5: Dify API errors are caught and returned as appropriate HTTP responses
- * - AC #6: Dify API key is never exposed to client-side code (handled by server-side only)
- *
- * Story 3.2 - Thread Persistence:
- * - AC #1: Captures conversation_id from Dify SSE stream metadata
- * - AC #2-6: Auto-creates/updates threads (see createOrUpdateThread function)
- * - AC #8: Sentry breadcrumbs added for thread creation debugging
- *
- * Rate Limiting Considerations (Future Work):
- * - Implement rate limiting per user (e.g., 60 requests/minute) using Upstash Redis or similar
- * - Consider implementing exponential backoff for Dify API errors
- * - Add request queuing during peak load to prevent overwhelming Dify API
- * - Monitor Dify API usage to stay within plan limits (track via middleware or separate service)
- */
+/** Chat endpoint that validates Supabase session and proxies streaming requests to Dify API. */
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    // AC #1: Validate Supabase session
+    // Validate Supabase session
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const {
@@ -196,7 +136,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       error: authError,
     } = await supabase.auth.getUser();
 
-    // AC #2: Return 401 for unauthorized requests
     if (authError || !user) {
       return unauthorizedError();
     }
@@ -205,12 +144,10 @@ export async function POST(request: NextRequest): Promise<Response> {
     const body = await request.json();
     const { message, conversationId } = body;
 
-    // Validate message
     if (!message || typeof message !== 'string') {
       return invalidRequestError('Message is required');
     }
 
-    // Validate message size (max 10,000 characters)
     if (message.length > 10000) {
       return invalidRequestError('Message exceeds maximum length of 10,000 characters');
     }
@@ -221,14 +158,13 @@ export async function POST(request: NextRequest): Promise<Response> {
         return invalidRequestError('Conversation ID must be a string');
       }
 
-      // Validate format: alphanumeric + hyphens, max 128 chars
       const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;
       if (!conversationIdPattern.test(conversationId)) {
         return invalidRequestError('Conversation ID must be alphanumeric with hyphens, max 128 characters');
       }
     }
 
-    // AC #3: Proxy request to Dify API
+    // Proxy request to Dify API
     const difyClient = createDifyClient();
     const difyRequest: DifyChatRequest = {
       query: message,
@@ -240,27 +176,19 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const stream = await difyClient.chatMessages(difyRequest);
 
-    // AC #4: Stream SSE response back to client
-    // The Dify API returns a ReadableStream in streaming mode
     if (!(stream instanceof ReadableStream)) {
-      // Should not happen for streaming mode, but handle gracefully
       return NextResponse.json(stream);
     }
 
-    // Story 3.2 AC #1: Capture conversation_id and message from SSE stream
-    // We use a TransformStream to intercept the SSE data while streaming to client
-    // This allows us to extract metadata without blocking the response
-    // See: docs/patterns/sse-streaming.md#dify-api-integration
+    // Capture conversation_id and message from SSE stream for thread persistence
     let capturedConversationId: string | null = null;
     let capturedAnswer = '';
     const decoder = new TextDecoder();
 
     const transformStream = new TransformStream({
       transform(chunk, controller) {
-        // Decode chunk to string
         const text = decoder.decode(chunk, { stream: true });
 
-        // Parse SSE events to extract conversation_id and answer
         const event = parseSSEEvent(text);
         if (event) {
           if (event.conversation_id && !capturedConversationId) {
@@ -272,20 +200,17 @@ export async function POST(request: NextRequest): Promise<Response> {
             });
           }
 
-          // Accumulate answer text for thread preview
           if (event.answer) {
             capturedAnswer += event.answer;
           }
         }
 
-        // Pass through all data to client
         controller.enqueue(chunk);
       },
 
       async flush() {
-        // AC #3: Async thread creation after stream completes
+        // Async thread creation after stream completes (fire-and-forget)
         if (capturedConversationId && capturedAnswer) {
-          // Fire-and-forget: Don't await, don't block response
           Promise.resolve().then(async () => {
             await createOrUpdateThread(supabase, user.id, capturedConversationId!, capturedAnswer);
           });
@@ -298,20 +223,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       },
     });
 
-    // Pipe Dify stream through transform
     const transformedStream = stream.pipeThrough(transformStream);
 
-    // Return streaming response with proper SSE headers
-    // See: docs/patterns/sse-streaming.md#required-headers
     return new Response(transformedStream, {
       headers: {
-        'Content-Type': 'text/event-stream', // Required: Tells browser this is SSE
-        'Cache-Control': 'no-cache', // Prevent caching of stream
-        'Connection': 'keep-alive', // Keep connection open
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
       },
     });
   } catch (error: any) {
-    // AC #5: Handle Dify API errors
     logApiError(error, {
       endpoint: '/api/chat',
       method: 'POST',
@@ -319,7 +240,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       statusCode: error.status || 500,
     });
 
-    // Handle Dify-specific errors with custom codes (e.g., rate limit)
     if (error.status && error.code) {
       return NextResponse.json(
         {
@@ -330,7 +250,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    // Handle Dify-specific errors without custom codes
     if (error.status) {
       return difyError(
         error.message || 'AI service temporarily unavailable',
@@ -338,7 +257,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    // Generic error
     return internalError();
   }
 }
