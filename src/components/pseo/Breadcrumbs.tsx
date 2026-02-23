@@ -13,6 +13,7 @@
 import Link from 'next/link';
 
 import type { PseoCategory } from '@/libs/pseo/data';
+import { getSiteUrl } from '@/libs/seo/config';
 
 type BreadcrumbsProps = {
   category: PseoCategory;
@@ -37,7 +38,7 @@ export function Breadcrumbs({ category, pageTitle, locale, articlesLabel = 'Arti
       '@type': 'ListItem',
       'position': index + 1,
       'name': item.name,
-      ...(item.href && { item: `${process.env.NEXT_PUBLIC_APP_URL || ''}${item.href}` }),
+      ...(item.href && { item: `${getSiteUrl()}${item.href}` }),
     })),
   };
 

@@ -7,9 +7,9 @@ export const CenteredHero = (props: {
   <>
     {props.banner && <div className="text-center">{props.banner}</div>}
 
-    <div className="mt-3 text-center text-5xl font-bold tracking-tight">
+    <h1 className="mt-3 text-center text-5xl font-bold tracking-tight">
       {props.title}
-    </div>
+    </h1>
 
     <div className="mx-auto mt-5 max-w-(--breakpoint-md) text-center text-xl text-muted-foreground">
       {props.description}

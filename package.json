@@ -95,6 +95,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^7.2.0",
     "@assistant-ui/react-devtools": "^0.2.3",
+    "@axe-core/playwright": "^4.11.1",
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
     "@commitlint/cz-commitlint": "^20.4.1",

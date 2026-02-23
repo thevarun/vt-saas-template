@@ -8,6 +8,7 @@ import { Toaster as SonnerToaster } from 'sonner';
 import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ThemeProvider } from '@/components/theme';
 import { Toaster } from '@/components/ui/toaster';
+import { getSiteUrl } from '@/libs/seo/config';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -45,6 +46,7 @@ export function generateMetadata(): Metadata {
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
     alternates: {
+      canonical: `${getSiteUrl()}/`,
       languages,
     },
     ...socialMetadata,
