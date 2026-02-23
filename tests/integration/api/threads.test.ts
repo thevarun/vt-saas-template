@@ -142,7 +142,7 @@ describe('/api/threads endpoints', () => {
 
       expect(response.status).toBe(200);
       expect(data.threads).toHaveLength(2);
-      expect(data.count).toBe(2);
+      expect(data.total).toBe(2);
     });
   });
 

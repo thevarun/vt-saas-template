@@ -45,40 +45,55 @@ describe('GET /api/chat/messages', () => {
     });
   });
 
-  it('returns 400 when conversation_id is missing', async () => {
+  it('returns 400 when conversationId is missing', async () => {
     const request = new Request('http://localhost/api/chat/messages');
     const response = await GET(request);
 
     expect(response.status).toBe(400);
   });
 
-  it('returns 400 when conversation_id contains SQL injection characters', async () => {
-    const request = new Request('http://localhost/api/chat/messages?conversation_id=\'; DROP TABLE --');
+  it('returns error referencing conversationId in message', async () => {
+    const request = new Request('http://localhost/api/chat/messages');
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(body.error).toContain('conversationId');
+  });
+
+  it('returns 400 when conversationId contains SQL injection characters', async () => {
+    const request = new Request('http://localhost/api/chat/messages?conversationId=\'; DROP TABLE --');
     const response = await GET(request);
 
     expect(response.status).toBe(400);
   });
 
-  it('returns 400 when conversation_id is longer than 128 characters', async () => {
+  it('returns 400 when conversationId is longer than 128 characters', async () => {
     const longId = 'a'.repeat(129);
-    const request = new Request(`http://localhost/api/chat/messages?conversation_id=${longId}`);
+    const request = new Request(`http://localhost/api/chat/messages?conversationId=${longId}`);
     const response = await GET(request);
 
     expect(response.status).toBe(400);
   });
 
-  it('returns 400 when conversation_id contains path traversal characters', async () => {
-    const request = new Request('http://localhost/api/chat/messages?conversation_id=../../../etc/passwd');
+  it('returns 400 when conversationId contains path traversal characters', async () => {
+    const request = new Request('http://localhost/api/chat/messages?conversationId=../../../etc/passwd');
     const response = await GET(request);
 
     expect(response.status).toBe(400);
   });
 
-  it('accepts valid alphanumeric-with-hyphens conversation_id', async () => {
-    const request = new Request('http://localhost/api/chat/messages?conversation_id=abc-123-def-456');
+  it('accepts valid alphanumeric-with-hyphens conversationId', async () => {
+    const request = new Request('http://localhost/api/chat/messages?conversationId=abc-123-def-456');
     const response = await GET(request);
 
     // Should not be 400 (might be 200 or 500 depending on Dify mock)
+    expect(response.status).not.toBe(400);
+  });
+
+  it('accepts legacy conversation_id param for backward compatibility', async () => {
+    const request = new Request('http://localhost/api/chat/messages?conversation_id=abc-123');
+    const response = await GET(request);
+
     expect(response.status).not.toBe(400);
   });
 
@@ -92,7 +107,7 @@ describe('GET /api/chat/messages', () => {
       },
     });
 
-    const request = new Request('http://localhost/api/chat/messages?conversation_id=abc-123');
+    const request = new Request('http://localhost/api/chat/messages?conversationId=abc-123');
     const response = await GET(request);
 
     expect(response.status).toBe(401);

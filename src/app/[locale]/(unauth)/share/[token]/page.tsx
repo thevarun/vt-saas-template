@@ -141,13 +141,12 @@ export default async function SharePage(props: SharePageProps) {
 
           <div className="rounded-lg bg-muted p-8 text-center">
             <p className="text-muted-foreground">
-              Resource ID:
-              {' '}
-              <span className="font-mono">{link.resourceId}</span>
+              This shared content is not yet available for viewing.
             </p>
-            <p className="mt-4 text-sm text-muted-foreground">
-              This is a template placeholder. In your implementation, fetch and display
-              the actual resource content here based on resourceType and resourceId.
+            <p className="mt-2 text-sm text-muted-foreground">
+              Resource type:
+              {' '}
+              <span className="font-mono">{link.resourceType}</span>
             </p>
           </div>
 

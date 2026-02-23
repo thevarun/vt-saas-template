@@ -134,7 +134,7 @@ export async function PATCH(
       );
 
     if (!link) {
-      return notFoundError('Share link not found');
+      return notFoundError('Share link');
     }
 
     const now = new Date();

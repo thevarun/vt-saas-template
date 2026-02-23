@@ -14,7 +14,7 @@ import { createClient } from '@/libs/supabase/server';
 /**
  * GET /api/chat/messages
  * Fetches conversation message history from Dify
- * Requires authentication and conversation_id query parameter
+ * Requires authentication and conversationId query parameter
  */
 export async function GET(request: Request) {
   try {
@@ -27,12 +27,13 @@ export async function GET(request: Request) {
       return unauthorizedError();
     }
 
-    // Get conversation_id from query params
+    // Get conversationId from query params (accept legacy snake_case for backward compat)
     const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversation_id');
+    const conversationId = searchParams.get('conversationId')
+      || searchParams.get('conversation_id');
 
     if (!conversationId) {
-      return invalidRequestError('conversation_id is required');
+      return invalidRequestError('conversationId is required');
     }
 
     const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;

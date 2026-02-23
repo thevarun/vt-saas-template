@@ -145,4 +145,31 @@ describe('PATCH /api/share/[token]', () => {
 
     expect(response.status).toBe(401);
   });
+
+  it('returns 404 with correct "Share link not found" message (not doubled)', async () => {
+    vi.mocked(cookies).mockResolvedValue({} as any);
+    vi.mocked(createClient).mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }),
+      },
+    } as any);
+
+    // Link not found by token + userId
+    mockSelectWhere.mockResolvedValueOnce([]);
+
+    const request = new NextRequest('http://localhost:3000/api/share/missing-token', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: false }),
+    });
+    const response = await PATCH(request, { params: Promise.resolve({ token: 'missing-token' }) });
+
+    expect(response.status).toBe(404);
+
+    const body = await response.json();
+
+    expect(body.error).toBe('Share link not found');
+    // Must NOT be "Share link not found not found"
+    expect(body.error).not.toContain('not found not found');
+  });
 });
