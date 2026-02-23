@@ -1,6 +1,6 @@
 # Project Overview
 
-**Generated:** 2026-02-20 | **Version:** 1.8.0
+**Generated:** 2026-02-23 | **Version:** 1.8.0 | **Updated:** Rescan (quick)
 **Type:** Full-stack Next.js Web Application (Monolith)
 
 ---
@@ -53,9 +53,9 @@ A production-ready foundation for building SaaS web applications, designed for a
 
 **Serverless full-stack monolith** with:
 - Server-rendered pages (SSR/SSG)
-- 33 API route endpoints
-- Middleware for auth + i18n + routing
-- 162 React components
+- 31 API route endpoints
+- Middleware for auth + i18n + routing (`src/proxy.ts`)
+- 138 React components
 - 9 database tables in custom `vt_saas` schema
 
 ---
@@ -64,23 +64,24 @@ A production-ready foundation for building SaaS web applications, designed for a
 
 | Metric | Value |
 |--------|-------|
-| API Endpoints | 33 |
-| React Components | 162 (~78 client) |
+| API Endpoints | 31 |
+| React Components | 138 (~70 client) |
 | Database Tables | 9 |
-| SQL Migrations | 11 |
+| SQL Migrations | 7 |
 | Custom Hooks | 5 |
-| CI/CD Workflows | 6 |
+| CI/CD Workflows | 5 |
 | Supported Languages | 3 (en, hi, bn) |
-| Email Templates | 3+ |
+| E2E Test Files | 22 |
+| Total Test Files | ~100+ |
 
 ---
 
 ## Quick Links
 
 - [Architecture](./architecture.md) - System design and patterns
-- [API Contracts](./api-contracts.md) - All 33 API endpoints
-- [Data Models](./data-models.md) - Database schema
-- [Component Inventory](./component-inventory.md) - All 162 components
+- [API Contracts](./api-contracts.md) - All 31 API endpoints
+- [Data Models](./data-models.md) - Database schema (9 tables)
+- [Component Inventory](./component-inventory.md) - All 138 components
 - [Source Tree](./source-tree-analysis.md) - Directory structure
 - [Development Guide](./development-guide.md) - Setup and workflows
 - [Deployment Guide](./deployment-guide.md) - CI/CD and hosting

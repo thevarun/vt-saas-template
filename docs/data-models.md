@@ -1,6 +1,6 @@
 # Data Models
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep | **ORM:** Drizzle ORM 0.45.1 | **Database:** PostgreSQL
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan) | **ORM:** Drizzle ORM 0.45.1 | **Database:** PostgreSQL
 
 ---
 
@@ -8,7 +8,7 @@
 
 Custom `vt_saas` schema isolates project tables from `public`. All tables use UUID primary keys and timestamps.
 
-**Schema File:** `src/models/Schema.ts` | **Migrations:** `migrations/` (11 files)
+**Schema File:** `src/models/Schema.ts` | **Migrations:** `migrations/` (7 SQL files + meta)
 
 ---
 

@@ -1,6 +1,6 @@
 # System Architecture
 
-**Generated:** 2026-02-20 | **Scan Level:** Deep
+**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan)
 **Architecture:** Serverless Full-stack Monolith | **Framework:** Next.js 16 (App Router)
 
 ---
@@ -123,7 +123,7 @@ Admin Check: user.app_metadata.is_admin || ADMIN_EMAILS
     |-- PGlite for local development
 ```
 
-**9 tables, 2 enums, 11 migrations**
+**9 tables, 2 enums, 7 migrations**
 
 ---
 
@@ -166,18 +166,18 @@ OpenAI/Anthropic API → SSE stream → Client
 
 ```
 [Design System - src/components/ui/]
-    |-- 34 shadcn/ui primitives (Radix UI)
+    |-- 37 shadcn/ui primitives (Radix UI)
     |-- Tailwind CSS v4 styling
     |-- Dark mode via next-themes
     |
     v
 [Feature Components]
-    |-- Admin (28) - User mgmt, analytics, audit, feedback
+    |-- Admin (30) - User mgmt, analytics, audit, feedback
     |-- Chat (16) - Dify + Vercel implementations
-    |-- Landing (8) - Hero, features, CTA
-    |-- Onboarding (5) - Username, preferences, tour
-    |-- Share (5) - Link generation, management
-    |-- Dashboard (6) - Welcome, actions, profile
+    |-- Landing (9) - Hero, features, CTA
+    |-- Onboarding (8) - Username, preferences, tour
+    |-- Share (8) - Link generation, management
+    |-- Dashboard (5) - Welcome, actions, profile
     |
     v
 [Layouts]
@@ -238,10 +238,11 @@ Components: PostHogProvider, LandingPageTracker, UserIdentifier
 
 ## Security
 
-- **Headers:** HSTS, X-Frame-Options DENY, nosniff, CSP
-- **Auth:** Server-side session validation on all protected routes
+- **Headers:** HSTS, X-Frame-Options DENY, nosniff, Permissions-Policy
+- **Auth:** Centralized API auth infrastructure with server-side session validation
 - **API Keys:** Never exposed to client (Dify, OpenAI via server proxy)
 - **RLS:** Row-level security on database tables
 - **Admin:** Double-check via metadata + ADMIN_EMAILS
 - **Share Tokens:** 256-bit crypto-random, expiration support
 - **CSRF:** SameSite cookies via Supabase SSR
+- **Dependency Overrides:** Pinned axios, cookie, esbuild, glob for security patches
