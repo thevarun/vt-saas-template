@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server';
 
 import {
   formatZodErrors,
+  internalError,
+  invalidRequestError,
+  logApiError,
   unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
@@ -24,7 +27,6 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Auth check
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const {
@@ -35,8 +37,13 @@ export async function POST(request: NextRequest) {
       return unauthorizedError();
     }
 
-    // Parse and validate request body
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
+    }
+
     const validation = createShareLinkSchema.safeParse(body);
 
     if (!validation.success) {
@@ -45,10 +52,8 @@ export async function POST(request: NextRequest) {
 
     const { resourceType, resourceId, expiresAt } = validation.data;
 
-    // Generate cryptographically secure token (256 bits of entropy)
     const token = randomBytes(32).toString('base64url');
 
-    // Insert into database
     const [newLink] = await db
       .insert(shareableLinks)
       .values({
@@ -61,17 +66,11 @@ export async function POST(request: NextRequest) {
       .returning();
 
     if (!newLink) {
-      return NextResponse.json(
-        { error: 'Failed to create share link' },
-        { status: 500 },
-      );
+      return internalError('Failed to create share link');
     }
 
-    // Construct full URL
     const baseUrl = new URL(request.url).origin;
     const url = `${baseUrl}/share/${token}`;
-
-    // TODO: Analytics — event: "share_link_created", properties: { resourceType }
 
     const response: CreateShareLinkResponse = {
       token: newLink.token,
@@ -81,11 +80,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating share link:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/share',
+      method: 'POST',
+    });
+    return internalError();
   }
 }
 
@@ -95,7 +94,6 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   try {
-    // Auth check
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const {
@@ -106,7 +104,6 @@ export async function GET() {
       return unauthorizedError();
     }
 
-    // Query user's share links
     const links = await db
       .select()
       .from(shareableLinks)
@@ -122,10 +119,10 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching share links:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/share',
+      method: 'GET',
+    });
+    return internalError();
   }
 }

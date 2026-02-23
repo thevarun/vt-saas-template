@@ -7,6 +7,8 @@ import {
   internalError,
   invalidRequestError,
   logApiError,
+  rateLimitError,
+  timeoutError,
   unauthorizedError,
 } from '@/libs/api/errors';
 import { logger } from '@/libs/Logger';
@@ -296,32 +298,11 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     if (error.message?.includes('timeout')) {
-      return new Response(
-        JSON.stringify({
-          error: 'Request timeout',
-          code: 'TIMEOUT',
-        }),
-        {
-          status: 408,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      return timeoutError();
     }
 
     if (error.message?.includes('rate limit')) {
-      return new Response(
-        JSON.stringify({
-          error: 'Rate limit exceeded. Please try again later.',
-          code: 'RATE_LIMIT',
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': '60',
-          },
-        },
-      );
+      return rateLimitError();
     }
 
     return internalError();

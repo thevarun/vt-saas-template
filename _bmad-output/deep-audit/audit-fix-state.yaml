@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T12:00:00Z"
+last_updated: "2026-02-23T13:30:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -12,7 +12,7 @@ git:
 baseline_validation: "pass"
 
 current_phase: 2
-current_theme: T-012
+current_theme: null
 
 themes_completed:
   - T-003
@@ -20,9 +20,9 @@ themes_completed:
   - T-006
   - T-014
   - T-011
-themes_pending:
   - T-012
   - T-001
+themes_pending:
   - T-002
   - T-005
   - T-007
@@ -161,3 +161,75 @@ execution_log:
     implementation_turns: 91
     fix_turns: 0
     completed_at: "2026-02-23T12:00:00Z"
+  - theme: "T-012"
+    name: "Consolidate Environment Config and Fix Middleware Performance"
+    phase: 2
+    risk: MEDIUM
+    findings_addressed: ["F-029", "F-030", "F-019", "F-024"]
+    files_changed:
+      - src/libs/vercel-ai/config.ts
+      - src/utils/chatConfig.ts
+      - src/utils/chatConfig.test.ts
+      - src/libs/langfuse/config.ts
+      - src/libs/mem0/config.ts
+      - src/libs/supabase/server.ts
+      - src/libs/supabase/middleware.ts
+      - src/libs/supabase/threads.ts
+      - src/proxy.ts
+      - src/proxy.test.ts
+    validation: pass
+    visual_check: N/A
+    commit: "b5c721d"
+    enrichment_turns: 37
+    implementation_turns: 79
+    fix_turns: 0
+    completed_at: "2026-02-23T12:15:00Z"
+  - theme: "T-001"
+    name: "Centralize API Auth and Error Infrastructure"
+    phase: 2
+    risk: MEDIUM
+    findings_addressed: ["F-009", "F-028", "F-007", "F-008", "F-010", "F-042", "F-080", "F-082", "F-083", "F-089", "F-068", "F-070"]
+    files_changed:
+      - src/libs/api/middleware/withAuth.ts (new)
+      - src/libs/api/middleware/withAdminAuth.ts (new)
+      - src/libs/api/middleware/index.ts (new)
+      - src/libs/api/errors/types.ts
+      - src/libs/api/errors/responses.ts
+      - src/libs/api/errors/index.ts
+      - src/app/api/admin/analytics/route.ts
+      - src/app/api/admin/email/test/route.ts
+      - src/app/api/admin/feedback/[id]/archive/route.ts
+      - src/app/api/admin/feedback/[id]/delete/route.ts
+      - src/app/api/admin/feedback/[id]/mark-reviewed/route.ts
+      - src/app/api/admin/feedback/bulk/route.ts
+      - src/app/api/admin/feedback/export/route.ts
+      - src/app/api/admin/users/[userId]/route.ts
+      - src/app/api/admin/users/[userId]/suspend/route.ts
+      - src/app/api/admin/users/[userId]/unsuspend/route.ts
+      - src/app/api/admin/users/[userId]/reset-password/route.ts
+      - src/app/api/profile/update/route.ts
+      - src/app/api/profile/update-preferences/route.ts
+      - src/app/api/profile/update-username/route.ts
+      - src/app/api/profile/check-username/route.ts
+      - src/app/api/email/welcome/route.ts
+      - src/app/api/share/route.ts
+      - src/app/api/share/[token]/route.ts
+      - src/app/api/cron/memory-extraction/route.ts
+      - src/app/api/chat/vercel/route.ts
+      - src/libs/queries/metrics.ts
+      - src/libs/queries/feedback.ts
+      - src/libs/queries/users.ts
+      - src/libs/queries/auditLog.ts
+      - src/libs/analytics/server.ts
+      - src/libs/audit/logAdminAction.ts
+      - src/libs/utils/dashboardUtils.ts
+      - src/app/api/auth/callback/route.ts
+      - src/app/[locale]/(unauth)/auth/verify-complete/route.ts
+    validation: pass
+    visual_check: N/A
+    commit: "pending"
+    enrichment_turns: 64
+    implementation_turns: 256
+    fix_turns: 0
+    model: "opus"
+    completed_at: "2026-02-23T13:30:00Z"

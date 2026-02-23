@@ -3,6 +3,15 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import {
+  formatZodErrors,
+  internalError,
+  invalidRequestError,
+  logApiError,
+  saveFailedError,
+  unauthorizedError,
+  validationError,
+} from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { userPreferences } from '@/models/Schema';
@@ -16,21 +25,27 @@ const preferencesSchema = z.object({
 
 export async function PATCH(request: Request) {
   try {
-    // Verify authentication
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
-    // Parse and validate request body
-    const body = await request.json();
-    const validated = preferencesSchema.parse(body);
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
+    }
+
+    const parsed = preferencesSchema.safeParse(body);
+    if (!parsed.success) {
+      return validationError(formatZodErrors(parsed.error), 'Invalid request data');
+    }
+
+    const validated = parsed.data;
 
     // Check if user already has preferences
     const existing = await db
@@ -42,7 +57,6 @@ export async function PATCH(request: Request) {
     let result;
 
     if (existing.length === 0) {
-      // New user - insert new record with defaults for missing fields
       const inserted = await db
         .insert(userPreferences)
         .values({
@@ -55,7 +69,6 @@ export async function PATCH(request: Request) {
 
       result = inserted[0];
     } else {
-      // Existing user - only update provided fields
       const updateData: Record<string, unknown> = {
         updatedAt: new Date(),
       };
@@ -77,10 +90,7 @@ export async function PATCH(request: Request) {
     }
 
     if (!result) {
-      return NextResponse.json(
-        { error: 'Failed to save preferences', code: 'SAVE_FAILED' },
-        { status: 500 },
-      );
+      return saveFailedError('Failed to save preferences');
     }
 
     return NextResponse.json({
@@ -92,21 +102,10 @@ export async function PATCH(request: Request) {
       },
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request data',
-          code: 'VALIDATION_ERROR',
-          details: error.issues,
-        },
-        { status: 400 },
-      );
-    }
-
-    console.error('Update preferences error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/profile/update-preferences',
+      method: 'PATCH',
+    });
+    return internalError();
   }
 }

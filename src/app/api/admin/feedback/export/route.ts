@@ -1,13 +1,10 @@
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { forbiddenError, internalError, unauthorizedError } from '@/libs/api/errors';
+import { internalError, logApiError } from '@/libs/api/errors';
+import { withAdminAuth } from '@/libs/api/middleware';
 import { logAdminAction } from '@/libs/audit/logAdminAction';
-import { isAdmin } from '@/libs/auth/isAdmin';
 import type { FeedbackStatus, FeedbackType } from '@/libs/queries/feedback';
 import { getFeedbackList } from '@/libs/queries/feedback';
-import { createClient } from '@/libs/supabase/server';
 
 const VALID_TYPES = ['bug', 'feature', 'praise'] as const;
 const VALID_STATUSES = ['pending', 'reviewed', 'archived'] as const;
@@ -25,19 +22,8 @@ function escapeCsvField(value: string): string {
  * Exports feedback as CSV with optional type/status filters.
  * Requires admin authentication.
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdminAuth(async (request, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-    if (!isAdmin(user)) {
-      return forbiddenError('Admin access required');
-    }
-
-    // Parse filters from URL search params
     const { searchParams } = request.nextUrl;
     const typeParam = searchParams.get('type');
     const statusParam = searchParams.get('status');
@@ -55,7 +41,6 @@ export async function GET(request: NextRequest) {
       return internalError('Failed to fetch feedback for export');
     }
 
-    // Build CSV
     const headers = ['ID', 'Type', 'Status', 'Message', 'Email', 'User ID', 'Created At', 'Reviewed At'];
     const rows = feedbackItems.map(item => [
       escapeCsvField(item.id),
@@ -87,7 +72,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Failed to export feedback:', error);
+    logApiError(error, {
+      endpoint: '/api/admin/feedback/export',
+      method: 'GET',
+    });
     return internalError();
   }
-}
+});

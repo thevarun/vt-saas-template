@@ -29,6 +29,7 @@ import * as Sentry from '@sentry/nextjs';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { internalError, serviceUnavailableError, unauthorizedError } from '@/libs/api/errors';
 import { logger } from '@/libs/Logger';
 import { processMemoryExtractionJobs } from '@/libs/mem0/worker';
 
@@ -42,24 +43,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
-    // Validate cron secret for security
     const authHeader = request.headers.get('authorization');
     const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
 
     if (!process.env.CRON_SECRET) {
       logger.error('CRON_SECRET not configured');
-      return NextResponse.json(
-        { error: 'Cron endpoint not configured' },
-        { status: 500 },
-      );
+      return serviceUnavailableError('Cron endpoint not configured');
     }
 
     if (authHeader !== expectedAuth) {
       logger.warn('Unauthorized cron request');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
     Sentry.addBreadcrumb({
@@ -69,7 +63,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     logger.info('Processing memory extraction jobs');
 
-    // Process jobs
     const stats = await processMemoryExtractionJobs();
 
     const duration = Date.now() - startTime;
@@ -91,9 +84,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     Sentry.captureException(error);
     logger.error({ error }, 'Memory extraction cron failed');
 
-    return NextResponse.json(
-      { error: 'Job processing failed' },
-      { status: 500 },
-    );
+    return internalError('Job processing failed');
   }
 }

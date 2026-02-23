@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { trackEventServer } from '@/libs/analytics/server';
+import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
           }
         } catch (analyticsError) {
           // Don't break auth flow if analytics fails
-          console.error('[Auth Callback] Analytics tracking failed:', analyticsError);
+          logger.error({ error: analyticsError }, '[Auth Callback] Analytics tracking failed');
         }
       }
 

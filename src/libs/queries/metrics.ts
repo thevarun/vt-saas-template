@@ -2,6 +2,7 @@ import type { User } from '@supabase/supabase-js';
 import { count, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { createAdminClient } from '@/libs/supabase/admin';
 import type { TrendData } from '@/libs/utils/calculateTrend';
 import { calculateTrend } from '@/libs/utils/calculateTrend';
@@ -52,7 +53,7 @@ export async function getTotalUsersCount(): Promise<number | null> {
     const users = await fetchAllUsers();
     return users.length;
   } catch (error) {
-    console.error('Failed to fetch total users count:', error);
+    logger.error({ error }, 'Failed to fetch total users count');
     return null;
   }
 }
@@ -73,7 +74,7 @@ export async function getNewSignupsCount(): Promise<number | null> {
 
     return count;
   } catch (error) {
-    console.error('Failed to fetch new signups count:', error);
+    logger.error({ error }, 'Failed to fetch new signups count');
     return null;
   }
 }
@@ -106,7 +107,7 @@ export async function getNewSignupsCountWithTrend(): Promise<MetricWithTrend | n
       trend: calculateTrend(currentCount, previousCount),
     };
   } catch (error) {
-    console.error('Failed to fetch new signups with trend:', error);
+    logger.error({ error }, 'Failed to fetch new signups with trend');
     return null;
   }
 }
@@ -127,7 +128,7 @@ export async function getActiveUsersCount(): Promise<number | null> {
 
     return count;
   } catch (error) {
-    console.error('Failed to fetch active users count:', error);
+    logger.error({ error }, 'Failed to fetch active users count');
     return null;
   }
 }
@@ -163,7 +164,7 @@ export async function getActiveUsersCountWithTrend(): Promise<MetricWithTrend | 
       trend: calculateTrend(currentCount, previousCount),
     };
   } catch (error) {
-    console.error('Failed to fetch active users with trend:', error);
+    logger.error({ error }, 'Failed to fetch active users with trend');
     return null;
   }
 }
@@ -180,7 +181,7 @@ export async function getPendingFeedbackCount(): Promise<number | null> {
 
     return result[0]?.count ?? 0;
   } catch (error) {
-    console.error('Failed to fetch pending feedback count:', error);
+    logger.error({ error }, 'Failed to fetch pending feedback count');
     return null;
   }
 }

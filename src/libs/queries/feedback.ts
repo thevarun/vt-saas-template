@@ -1,6 +1,7 @@
 import { and, count, desc, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { feedback } from '@/models/Schema';
 
 export type FeedbackType = 'bug' | 'feature' | 'praise';
@@ -55,7 +56,7 @@ export async function getFeedbackList(
 
     return results as FeedbackEntry[];
   } catch (error) {
-    console.error('Failed to fetch feedback:', error);
+    logger.error({ error }, 'Failed to fetch feedback');
     return null;
   }
 }
@@ -75,7 +76,7 @@ export async function getFeedbackCount(
 
     return result[0]?.count || 0;
   } catch (error) {
-    console.error('Failed to count feedback:', error);
+    logger.error({ error }, 'Failed to count feedback');
     return 0;
   }
 }

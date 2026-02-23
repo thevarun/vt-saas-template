@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { POST } from './route';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 // Mock dependencies
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({})),

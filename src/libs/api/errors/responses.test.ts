@@ -26,7 +26,7 @@ describe('API Error Response Builders', () => {
         'Test error',
         'VALIDATION_ERROR',
         400,
-        { field: 'test' },
+        { field: ['test'] },
       );
 
       expect(response.status).toBe(400);
@@ -36,7 +36,7 @@ describe('API Error Response Builders', () => {
       expect(json).toEqual({
         error: 'Test error',
         code: 'VALIDATION_ERROR',
-        details: { field: 'test' },
+        details: { field: ['test'] },
       });
     });
 
@@ -122,7 +122,7 @@ describe('API Error Response Builders', () => {
     });
 
     it('should return 400 with custom message', async () => {
-      const details = { field: 'Invalid' };
+      const details = { field: ['Invalid'] };
       const response = validationError(details, 'Custom validation message');
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -132,6 +132,18 @@ describe('API Error Response Builders', () => {
       expect(json.error).toBe('Custom validation message');
       expect(json.code).toBe('VALIDATION_ERROR');
       expect(json.details).toEqual(details);
+    });
+
+    it('should accept string and wrap as _error array', async () => {
+      const response = validationError('Token is required');
+
+      expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
+
+      const json = (await response.json()) as ApiErrorResponse;
+
+      expect(json.error).toBe('Validation failed');
+      expect(json.code).toBe('VALIDATION_ERROR');
+      expect(json.details).toEqual({ _error: ['Token is required'] });
     });
   });
 
@@ -266,7 +278,7 @@ describe('API Error Response Builders', () => {
       const errors = [
         unauthorizedError(),
         forbiddenError(),
-        validationError({ field: 'test' }),
+        validationError({ field: ['test'] }),
         notFoundError('Resource'),
         conflictError('Conflict message'),
         invalidRequestError('Invalid message'),

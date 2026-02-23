@@ -5,6 +5,8 @@
 
 import { PostHog } from 'posthog-node';
 
+import { logger } from '@/libs/Logger';
+
 import type { EventName, EventPropertiesMap } from './events';
 
 let posthogInstance: PostHog | null = null;
@@ -25,7 +27,7 @@ function getServerAnalytics(): PostHog | null {
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[Analytics Server] PostHog disabled: no API key');
+      logger.warn('[Analytics Server] PostHog disabled: no API key');
     }
     return null;
   }
@@ -103,7 +105,7 @@ export async function trackEventServer<T extends EventName>(
     // This ensures events are sent before function terminates
     await client.flush();
   } catch (error) {
-    console.error('[Analytics Server] Failed to track event:', eventName, error);
+    logger.error({ error, eventName }, '[Analytics Server] Failed to track event');
     // Don't throw - analytics should never break the app
   }
 }

@@ -1,6 +1,13 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import {
+  conflictError,
+  internalError,
+  invalidRequestError,
+  logApiError,
+  unauthorizedError,
+} from '@/libs/api/errors';
 import { createClient } from '@/libs/supabase/server';
 
 export async function POST(request: Request) {
@@ -8,32 +15,27 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
-    const { username, displayName } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
+    }
 
-    // Validate input
+    const { username, displayName } = body;
+
     if (!username || !displayName) {
-      return NextResponse.json(
-        { error: 'Username and display name are required' },
-        { status: 400 },
-      );
+      return invalidRequestError('Username and display name are required');
     }
 
-    // Validate username format
     if (!/^\w+$/.test(username) || username.length < 3 || username.length > 20) {
-      return NextResponse.json(
-        { error: 'Invalid username format' },
-        { status: 400 },
-      );
+      return invalidRequestError('Invalid username format');
     }
 
     // Check if username is already taken by another user
@@ -41,11 +43,13 @@ export async function POST(request: Request) {
       const { data: users, error: listError } = await supabase.auth.admin.listUsers();
 
       if (listError) {
-        console.error('Error checking username:', listError);
-        return NextResponse.json(
-          { error: 'Failed to check username availability' },
-          { status: 500 },
-        );
+        logApiError(listError, {
+          endpoint: '/api/profile/update',
+          method: 'POST',
+          userId: user.id,
+          metadata: { operation: 'check_username' },
+        });
+        return internalError('Failed to check username availability');
       }
 
       const usernameTaken = users.users.some(
@@ -53,14 +57,10 @@ export async function POST(request: Request) {
       );
 
       if (usernameTaken) {
-        return NextResponse.json(
-          { error: 'Username is already taken' },
-          { status: 409 },
-        );
+        return conflictError('Username is already taken');
       }
     }
 
-    // Update user metadata
     const { error: updateError } = await supabase.auth.updateUser({
       data: {
         username,
@@ -69,19 +69,21 @@ export async function POST(request: Request) {
     });
 
     if (updateError) {
-      console.error('Error updating profile:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 },
-      );
+      logApiError(updateError, {
+        endpoint: '/api/profile/update',
+        method: 'POST',
+        userId: user.id,
+        metadata: { operation: 'update_profile' },
+      });
+      return internalError('Failed to update profile');
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Profile update error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/profile/update',
+      method: 'POST',
+    });
+    return internalError();
   }
 }

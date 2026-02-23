@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { sendWelcomeEmail } from '@/libs/email';
+import { logger } from '@/libs/Logger';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
           sendWelcomeEmail(
             user.email,
             user.user_metadata?.name || user.user_metadata?.full_name,
-          ).catch(err => console.error('Failed to send welcome email:', err));
+          ).catch(err => logger.error({ error: err }, 'Failed to send welcome email'));
         }
       }
 

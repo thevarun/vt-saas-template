@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { sendWelcomeEmail } from '@/libs/email';
+import { logger } from '@/libs/Logger';
 
 /**
  * GET /api/auth/verify-complete
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
       sendWelcomeEmail(
         user.email,
         user.user_metadata?.name,
-      ).catch(err => console.error('Failed to send welcome email:', err));
+      ).catch(err => logger.error({ error: err }, 'Failed to send welcome email'));
     }
 
     const safePath = next.startsWith('/') ? next : '/';

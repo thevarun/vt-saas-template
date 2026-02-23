@@ -1,46 +1,35 @@
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
-  forbiddenError,
   internalError,
-  unauthorizedError,
+  invalidRequestError,
+  logApiError,
   validationError,
 } from '@/libs/api/errors';
-import { isAdmin } from '@/libs/auth/isAdmin';
+import { withAdminAuth } from '@/libs/api/middleware';
 import { sendTestEmail } from '@/libs/email/mockEmailService';
-import { createClient } from '@/libs/supabase/server';
 
-// Zod schema for validation
 const TestEmailSchema = z.object({
   template: z.enum(['welcome', 'password-reset', 'verify-email']),
   email: z.string().email(),
   data: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request) => {
   try {
-    // 1. Verify admin session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-    if (!isAdmin(user)) {
-      return forbiddenError('Admin access required');
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
     }
 
-    // 2. Validate body
-    const body = await request.json();
     const parsed = TestEmailSchema.safeParse(body);
     if (!parsed.success) {
       return validationError(parsed.error.message);
     }
 
-    // 3. Send test email
     const result = await sendTestEmail({
       template: parsed.data.template,
       to: parsed.data.email,
@@ -48,7 +37,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success) {
-      return internalError(result.error || 'Failed to send test email');
+      logApiError(result.error || new Error('Unknown test email failure'), {
+        endpoint: '/api/admin/email/test',
+        method: 'POST',
+        metadata: { template: parsed.data.template },
+      });
+      return internalError('Failed to send test email');
     }
 
     return NextResponse.json({
@@ -57,7 +51,10 @@ export async function POST(request: NextRequest) {
       message: `Test email would be sent to ${parsed.data.email} in production`,
     });
   } catch (error) {
-    console.error('Email test error:', error);
+    logApiError(error, {
+      endpoint: '/api/admin/email/test',
+      method: 'POST',
+    });
     return internalError();
   }
-}
+});

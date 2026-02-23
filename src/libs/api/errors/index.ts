@@ -17,16 +17,21 @@ export {
   dbError,
   difyError,
   forbiddenError,
+  goneError,
   internalError,
   invalidRequestError,
   notFoundError,
+  rateLimitError,
+  saveFailedError,
   serviceUnavailableError,
+  timeoutError,
   unauthorizedError,
+  usernameTakenError,
   validationError,
 } from './responses';
 
 // Types
-export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse } from './types';
+export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse, ValidationDetails } from './types';
 export { HTTP_STATUS } from './types';
 // Validation formatters
 export {

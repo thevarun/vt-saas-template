@@ -23,6 +23,10 @@
  * - INVALID_CONVERSATION_ID: Conversation ID is invalid or malformed
  * - DUPLICATE_CONVERSATION_ID: Conversation ID already exists
  * - SERVICE_UNAVAILABLE: Required service is not configured or unavailable
+ * - TIMEOUT: Request exceeded time limit
+ * - RATE_LIMIT: Too many requests
+ * - SAVE_FAILED: Failed to persist data
+ * - USERNAME_TAKEN: Username already in use by another user
  */
 export type ApiErrorCode
   = | 'AUTH_REQUIRED'
@@ -37,7 +41,14 @@ export type ApiErrorCode
     | 'MESSAGE_TOO_LONG'
     | 'INVALID_CONVERSATION_ID'
     | 'DUPLICATE_CONVERSATION_ID'
-    | 'SERVICE_UNAVAILABLE';
+    | 'SERVICE_UNAVAILABLE'
+    | 'TIMEOUT'
+    | 'RATE_LIMIT'
+    | 'SAVE_FAILED'
+    | 'USERNAME_TAKEN';
+
+/** Field-level validation error details: maps field names to arrays of error messages. */
+export type ValidationDetails = Record<string, string[]>;
 
 /**
  * Standard API error response format
@@ -61,7 +72,7 @@ export type ApiErrorCode
 export type ApiErrorResponse = {
   error: string;
   code: ApiErrorCode;
-  details?: Record<string, any>;
+  details?: ValidationDetails | Record<string, unknown>;
 };
 
 /**
@@ -96,7 +107,10 @@ export const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
+  REQUEST_TIMEOUT: 408,
   CONFLICT: 409,
+  GONE: 410,
+  TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
 } as const;

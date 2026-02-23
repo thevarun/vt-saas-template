@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import {
@@ -8,12 +6,10 @@ import {
   invalidRequestError,
   logApiError,
   notFoundError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAdminAuth } from '@/libs/api/middleware';
 import { logAdminAction } from '@/libs/audit/logAdminAction';
-import { isAdmin } from '@/libs/auth/isAdmin';
 import { createAdminClient } from '@/libs/supabase/admin';
-import { createClient } from '@/libs/supabase/server';
 import { getBaseUrl } from '@/utils/Helpers';
 import { isValidUuid } from '@/utils/validation';
 
@@ -24,38 +20,18 @@ import { isValidUuid } from '@/utils/validation';
  * Requires admin authentication.
  * Cannot reset own password (self-preservation).
  */
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> },
-) {
+export const POST = withAdminAuth(async (_request, { user, params }) => {
   try {
-    // 1. Verify admin session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { userId } = params;
 
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    if (!isAdmin(user)) {
-      return forbiddenError('Admin access required');
-    }
-
-    // 2. Get userId from params
-    const { userId } = await params;
-
-    // Validate userId format
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');
     }
 
-    // 3. Prevent self-reset
     if (userId === user.id) {
       return forbiddenError('Cannot reset your own password via admin API');
     }
 
-    // 4. Get user email from admin API
     const supabaseAdmin = createAdminClient();
     const { data: targetUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
@@ -73,7 +49,6 @@ export async function POST(
       return invalidRequestError('User does not have an email address');
     }
 
-    // 5. Send password reset email
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
       targetUser.user.email,
       {
@@ -88,10 +63,9 @@ export async function POST(
         userId: user.id,
         metadata: { targetUserId: userId },
       });
-      return internalError(resetError.message || 'Failed to send reset email');
+      return internalError('Failed to send reset email');
     }
 
-    // 6. Log audit entry (fire and forget - don't await)
     void logAdminAction({
       action: 'reset_password',
       targetType: 'user',
@@ -99,7 +73,6 @@ export async function POST(
       adminId: user.id,
     });
 
-    // 7. Return success
     return NextResponse.json({
       success: true,
       message: 'Password reset email sent',
@@ -111,4 +84,4 @@ export async function POST(
     });
     return internalError();
   }
-}
+});

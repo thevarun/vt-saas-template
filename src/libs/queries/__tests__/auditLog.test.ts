@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 // Mock DB with chainable query builder
 const mockOffset = vi.fn().mockResolvedValue([]);
 const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset });
@@ -31,12 +33,11 @@ vi.mock('@/libs/supabase/admin', () => ({
 
 const { getAuditLogs, getAuditLogCount } = await import('../auditLog');
 
-describe('audit log queries', () => {
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+const { logger: mockLogger } = await import('@/libs/Logger');
 
+describe('audit log queries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     // Reset chain defaults
     mockOffset.mockResolvedValue([]);
     mockLimit.mockReturnValue({ offset: mockOffset });
@@ -47,7 +48,6 @@ describe('audit log queries', () => {
   });
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore();
   });
 
   describe('getAuditLogs', () => {
@@ -128,10 +128,7 @@ describe('audit log queries', () => {
       const logs = await getAuditLogs();
 
       expect(logs).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to fetch audit logs:',
-        expect.any(Error),
-      );
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('handles admin email lookup failure gracefully', async () => {
@@ -186,10 +183,7 @@ describe('audit log queries', () => {
       const result = await getAuditLogCount();
 
       expect(result).toBe(0);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to count audit logs:',
-        expect.any(Error),
-      );
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('applies filters for count', async () => {

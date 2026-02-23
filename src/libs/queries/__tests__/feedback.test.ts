@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 // Mock DB with chainable query builder
 const mockOffset = vi.fn().mockResolvedValue([]);
 const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset });
@@ -15,13 +17,11 @@ vi.mock('@/libs/DB', () => ({
 }));
 
 const { getFeedbackList, getFeedbackCount } = await import('../feedback');
+const { logger: mockLogger } = await import('@/libs/Logger');
 
 describe('feedback queries', () => {
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     // Reset chain defaults
     mockOffset.mockResolvedValue([]);
     mockLimit.mockReturnValue({ offset: mockOffset });
@@ -32,7 +32,6 @@ describe('feedback queries', () => {
   });
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore();
   });
 
   describe('getFeedbackList', () => {
@@ -93,10 +92,7 @@ describe('feedback queries', () => {
       const result = await getFeedbackList();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to fetch feedback:',
-        expect.any(Error),
-      );
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 
@@ -129,10 +125,7 @@ describe('feedback queries', () => {
       const result = await getFeedbackCount();
 
       expect(result).toBe(0);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to count feedback:',
-        expect.any(Error),
-      );
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('applies filters for count', async () => {

@@ -1,6 +1,7 @@
 import { count, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { threads } from '@/models/Schema';
 
 /**
@@ -24,7 +25,7 @@ export async function isNewUser(userId: string): Promise<boolean> {
     return threadCount[0]?.count === 0;
   } catch (error) {
     // On error, default to showing regular dashboard
-    console.error('Error checking if user is new:', error);
+    logger.error({ error }, 'Error checking if user is new');
     return false;
   }
 }
