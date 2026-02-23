@@ -5,8 +5,6 @@
  * Maps technical error codes to user-friendly, translated messages.
  */
 
-import type { ApiErrorCode } from '../errors/types';
-
 /**
  * Gets a user-friendly error message for an error code
  *
@@ -72,104 +70,4 @@ function getDefaultErrorMessage(code: string): string {
   };
 
   return messages[code] || messages.UNKNOWN_ERROR!;
-}
-
-/**
- * Gets a short error title for display in toasts or dialogs
- *
- * @param code - Error code from API response
- * @returns Short error title (e.g., "Validation Error", "Not Found")
- *
- * @example
- * ```typescript
- * const error = await parseApiError(response);
- * toast.error({
- *   title: getErrorTitle(error.code),
- *   message: getErrorMessage(error.code, t),
- * });
- * ```
- */
-export function getErrorTitle(code: string): string {
-  const titles: Record<string, string> = {
-    AUTH_REQUIRED: 'Authentication Required',
-    FORBIDDEN: 'Access Denied',
-    INVALID_REQUEST: 'Invalid Request',
-    VALIDATION_ERROR: 'Validation Error',
-    NOT_FOUND: 'Not Found',
-    CONFLICT: 'Conflict',
-    DB_ERROR: 'Database Error',
-    INTERNAL_ERROR: 'Server Error',
-    DIFY_ERROR: 'AI Service Error',
-    MESSAGE_TOO_LONG: 'Message Too Long',
-    INVALID_CONVERSATION_ID: 'Invalid ID',
-    DUPLICATE_CONVERSATION_ID: 'Duplicate ID',
-    NETWORK_ERROR: 'Network Error',
-  };
-
-  return titles[code] || 'Error';
-}
-
-/**
- * Determines if an error should be retryable
- *
- * @param code - Error code
- * @returns true if the operation can be retried
- *
- * @example
- * ```typescript
- * const error = await parseApiError(response);
- * if (isRetryableError(error.code)) {
- *   toast.error({
- *     message: getErrorMessage(error.code, t),
- *     action: { label: 'Retry', onClick: handleRetry },
- *   });
- * }
- * ```
- */
-export function isRetryableError(code: string): boolean {
-  const retryableCodes: ApiErrorCode[] = [
-    'DB_ERROR',
-    'INTERNAL_ERROR',
-    'DIFY_ERROR',
-  ];
-
-  return retryableCodes.includes(code as ApiErrorCode);
-}
-
-/**
- * Formats validation error details for display
- *
- * Converts field-level validation errors into user-friendly messages.
- *
- * @param details - Validation error details from API response
- * @returns Array of formatted error messages
- *
- * @example
- * ```typescript
- * const error = await parseApiError(response);
- * if (error.code === 'VALIDATION_ERROR' && error.details) {
- *   const messages = formatValidationDetails(error.details);
- *   // ["Conversation ID is required", "Title must be at least 3 characters"]
- *   messages.forEach(msg => toast.error(msg));
- * }
- * ```
- */
-export function formatValidationDetails(
-  details: Record<string, string[]>,
-): string[] {
-  const messages: string[] = [];
-
-  for (const [field, errors] of Object.entries(details)) {
-    for (const error of errors) {
-      // Format field name from camelCase to Title Case
-      const fieldName = field
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, str => str.toUpperCase())
-        .trim();
-
-      messages.push(`${fieldName}: ${error}`);
-    }
-  }
-
-  return messages;
 }

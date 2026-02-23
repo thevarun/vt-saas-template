@@ -1,10 +1,9 @@
 /**
  * Mock Email Service
  *
- * Stub implementation for email testing in the admin panel.
+ * Intentional stub used in development mode when RESEND_API_KEY is not set.
  * Always returns success deterministically for testability.
- *
- * TODO: Replace with Resend integration when Epic 4 is implemented.
+ * In production, emails are sent via the Resend integration in src/libs/email/.
  */
 
 export type EmailTemplate = 'welcome' | 'password-reset' | 'verify-email';
@@ -24,8 +23,7 @@ export type SendEmailResult = {
 /**
  * Sends a test email using the mock service.
  * Always succeeds deterministically - no random failures.
- *
- * TODO: Replace with actual Resend API call when Epic 4 is implemented.
+ * Used automatically in development when RESEND_API_KEY is not configured.
  */
 export async function sendTestEmail(params: SendEmailParams): Promise<SendEmailResult> {
   // Log what would be sent for debugging/verification

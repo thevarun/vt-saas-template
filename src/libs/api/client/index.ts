@@ -5,24 +5,16 @@
  *
  * @example
  * ```typescript
- * import { parseApiError, getErrorMessage, isAuthError } from '@/libs/api/client';
+ * import { parseApiError, getErrorMessage } from '@/libs/api/client';
  * ```
  */
 
 // Error display
 export {
-  formatValidationDetails,
   getErrorMessage,
-  getErrorTitle,
-  isRetryableError,
 } from './displayError';
 // Error parsing
 export type { ParsedApiError } from './parseError';
 export {
-  extractValidationErrors,
-  getFallbackMessage,
-  isAuthError,
-  isClientError,
-  isValidationError,
   parseApiError,
 } from './parseError';
