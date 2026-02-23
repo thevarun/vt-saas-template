@@ -28,7 +28,7 @@
 **Entry Points:**
 - Middleware: `src/proxy.ts` (auth + i18n + routing)
 - App: `src/app/[locale]/`
-- API: `src/app/api/` (31 endpoints)
+- API: `src/app/api/` (37 endpoints)
 - Schema: `src/models/Schema.ts` (9 tables)
 
 ---
@@ -41,7 +41,7 @@
 - [Source Tree Analysis](./source-tree-analysis.md) - Annotated directory structure
 
 ### Technical
-- [API Contracts](./api-contracts.md) - All 31 API endpoints with auth, request/response
+- [API Contracts](./api-contracts.md) - All 37 API endpoints with auth, request/response
 - [Data Models](./data-models.md) - 9 database tables, relationships, migrations
 - [Component Inventory](./component-inventory.md) - 138 React components categorized
 
@@ -117,7 +117,7 @@
 
 | Metric | Value |
 |--------|-------|
-| API Endpoints | 31 |
+| API Endpoints | 37 |
 | React Components | 138 (~70 client) |
 | Database Tables | 9 |
 | SQL Migrations | 7 |

@@ -102,7 +102,7 @@ app/
 │   ├── error.tsx                       # Global error boundary
 │   └── not-found.tsx
 │
-├── api/                                # API routes (31 endpoints)
+├── api/                                # API routes (37 endpoints)
 │   ├── auth/callback/route.ts
 │   ├── auth/verify-complete/route.ts
 │   ├── chat/route.ts                   # Dify SSE proxy
@@ -112,8 +112,8 @@ app/
 │   ├── chat/vercel/conversations/[id]/route.ts
 │   ├── profile/                        # 5 profile routes
 │   ├── feedback/route.ts
-│   ├── threads/                        # 3 thread routes
-│   ├── share/                          # 2 share routes
+│   ├── threads/                        # 5 thread routes
+│   ├── share/                          # 4 share routes
 │   ├── email/welcome/route.ts
 │   ├── admin/                          # 11 admin routes
 │   ├── cron/memory-extraction/route.ts
@@ -188,7 +188,7 @@ components/
 |-------------|------|---------|
 | Middleware | `src/proxy.ts` | i18n -> session -> auth -> verification -> admin check |
 | App Root | `src/app/[locale]/layout.tsx` | Providers, theme, globals |
-| API Gateway | `src/app/api/` | 31 API route handlers |
+| API Gateway | `src/app/api/` | 37 API route handlers |
 | DB Schema | `src/models/Schema.ts` | 9 tables in vt_saas schema |
 | Instrumentation | `src/instrumentation.ts` | OpenTelemetry + Sentry |
 | Env Validation | `src/libs/Env.ts` | Runtime env validation (Zod) |
