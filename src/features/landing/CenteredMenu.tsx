@@ -18,14 +18,14 @@ export const CenteredMenu = (props: {
   });
 
   return (
-    <div className="flex flex-wrap items-center justify-between">
-      <Link href="/">{props.logo}</Link>
+    <header className="flex flex-wrap items-center justify-between">
+      <Link href="/" aria-label="Go to homepage">{props.logo}</Link>
 
       <div className="lg:hidden [&_button:hover]:opacity-100 [&_button]:opacity-60">
         <ToggleMenuButton onClick={handleToggleMenu} />
       </div>
 
-      <nav className={cn('rounded-t max-lg:mt-2', navClass)}>
+      <nav aria-label="Main navigation" className={cn('rounded-t max-lg:mt-2', navClass)}>
         <ul className="flex gap-x-6 gap-y-1 text-lg font-medium max-lg:flex-col [&_a:hover]:opacity-100 [&_a]:opacity-60 max-lg:[&_a]:inline-block max-lg:[&_a]:w-full">
           {props.children}
         </ul>
@@ -41,6 +41,6 @@ export const CenteredMenu = (props: {
           {props.rightMenu}
         </ul>
       </div>
-    </div>
+    </header>
   );
 };
