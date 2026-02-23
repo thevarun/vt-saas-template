@@ -47,6 +47,18 @@ Execute each refactoring theme in sequence by spawning focused sub-agents, valid
 | MEDIUM | Display theme summary, then auto-proceed | Auto-commit if validation passes |
 | HIGH | PAUSE — wait for user `[C] Continue \| [S] Skip \| [X] Stop` | Auto-commit if validation passes |
 
+### Model Selection Rule
+Determine the sub-agent model ONCE per theme (applies to enrichment, implementation, and fix agents):
+
+| Condition | Model |
+|-----------|-------|
+| risk = HIGH | opus |
+| risk = MEDIUM | opus |
+| blast_radius = WIDE | opus |
+| Otherwise (LOW risk, non-WIDE blast) | sonnet |
+
+Evaluate top-to-bottom; first match wins.
+
 ## EXECUTION PROTOCOLS
 
 ### Sidecar Update Protocol
@@ -129,6 +141,10 @@ If not on `{git.branch}` → `git checkout {git.branch}`
 - Set `current_phase` to the theme's phase number
 - Update `last_updated`
 
+**A5. Determine sub-agent model:**
+Apply the Model Selection Rule above. Store result as `{theme_model}` (either `"opus"` or `"sonnet"`).
+Display: `Model: {theme_model}` (append to MEDIUM/HIGH risk summaries).
+
 ---
 
 #### Phase B: Enrich Theme (Sub-Agent)
@@ -140,7 +156,7 @@ Enrichment happens just-in-time before implementation. The enrichment agent writ
 mkdir -p {enrichment_output_folder}
 ```
 
-**B2. Spawn enrichment sub-agent using Task tool** with `subagent_type: "general-purpose"` (no max_turns):
+**B2. Spawn enrichment sub-agent using Task tool** with `subagent_type: "general-purpose"`, `model: "{theme_model}"` (no max_turns):
 
 Load the enrichment prompt template from `{enrichment_prompt_template}` and substitute:
 - `{theme_id}`, `{theme_name}`, theme block data, related finding blocks (as before)
@@ -166,7 +182,7 @@ If MISSING: Sub-agent failed to write output. Retry up to `{maxRetries}` times. 
 
 The implementation agent reads the self-contained brief written by Phase B. The orchestrator does NOT need to reassemble context.
 
-**Spawn sub-agent using Task tool** with `subagent_type: "general-purpose"` (no max_turns):
+**Spawn sub-agent using Task tool** with `subagent_type: "general-purpose"`, `model: "{theme_model}"` (no max_turns):
 
 Load the implementation prompt template from `{implementation_prompt_template}` and substitute:
 - `{theme_id}`, `{theme_name}`
@@ -196,7 +212,7 @@ npm run lint && npm run check-types && npm test && npm run build
 **D3. If ALL validation passes** → proceed to Phase E
 
 **D4. If validation FAILS:**
-- **Attempt 1**: Spawn sub-agent with `subagent_type: "general-purpose"` (no max_turns) and error details:
+- **Attempt 1**: Spawn sub-agent with `subagent_type: "general-purpose"`, `model: "{theme_model}"` (no max_turns) and error details:
   Load the fix prompt template from `{fix_prompt_template}` and substitute: {theme_id}, {theme_name}, validation error output, and list of changed files.
   **Capture `tool_uses`** from Task response. Accumulate as `fix_turns`.
   Re-run full validation after fix.
@@ -223,40 +239,8 @@ npm run lint && npm run check-types && npm test && npm run build
 
 #### Phase E: Commit
 
-**E1. Stage and commit:**
-Use the sub-agent's reported `files_changed` list to stage specific files — do NOT use `git add -A`.
-```bash
-git add {files_changed_from_sub_agent}
-git commit -m "refactor({theme_id}): {theme_name}
-
-Findings addressed: {comma-separated finding_ids}
-Phase: {phase_number} | Risk: {risk} | Effort: {effort}"
-```
-
-**E2. If commit fails (pre-commit hooks):**
-- Read the hook error output
-- Spawn sub-agent to fix the issues
-- Re-stage and commit
-- If second commit also fails → HALT:
-  ```
-  Commit failed for {theme_id}. Hook errors:
-  {error output}
-
-  [R] Retry after fix
-  [K] Skip commit (changes remain staged)
-  [X] Stop execution
-  ```
-
-**E3. Capture commit hash:**
-```bash
-git rev-parse --short HEAD
-```
-
----
-
-#### Phase F: Finalize Theme
-
-**F1. Update sidecar:**
+**E1. Update sidecar (pre-commit):**
+Before staging, update `{sidecar_file}`:
 - Remove theme from `themes_pending`
 - Add theme to `themes_completed`
 - Set `current_theme: null`
@@ -274,16 +258,53 @@ git rev-parse --short HEAD
     enrichment_turns: {enrichment_turns from Phase B}
     implementation_turns: {implementation_turns from Phase C}
     fix_turns: {fix_turns from Phase D, or 0 if no fix needed}
+    model: "{theme_model}"
     completed_at: "{timestamp}"
   ```
 - Update `last_updated`
 
-**F2. Report progress:**
-```
-COMPLETED: {theme_id} — {theme_name} | Commit: {commit_hash} | Progress: {completed}/{total} ({percentage}%)
+**E2. Stage and commit:**
+Use the sub-agent's reported `files_changed` list PLUS the sidecar file — do NOT use `git add -A`.
+```bash
+git add {files_changed_from_sub_agent} {sidecar_file}
+git commit -m "refactor({theme_id}): {theme_name}
+
+Findings addressed: {comma-separated finding_ids}
+Phase: {phase_number} | Risk: {risk} | Effort: {effort}"
 ```
 
-**F3. Phase transition check:**
+**E3. If commit fails (pre-commit hooks):**
+- Read the hook error output
+- Spawn sub-agent to fix the issues
+- Re-stage and commit
+- If second commit also fails → HALT:
+  ```
+  Commit failed for {theme_id}. Hook errors:
+  {error output}
+
+  [R] Retry after fix
+  [K] Skip commit (changes remain staged)
+  [X] Stop execution
+  ```
+
+**E4. Capture commit hash:**
+```bash
+git rev-parse --short HEAD
+```
+
+**E5. Backfill commit hash in sidecar:**
+The execution_log entry written in E1 used a placeholder for `commit`. Now update it with the actual hash from E4.
+
+---
+
+#### Phase F: Report Progress
+
+**F1. Report progress:**
+```
+COMPLETED: {theme_id} — {theme_name} | Commit: {commit_hash} | Model: {theme_model} | Progress: {completed}/{total} ({percentage}%)
+```
+
+**F2. Phase transition check:**
 If all themes in the current phase are now in `themes_completed` or `themes_skipped`:
 ```
 --- Phase {N} Complete ---
@@ -291,7 +312,7 @@ Completed: {count} themes | Skipped: {count} | Failed: {count}
 Moving to Phase {N+1}...
 ```
 
-**F4. Continue loop** → next theme in `themes_pending`
+**F3. Continue loop** → next theme in `themes_pending`
 
 ---
 
