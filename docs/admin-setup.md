@@ -42,9 +42,9 @@ This double-check ensures that even if middleware is bypassed (e.g., direct API 
 
 The `isAdmin()` function in `src/libs/auth/isAdmin.ts` checks two sources in priority order:
 
-### 1. Supabase `user_metadata.isAdmin` Flag (Primary)
+### 1. Supabase `app_metadata.isAdmin` Flag (Primary)
 
-The function checks `user.user_metadata?.isAdmin === true` using strict equality — truthy values like `"true"` or `1` won't work.
+The function checks `user.app_metadata?.isAdmin === true` using strict equality -- truthy values like `"true"` or `1` won't work. Using `app_metadata` (instead of `user_metadata`) is critical because `app_metadata` can only be set via the service role key or SQL, preventing users from granting themselves admin access.
 
 ### 2. `ADMIN_EMAILS` Environment Variable (Fallback)
 
@@ -72,21 +72,21 @@ ADMIN_EMAILS=admin@example.com,teammate@example.com
 
 Restart the dev server after changing this value.
 
-### Option B: Supabase User Metadata (Recommended for Production)
+### Option B: Supabase App Metadata (Recommended for Production)
 
-Set the `isAdmin` flag directly on the user in Supabase. This is persistent and doesn't depend on environment variables.
+Set the `isAdmin` flag in `app_metadata` on the user in Supabase. This is persistent, doesn't depend on environment variables, and cannot be modified by users themselves.
 
 **Via Supabase Dashboard:**
 
 1. Go to your Supabase project → Authentication → Users
 2. Find the user and click to open their details
-3. Edit `user_metadata` to include `"isAdmin": true`
+3. Edit `app_metadata` to include `"isAdmin": true`
 
 **Via Supabase Admin API (using the service role key):**
 
 ```typescript
 const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-  user_metadata: { isAdmin: true },
+  app_metadata: { isAdmin: true },
 });
 ```
 
@@ -94,7 +94,7 @@ const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
 
 ```sql
 UPDATE auth.users
-SET raw_user_meta_data = raw_user_meta_data || '{"isAdmin": true}'::jsonb
+SET raw_app_meta_data = raw_app_meta_data || '{"isAdmin": true}'::jsonb
 WHERE email = 'admin@example.com';
 ```
 
@@ -104,13 +104,13 @@ WHERE email = 'admin@example.com';
 
 Remove the email from the `ADMIN_EMAILS` environment variable and restart the server.
 
-### If using Supabase User Metadata
+### If using Supabase App Metadata
 
 Set `isAdmin` to `false` (or remove the key) using any of the methods above:
 
 ```typescript
 const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-  user_metadata: { isAdmin: false },
+  app_metadata: { isAdmin: false },
 });
 ```
 

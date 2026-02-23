@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js';
  * Determines if a user has admin privileges.
  *
  * Admin status can be granted via:
- * 1. user_metadata.isAdmin flag in Supabase (primary method)
+ * 1. app_metadata.isAdmin flag in Supabase (primary method)
  * 2. Email address in ADMIN_EMAILS environment variable (fallback)
  *
  * This function is designed to run in middleware with <50ms performance.
@@ -18,9 +18,10 @@ export function isAdmin(user: User | null | undefined): boolean {
     return false;
   }
 
-  // Check user_metadata.isAdmin flag first (primary method)
+  // Check app_metadata.isAdmin flag first (primary method)
+  // app_metadata is NOT user-editable, preventing privilege escalation
   // Strict equality check - must be exactly boolean true
-  if (user.user_metadata?.isAdmin === true) {
+  if (user.app_metadata?.isAdmin === true) {
     return true;
   }
 

@@ -1,11 +1,12 @@
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { internalError, logApiError, notFoundError } from '@/libs/api/errors';
+import { internalError, invalidRequestError, logApiError, notFoundError } from '@/libs/api/errors';
 import { withAdminAuth } from '@/libs/api/middleware';
 import { logAdminAction } from '@/libs/audit/logAdminAction';
 import { db } from '@/libs/DB';
 import { feedback } from '@/models/Schema';
+import { isValidUuid } from '@/utils/validation';
 
 /**
  * POST /api/admin/feedback/[id]/mark-reviewed
@@ -16,6 +17,10 @@ import { feedback } from '@/models/Schema';
 export const POST = withAdminAuth(async (_request, { user, params }) => {
   try {
     const { id } = params;
+
+    if (!isValidUuid(id)) {
+      return invalidRequestError('Invalid feedback ID format');
+    }
 
     const existing = await db.select().from(feedback).where(eq(feedback.id, id)).limit(1);
     if (!existing || existing.length === 0) {

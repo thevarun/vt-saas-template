@@ -19,37 +19,48 @@ describe('isAdmin', () => {
     vi.unstubAllEnvs();
   });
 
-  describe('user_metadata.isAdmin flag (primary method)', () => {
-    it('returns true when user has user_metadata.isAdmin = true', () => {
+  describe('app_metadata.isAdmin flag (primary method)', () => {
+    it('returns true when user has app_metadata.isAdmin = true', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: { isAdmin: true },
+        app_metadata: { isAdmin: true },
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(true);
     });
 
-    it('returns false when user has user_metadata.isAdmin = false', () => {
+    it('returns false when user has app_metadata.isAdmin = false', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: { isAdmin: false },
+        app_metadata: { isAdmin: false },
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(false);
     });
 
-    it('prioritizes user_metadata.isAdmin flag over ADMIN_EMAILS env var', () => {
+    it('prioritizes app_metadata.isAdmin flag over ADMIN_EMAILS env var', () => {
       process.env.ADMIN_EMAILS = 'other@example.com';
 
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: { isAdmin: true },
+        app_metadata: { isAdmin: true },
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(true);
+    });
+
+    it('returns false when only user_metadata.isAdmin is set (not app_metadata)', () => {
+      const user = {
+        id: 'user-123',
+        email: 'user@example.com',
+        user_metadata: { isAdmin: true },
+        app_metadata: {},
+      } as unknown as User;
+
+      expect(isAdmin(user)).toBe(false);
     });
   });
 
@@ -158,7 +169,7 @@ describe('isAdmin', () => {
       expect(isAdmin(undefined)).toBe(false);
     });
 
-    it('handles missing user_metadata gracefully', () => {
+    it('handles missing app_metadata gracefully', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
@@ -167,11 +178,11 @@ describe('isAdmin', () => {
       expect(isAdmin(user)).toBe(false);
     });
 
-    it('handles user_metadata as undefined', () => {
+    it('handles app_metadata as undefined', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: undefined,
+        app_metadata: undefined,
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(false);
@@ -212,21 +223,21 @@ describe('isAdmin', () => {
       expect(isAdmin(user)).toBe(false);
     });
 
-    it('handles isAdmin as non-boolean truthy value (should be false)', () => {
+    it('handles isAdmin as non-boolean truthy value in app_metadata (should be false)', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: { isAdmin: 'true' },
+        app_metadata: { isAdmin: 'true' },
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(false);
     });
 
-    it('handles isAdmin as number 1 (should be false)', () => {
+    it('handles isAdmin as number 1 in app_metadata (should be false)', () => {
       const user = {
         id: 'user-123',
         email: 'user@example.com',
-        user_metadata: { isAdmin: 1 },
+        app_metadata: { isAdmin: 1 },
       } as unknown as User;
 
       expect(isAdmin(user)).toBe(false);
