@@ -1,14 +1,11 @@
 import { inArray } from 'drizzle-orm';
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { forbiddenError, internalError, unauthorizedError, validationError } from '@/libs/api/errors';
+import { internalError, invalidRequestError, logApiError, validationError } from '@/libs/api/errors';
+import { withAdminAuth } from '@/libs/api/middleware';
 import { logAdminAction } from '@/libs/audit/logAdminAction';
-import { isAdmin } from '@/libs/auth/isAdmin';
 import { db } from '@/libs/DB';
-import { createClient } from '@/libs/supabase/server';
 import { feedback } from '@/models/Schema';
 
 const bulkActionSchema = z.object({
@@ -22,19 +19,15 @@ const bulkActionSchema = z.object({
  * Performs bulk actions on feedback entries.
  * Requires admin authentication.
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-    if (!isAdmin(user)) {
-      return forbiddenError('Admin access required');
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
     }
 
-    const body = await request.json();
     const parsed = bulkActionSchema.safeParse(body);
     if (!parsed.success) {
       return validationError(parsed.error.issues[0]?.message || 'Invalid request');
@@ -73,7 +66,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, count: ids.length });
   } catch (error) {
-    console.error('Failed to perform bulk feedback action:', error);
+    logApiError(error, {
+      endpoint: '/api/admin/feedback/bulk',
+      method: 'POST',
+    });
     return internalError();
   }
-}
+});

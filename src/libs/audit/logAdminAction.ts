@@ -1,4 +1,5 @@
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { adminAuditLog } from '@/models/Schema';
 
 export type AuditAction
@@ -41,7 +42,7 @@ export async function logAdminAction(params: LogAdminActionParams): Promise<bool
 
     return true;
   } catch (error) {
-    console.error('Failed to log admin action:', error);
+    logger.error({ error }, 'Failed to log admin action');
     return false;
   }
 }

@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   fetchAllUsers,
@@ -10,6 +10,8 @@ import {
   getPendingFeedbackCount,
   getTotalUsersCount,
 } from '../metrics';
+
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
 // Mock the admin client
 vi.mock('@/libs/supabase/admin', () => ({
@@ -109,15 +111,8 @@ function createPaginatedMockAdminClient(
 }
 
 describe('metrics queries', () => {
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
   });
 
   describe('fetchAllUsers', () => {

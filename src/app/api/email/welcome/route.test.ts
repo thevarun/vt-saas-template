@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 // Mock the dependencies
 const mockGetUser = vi.fn();
 const mockSendWelcomeEmail = vi.fn();
@@ -43,7 +45,7 @@ describe('POST /api/email/welcome', () => {
     const body = await response.json();
 
     expect(response.status).toBe(401);
-    expect(body.error).toBe('Unauthorized');
+    expect(body.code).toBe('AUTH_REQUIRED');
   });
 
   it('returns 200 on successful send', async () => {

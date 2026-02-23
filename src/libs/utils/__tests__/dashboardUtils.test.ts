@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 
 import { isNewUser } from '../dashboardUtils';
 
@@ -10,6 +11,8 @@ vi.mock('@/libs/DB', () => ({
     select: vi.fn(),
   },
 }));
+
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
 describe('isNewUser', () => {
   beforeEach(() => {
@@ -53,18 +56,10 @@ describe('isNewUser', () => {
       from: mockFrom,
     } as any);
 
-    // Suppress console.error for this test
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
     const result = await isNewUser('user-123');
 
     expect(result).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error checking if user is new:',
-      expect.any(Error),
-    );
-
-    consoleErrorSpy.mockRestore();
+    expect(logger.error).toHaveBeenCalled();
   });
 
   it('handles edge case when count is undefined', async () => {

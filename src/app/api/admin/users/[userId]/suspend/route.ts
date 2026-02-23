@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import {
@@ -7,12 +5,10 @@ import {
   internalError,
   invalidRequestError,
   logApiError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAdminAuth } from '@/libs/api/middleware';
 import { logAdminAction } from '@/libs/audit/logAdminAction';
-import { isAdmin } from '@/libs/auth/isAdmin';
 import { createAdminClient } from '@/libs/supabase/admin';
-import { createClient } from '@/libs/supabase/server';
 import { isValidUuid } from '@/utils/validation';
 
 /**
@@ -22,42 +18,22 @@ import { isValidUuid } from '@/utils/validation';
  * Requires admin authentication.
  * Cannot suspend own account (self-preservation).
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> },
-) {
+export const POST = withAdminAuth(async (request, { user, params }) => {
   try {
-    // 1. Verify admin session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { userId } = params;
 
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    if (!isAdmin(user)) {
-      return forbiddenError('Admin access required');
-    }
-
-    // 2. Get userId from params
-    const { userId } = await params;
-
-    // Validate userId format
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');
     }
 
-    // 3. Prevent self-suspension
     if (userId === user.id) {
       return forbiddenError('Cannot suspend your own account');
     }
 
-    // 4. Suspend user using admin client
     const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
-      { ban_duration: '876000h' }, // ~100 years (effectively permanent)
+      { ban_duration: '876000h' },
     );
 
     if (error) {
@@ -67,10 +43,9 @@ export async function POST(
         userId: user.id,
         metadata: { targetUserId: userId },
       });
-      return internalError(error.message || 'Failed to suspend user');
+      return internalError('Failed to suspend user');
     }
 
-    // 5. Parse optional reason from request body
     let reason: string | undefined;
     try {
       const body = await request.json();
@@ -79,7 +54,6 @@ export async function POST(
       // Body is optional, ignore parse errors
     }
 
-    // 6. Log audit entry (fire and forget - don't await)
     void logAdminAction({
       action: 'suspend_user',
       targetType: 'user',
@@ -88,7 +62,6 @@ export async function POST(
       metadata: reason ? { reason } : undefined,
     });
 
-    // 7. Return success with updated user data
     return NextResponse.json({
       success: true,
       user: data.user,
@@ -100,4 +73,4 @@ export async function POST(
     });
     return internalError();
   }
-}
+});

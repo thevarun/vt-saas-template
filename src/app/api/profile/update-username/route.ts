@@ -3,6 +3,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import {
+  internalError,
+  invalidRequestError,
+  logApiError,
+  unauthorizedError,
+  usernameTakenError,
+  validationError,
+} from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { userPreferences } from '@/models/Schema';
@@ -20,27 +28,23 @@ export async function PATCH(request: Request) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
+      return unauthorizedError();
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
+    }
 
-    // Validate username format
     const validation = updateUsernameSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        {
-          error: validation.error.issues[0]?.message || 'Invalid username format',
-          code: 'VALIDATION_ERROR',
-        },
-        { status: 400 },
+      return validationError(
+        { _error: [validation.error.issues[0]?.message || 'Invalid username format'] },
       );
     }
 
@@ -55,10 +59,7 @@ export async function PATCH(request: Request) {
 
     const existingUser = existingProfile[0];
     if (existingUser && existingUser.userId !== user.id) {
-      return NextResponse.json(
-        { error: 'Username is already taken', code: 'USERNAME_TAKEN' },
-        { status: 409 },
-      );
+      return usernameTakenError();
     }
 
     // Get current user preferences
@@ -70,7 +71,6 @@ export async function PATCH(request: Request) {
 
     const profile = currentProfile[0];
     if (profile) {
-      // Update existing profile
       await db
         .update(userPreferences)
         .set({
@@ -79,7 +79,6 @@ export async function PATCH(request: Request) {
         })
         .where(eq(userPreferences.userId, user.id));
     } else {
-      // Create new profile with default preferences
       await db.insert(userPreferences).values({
         userId: user.id,
         username,
@@ -90,10 +89,10 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Update username error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/profile/update-username',
+      method: 'PATCH',
+    });
+    return internalError();
   }
 }

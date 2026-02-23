@@ -1,6 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AuditAction, LogAdminActionParams } from '../logAdminAction';
+
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
 // Mock the DB module
 const mockValues = vi.fn().mockResolvedValue({});
@@ -14,17 +16,11 @@ vi.mock('@/libs/DB', () => ({
 
 // Import after mocking
 const { logAdminAction } = await import('../logAdminAction');
+const { logger: mockLogger } = await import('@/libs/Logger');
 
 describe('logAdminAction', () => {
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
   });
 
   const baseParams: LogAdminActionParams = {
@@ -74,10 +70,7 @@ describe('logAdminAction', () => {
     const result = await logAdminAction(baseParams);
 
     expect(result).toBe(false);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to log admin action:',
-      expect.any(Error),
-    );
+    expect(mockLogger.error).toHaveBeenCalled();
   });
 
   it('does not throw errors', async () => {

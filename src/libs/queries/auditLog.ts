@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { createAdminClient } from '@/libs/supabase/admin';
 import { adminAuditLog } from '@/models/Schema';
 
@@ -84,7 +85,7 @@ export async function getAuditLogs(
 
     return enrichedLogs;
   } catch (error) {
-    console.error('Failed to fetch audit logs:', error);
+    logger.error({ error }, 'Failed to fetch audit logs');
     return null;
   }
 }
@@ -104,7 +105,7 @@ export async function getAuditLogCount(
 
     return result[0]?.count || 0;
   } catch (error) {
-    console.error('Failed to count audit logs:', error);
+    logger.error({ error }, 'Failed to count audit logs');
     return 0;
   }
 }

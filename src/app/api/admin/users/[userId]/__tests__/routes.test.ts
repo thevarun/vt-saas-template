@@ -241,7 +241,7 @@ describe('Admin User API Routes', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Database error');
+      expect(data.error).toBe('Failed to suspend user');
     });
   });
 

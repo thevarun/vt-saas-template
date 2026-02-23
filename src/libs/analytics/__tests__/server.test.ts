@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { shutdownServerAnalytics, trackEventServer } from '../server';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 vi.mock('posthog-node');
 
 describe('trackEventServer', () => {

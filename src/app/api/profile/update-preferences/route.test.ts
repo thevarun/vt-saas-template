@@ -6,6 +6,8 @@ import { createClient } from '@/libs/supabase/server';
 
 import { PATCH } from './route';
 
+vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+
 // Mock dependencies
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),

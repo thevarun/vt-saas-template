@@ -5,11 +5,16 @@ import { NextResponse } from 'next/server';
 
 import {
   formatZodErrors,
+  goneError,
+  internalError,
+  invalidRequestError,
+  logApiError,
   notFoundError,
   unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
 import { db } from '@/libs/DB';
+import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import { shareableLinks } from '@/models/Schema';
 import type { ShareLinkAccessResponse } from '@/types/shareLink';
@@ -33,28 +38,20 @@ export async function GET(
       return validationError('Token is required');
     }
 
-    // Query share link
     const [link] = await db
       .select()
       .from(shareableLinks)
       .where(eq(shareableLinks.token, token));
 
     if (!link) {
-      return NextResponse.json(
-        { error: 'Link expired or revoked' },
-        { status: 410 }, // 410 Gone
-      );
+      return goneError('Link expired or revoked');
     }
 
-    // Check if link is active and not expired
     const now = new Date();
     const isExpired = link.expiresAt && new Date(link.expiresAt) < now;
 
     if (!link.isActive || isExpired) {
-      return NextResponse.json(
-        { error: 'Link expired or revoked' },
-        { status: 410 },
-      );
+      return goneError('Link expired or revoked');
     }
 
     // Increment access count (best-effort, do not block response)
@@ -67,25 +64,21 @@ export async function GET(
         })
         .where(eq(shareableLinks.token, token));
     } catch (countError) {
-      console.error('Failed to increment access count:', countError);
+      logger.error({ error: countError }, 'Failed to increment share link access count');
     }
-
-    // TODO: Analytics — event: "share_link_accessed", properties: { resourceType: link.resourceType, token }
 
     const response: ShareLinkAccessResponse = {
       resourceType: link.resourceType,
       resourceId: link.resourceId,
-      // NOTE: In real implementation, fetch the actual resource data here
-      // For now, just return the resource identifiers
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error accessing share link:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/share/[token]',
+      method: 'GET',
+    });
+    return internalError();
   }
 }
 
@@ -99,7 +92,6 @@ export async function PATCH(
 ) {
   const params = await props.params;
   try {
-    // Auth check
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const {
@@ -116,8 +108,13 @@ export async function PATCH(
       return validationError('Token is required');
     }
 
-    // Parse and validate request body
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return invalidRequestError('Invalid JSON in request body');
+    }
+
     const validation = updateShareLinkSchema.safeParse(body);
 
     if (!validation.success) {
@@ -126,7 +123,6 @@ export async function PATCH(
 
     const { isActive } = validation.data;
 
-    // Query share link to verify ownership
     const [link] = await db
       .select()
       .from(shareableLinks)
@@ -141,7 +137,6 @@ export async function PATCH(
       return notFoundError('Share link not found');
     }
 
-    // Update link status
     const now = new Date();
     await db
       .update(shareableLinks)
@@ -151,14 +146,12 @@ export async function PATCH(
       })
       .where(eq(shareableLinks.token, token));
 
-    // TODO: Analytics — event: "share_link_revoked", properties: { resourceType: link.resourceType, token }
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error updating share link:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    logApiError(error, {
+      endpoint: '/api/share/[token]',
+      method: 'PATCH',
+    });
+    return internalError();
   }
 }

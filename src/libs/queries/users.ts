@@ -1,5 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 
+import { logger } from '@/libs/Logger';
+
 import { fetchAllUsers } from './metrics';
 import { getUserStatus } from './userUtils';
 
@@ -84,7 +86,7 @@ export async function getUsersList(options: UsersListOptions = {}): Promise<User
       error: null,
     };
   } catch (error) {
-    console.error('Error fetching users list:', error);
+    logger.error({ error }, 'Error fetching users list');
     return {
       users: [],
       total: 0,

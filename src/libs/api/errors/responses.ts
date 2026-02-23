@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server';
 
-import type { ApiErrorCode, ApiErrorResponse } from './types';
+import type { ApiErrorCode, ApiErrorResponse, ValidationDetails } from './types';
 import { HTTP_STATUS } from './types';
 
 /** Create a standardized error response with the given message, code, status, and optional details. */
@@ -10,7 +10,8 @@ export function createErrorResponse(
   error: string,
   code: ApiErrorCode,
   status: number,
-  details?: Record<string, any>,
+  details?: ValidationDetails | Record<string, unknown>,
+  headers?: Record<string, string>,
 ): NextResponse<ApiErrorResponse> {
   const response: ApiErrorResponse = {
     error,
@@ -21,7 +22,7 @@ export function createErrorResponse(
     response.details = details;
   }
 
-  return NextResponse.json(response, { status });
+  return NextResponse.json(response, { status, headers });
 }
 
 /** Returns 401 Unauthorized -- use when user is not authenticated. */
@@ -40,14 +41,18 @@ export function forbiddenError(
 
 /** Returns 400 Bad Request with field-level validation error details. */
 export function validationError(
-  details: any,
+  details: ValidationDetails | string,
   message = 'Validation failed',
 ): NextResponse<ApiErrorResponse> {
+  const normalizedDetails: ValidationDetails = typeof details === 'string'
+    ? { _error: [details] }
+    : details;
+
   return createErrorResponse(
     message,
     'VALIDATION_ERROR',
     HTTP_STATUS.BAD_REQUEST,
-    details,
+    normalizedDetails,
   );
 }
 
@@ -119,5 +124,63 @@ export function serviceUnavailableError(
     message,
     'SERVICE_UNAVAILABLE',
     HTTP_STATUS.SERVICE_UNAVAILABLE,
+  );
+}
+
+/** Returns 408 Request Timeout -- use when a request exceeds time limit. */
+export function timeoutError(
+  message = 'Request timeout',
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'TIMEOUT',
+    HTTP_STATUS.REQUEST_TIMEOUT,
+  );
+}
+
+/** Returns 429 Too Many Requests -- use when rate limit is exceeded. */
+export function rateLimitError(
+  message = 'Rate limit exceeded. Please try again later.',
+  retryAfterSeconds = 60,
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'RATE_LIMIT',
+    HTTP_STATUS.TOO_MANY_REQUESTS,
+    undefined,
+    { 'Retry-After': String(retryAfterSeconds) },
+  );
+}
+
+/** Returns 500 Internal Server Error with SAVE_FAILED code -- use when data persistence fails. */
+export function saveFailedError(
+  message = 'Failed to save data',
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'SAVE_FAILED',
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  );
+}
+
+/** Returns 409 Conflict with USERNAME_TAKEN code -- use when username is already taken. */
+export function usernameTakenError(
+  message = 'Username is already taken',
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'USERNAME_TAKEN',
+    HTTP_STATUS.CONFLICT,
+  );
+}
+
+/** Returns 410 Gone -- use when a resource has been permanently removed or expired. */
+export function goneError(
+  message = 'Resource is no longer available',
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    message,
+    'NOT_FOUND',
+    HTTP_STATUS.GONE,
   );
 }
