@@ -13,6 +13,8 @@ sidecar_template: '{workflow_path}/sidecar-template.yaml'
 screenshotsFolder: '{project-root}/_bmad-output/implementation-artifacts/screenshots'
 maxRetries: 2
 enrichment_prompt_template: '{workflow_path}/templates/enrichment-prompt.md'
+enrichment_output_template: '{workflow_path}/templates/enrichment-output-template.md'
+enrichment_output_folder: '{output_folder}/enrichment'
 implementation_prompt_template: '{workflow_path}/templates/implementation-prompt.md'
 fix_prompt_template: '{workflow_path}/templates/fix-prompt.md'
 ---
@@ -131,33 +133,49 @@ If not on `{git.branch}` → `git checkout {git.branch}`
 
 #### Phase B: Enrich Theme (Sub-Agent)
 
-Enrichment happens just-in-time before implementation to keep orchestrator context lean and ensure freshness.
+Enrichment happens just-in-time before implementation. The enrichment agent writes a **self-contained implementation brief** to a file that the implementation agent reads directly.
 
-**Spawn enrichment sub-agent using Task tool** with `subagent_type: "general-purpose"` and `max_turns: 25`:
+**B1. Ensure enrichment output directory exists:**
+```bash
+mkdir -p {enrichment_output_folder}
+```
 
-Load the enrichment prompt template from `{enrichment_prompt_template}` and substitute the theme-specific variables ({theme_id}, {theme_name}, theme block data, related finding blocks) before passing to the sub-agent.
+**B2. Spawn enrichment sub-agent using Task tool** with `subagent_type: "general-purpose"` (no max_turns):
 
-**Capture enrichment result.** This output is passed directly to Phase C — it does NOT need to be written back to `refactoring-plan.md`.
+Load the enrichment prompt template from `{enrichment_prompt_template}` and substitute:
+- `{theme_id}`, `{theme_name}`, theme block data, related finding blocks (as before)
+- `{enrichment_output_file}` = `{enrichment_output_folder}/{theme_id}-enrichment.md`
+- `{enrichment_output_template}` = path to the output template file
+
+The enrichment agent will write a self-contained implementation brief to the output file.
+
+**B3. Record turn count.** Capture `tool_uses` from the Task tool response. Store as `enrichment_turns`.
+
+**B4. Verify enrichment output file exists:**
+```bash
+test -f {enrichment_output_folder}/{theme_id}-enrichment.md && echo "EXISTS" || echo "MISSING"
+```
+
+If MISSING: Sub-agent failed to write output. Retry up to `{maxRetries}` times. If still missing after retries, move theme to `themes_failed` with reason "enrichment output not written" and continue to next theme.
+
+**B5. Read enrichment output file** and verify it contains the `# Implementation Brief:` header.
 
 ---
 
 #### Phase C: Spawn Sub-Agent for Implementation
 
-Prepare a focused context package for the sub-agent combining the original theme data with Phase B enrichment output:
+The implementation agent reads the self-contained brief written by Phase B. The orchestrator does NOT need to reassemble context.
 
-1. **Theme details**: id, name, effort, risk, steps (enriched), coverage_gate, blast_radius
-2. **Related findings**: For each `finding_id` in the theme, include the full finding block (id, severity, file, line, title, description, suggestion)
-3. **Affected files list**: From theme's `files` field (minus any stale files flagged in enrichment)
-4. **Test requirements**: Concrete `tests_before` and `tests_after` from enrichment output
-5. **UI changes flag**: From enrichment output
-6. **Validation commands**: `npm run lint && npm run check-types && npm test`
-7. **Screenshots folder**: `{screenshotsFolder}` (if UI changes)
+**Spawn sub-agent using Task tool** with `subagent_type: "general-purpose"` (no max_turns):
 
-**Spawn sub-agent using Task tool** with `subagent_type: "general-purpose"` and `max_turns: 40`:
+Load the implementation prompt template from `{implementation_prompt_template}` and substitute:
+- `{theme_id}`, `{theme_name}`
+- `{enrichment_output_file}` = `{enrichment_output_folder}/{theme_id}-enrichment.md`
+- `{screenshotsFolder}`
 
-Load the implementation prompt template from `{implementation_prompt_template}` and substitute: theme details (with enriched_steps from Phase B), related findings, enrichment notes (gaps, stale_files), affected files list, test requirements, UI changes flag, validation commands, and screenshots folder path.
+The implementation agent will read the brief file directly to get all theme details, findings, steps, and test requirements.
 
-**Capture sub-agent result.**
+**Capture sub-agent result and turn count.** Record `tool_uses` from the Task tool response. Store as `implementation_turns`.
 
 ---
 
@@ -178,11 +196,13 @@ npm run lint && npm run check-types && npm test && npm run build
 **D3. If ALL validation passes** → proceed to Phase E
 
 **D4. If validation FAILS:**
-- **Attempt 1**: Spawn sub-agent with error details:
+- **Attempt 1**: Spawn sub-agent with `subagent_type: "general-purpose"` (no max_turns) and error details:
   Load the fix prompt template from `{fix_prompt_template}` and substitute: {theme_id}, {theme_name}, validation error output, and list of changed files.
+  **Capture `tool_uses`** from Task response. Accumulate as `fix_turns`.
   Re-run full validation after fix.
 
 - **Attempt 2**: If still failing, spawn one more fix attempt with accumulated error context.
+  **Capture `tool_uses`** and add to `fix_turns`.
 
 - **After {maxRetries} failures**: HALT
   ```
@@ -251,6 +271,9 @@ git rev-parse --short HEAD
     validation: pass
     visual_check: {pass/fail/N/A}
     commit: "{commit_hash}"
+    enrichment_turns: {enrichment_turns from Phase B}
+    implementation_turns: {implementation_turns from Phase C}
+    fix_turns: {fix_turns from Phase D, or 0 if no fix needed}
     completed_at: "{timestamp}"
   ```
 - Update `last_updated`
