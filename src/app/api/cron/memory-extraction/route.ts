@@ -80,7 +80,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...stats,
       durationMs: duration,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
     logger.error({ error }, 'Memory extraction cron failed');
 

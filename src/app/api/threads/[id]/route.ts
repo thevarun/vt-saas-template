@@ -75,7 +75,7 @@ export async function PATCH(
     // Return 404 if thread not found or not owned by user
     if (dbUpdateError || !updatedThread) {
       // PGRST116 = no rows returned (not found or RLS blocked)
-      const errorCode = (dbUpdateError as any)?.code;
+      const errorCode = dbUpdateError && 'code' in dbUpdateError ? (dbUpdateError as { code: string }).code : undefined;
       if (errorCode === 'PGRST116' || !updatedThread) {
         return notFoundError('Thread');
       }
@@ -90,7 +90,7 @@ export async function PATCH(
     }
 
     return NextResponse.json({ thread: updatedThread });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { id } = await params;
     logApiError(error, {
       endpoint: `/api/threads/${id}`,
@@ -139,7 +139,7 @@ export async function DELETE(
     // Return 404 if thread not found or not owned by user
     if (dbDeleteError || !deletedThread) {
       // PGRST116 = no rows returned (not found or RLS blocked)
-      const errorCode = (dbDeleteError as any)?.code;
+      const errorCode = dbDeleteError && 'code' in dbDeleteError ? (dbDeleteError as { code: string }).code : undefined;
       if (errorCode === 'PGRST116' || !deletedThread) {
         return notFoundError('Thread');
       }
@@ -155,7 +155,7 @@ export async function DELETE(
 
     // Return 204 No Content on success
     return new Response(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { id } = await params;
     logApiError(error, {
       endpoint: `/api/threads/${id}`,

@@ -20,13 +20,16 @@ import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { memoryExtractionJobs } from '@/models/Schema';
 
+import type { DbQueryError, MemoryJobStatus } from './types';
+import { toDbQueryError } from './types';
+
 /**
  * Memory extraction job data type
  */
 export type MemoryJob = {
   id: string;
   conversationId: string;
-  status: string;
+  status: MemoryJobStatus;
   errorMessage: string | null;
   createdAt: Date;
   completedAt: Date | null;
@@ -43,7 +46,7 @@ export type MemoryJob = {
  */
 export async function createMemoryJob(
   conversationId: string,
-): Promise<{ data: MemoryJob | null; error: any }> {
+): Promise<{ data: MemoryJob | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'memory-job',
@@ -69,19 +72,21 @@ export async function createMemoryJob(
       'Memory extraction job created',
     );
 
+    const row = result[0];
     return {
-      data: result[0] || null,
+      data: row ? { ...row, status: row.status as MemoryJobStatus } : null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error(
       { error, conversationId },
       'Failed to create memory extraction job',
     );
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -104,8 +109,8 @@ export async function getPendingJobs(limit: number = 100): Promise<MemoryJob[]> 
       .orderBy(memoryExtractionJobs.createdAt)
       .limit(limit);
 
-    return jobs;
-  } catch (error: any) {
+    return jobs.map(job => ({ ...job, status: job.status as MemoryJobStatus }));
+  } catch (error: unknown) {
     Sentry.captureException(error);
     logger.error({ error }, 'Failed to fetch pending jobs');
     return [];
@@ -128,8 +133,9 @@ export async function getJobById(
       .where(eq(memoryExtractionJobs.id, jobId))
       .limit(1);
 
-    return result[0] || null;
-  } catch (error: any) {
+    const row = result[0];
+    return row ? { ...row, status: row.status as MemoryJobStatus } : null;
+  } catch (error: unknown) {
     Sentry.captureException(error);
     logger.error({ error, jobId }, 'Failed to fetch job');
     return null;
@@ -148,11 +154,11 @@ export async function getJobById(
  */
 export async function updateJobStatus(
   jobId: string,
-  status: string,
+  status: MemoryJobStatus,
   errorMessage?: string,
-): Promise<{ success: boolean; error: any }> {
+): Promise<{ success: boolean; error: DbQueryError | null }> {
   try {
-    const updates: any = {
+    const updates: Partial<typeof memoryExtractionJobs.$inferInsert> & { status: MemoryJobStatus } = {
       status,
     };
 
@@ -182,12 +188,13 @@ export async function updateJobStatus(
       success: true,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, jobId, status }, 'Failed to update job status');
     return {
       success: false,
-      error,
+      error: dbError,
     };
   }
 }

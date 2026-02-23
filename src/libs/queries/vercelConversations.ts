@@ -13,6 +13,9 @@ import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { vercelConversations } from '@/models/Schema';
 
+import type { DbQueryError } from './types';
+import { toDbQueryError } from './types';
+
 /**
  * Conversation data type from database
  */
@@ -48,7 +51,7 @@ export async function getConversationById(
   _supabase: SupabaseClient,
   conversationId: string,
   userId?: string,
-): Promise<{ data: VercelConversation | null; error: any }> {
+): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
@@ -70,12 +73,13 @@ export async function getConversationById(
       data: result[0] || null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, conversationId }, 'Failed to fetch conversation by ID');
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -94,7 +98,7 @@ export async function createConversation(
   _supabase: SupabaseClient,
   userId: string,
   title: string,
-): Promise<{ data: VercelConversation | null; error: any }> {
+): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
@@ -118,12 +122,13 @@ export async function createConversation(
       data: result[0] || null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, userId, title }, 'Failed to create conversation');
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -144,7 +149,7 @@ export async function updateConversation(
   conversationId: string,
   updates: ConversationUpdate,
   userId?: string,
-): Promise<{ data: VercelConversation | null; error: any }> {
+): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
@@ -152,7 +157,7 @@ export async function updateConversation(
       data: { conversationId, updates, userId },
     });
 
-    const updateData: any = {
+    const updateData: Partial<typeof vercelConversations.$inferInsert> & { updatedAt: Date } = {
       updatedAt: new Date(),
     };
 
@@ -182,12 +187,13 @@ export async function updateConversation(
       data: result[0] || null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, conversationId, updates }, 'Failed to update conversation');
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -211,7 +217,7 @@ export async function listUserConversations(
   includeArchived: boolean = false,
   limit?: number,
   offset?: number,
-): Promise<{ data: VercelConversation[] | null; error: any }> {
+): Promise<{ data: VercelConversation[] | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
@@ -240,12 +246,13 @@ export async function listUserConversations(
       data: result,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, userId, includeArchived, limit, offset }, 'Failed to list user conversations');
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -264,7 +271,7 @@ export async function deleteConversation(
   _supabase: SupabaseClient,
   conversationId: string,
   userId?: string,
-): Promise<{ data: VercelConversation | null; error: any }> {
+): Promise<{ data: VercelConversation | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-conversation',
@@ -287,12 +294,13 @@ export async function deleteConversation(
       data: result[0] || null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error({ error, conversationId }, 'Failed to delete conversation');
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }

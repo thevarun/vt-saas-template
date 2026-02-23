@@ -93,7 +93,7 @@ export async function GET(
       conversation,
       messages: messages ?? [],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,
@@ -170,7 +170,7 @@ export async function PATCH(
     }
 
     return NextResponse.json({ conversation: updatedConversation });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,
@@ -237,7 +237,7 @@ export async function DELETE(
 
     // Return 204 No Content on success
     return new Response(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,

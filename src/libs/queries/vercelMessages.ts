@@ -14,13 +14,16 @@ import { logger } from '@/libs/Logger';
 import type { MessageMetadata, MessageRole } from '@/libs/vercel-ai/types';
 import { vercelMessages } from '@/models/Schema';
 
+import type { DbQueryError } from './types';
+import { toDbQueryError } from './types';
+
 /**
  * Message data type from database
  */
 export type VercelMessage = {
   id: string;
   conversationId: string;
-  role: string;
+  role: MessageRole;
   content: string;
   tokenCount: number | null;
   latencyMs: number | null;
@@ -45,7 +48,7 @@ export async function createMessage(
   role: MessageRole,
   content: string,
   metadata?: MessageMetadata,
-): Promise<{ data: VercelMessage | null; error: any }> {
+): Promise<{ data: VercelMessage | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-message',
@@ -80,19 +83,21 @@ export async function createMessage(
       'Message created',
     );
 
+    const row = result[0];
     return {
-      data: result[0] || null,
+      data: row ? { ...row, role: row.role as MessageRole } : null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error(
       { error, conversationId, role },
       'Failed to create message',
     );
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -112,7 +117,7 @@ export async function getConversationMessages(
   _supabase: SupabaseClient,
   conversationId: string,
   limit: number = 100,
-): Promise<{ data: VercelMessage[] | null; error: any }> {
+): Promise<{ data: VercelMessage[] | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-message',
@@ -128,18 +133,19 @@ export async function getConversationMessages(
       .limit(limit);
 
     return {
-      data: result,
+      data: result.map(row => ({ ...row, role: row.role as MessageRole })),
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error(
       { error, conversationId, limit },
       'Failed to fetch conversation messages',
     );
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
@@ -159,7 +165,7 @@ export async function updateMessageMetadata(
   _supabase: SupabaseClient,
   messageId: string,
   metadata: MessageMetadata,
-): Promise<{ data: VercelMessage | null; error: any }> {
+): Promise<{ data: VercelMessage | null; error: DbQueryError | null }> {
   try {
     Sentry.addBreadcrumb({
       category: 'vercel-message',
@@ -167,7 +173,7 @@ export async function updateMessageMetadata(
       data: { messageId, metadata },
     });
 
-    const updateData: any = {};
+    const updateData: Partial<typeof vercelMessages.$inferInsert> = {};
 
     if (metadata.tokenCount !== undefined) {
       updateData.tokenCount = metadata.tokenCount;
@@ -184,19 +190,21 @@ export async function updateMessageMetadata(
 
     logger.info({ messageId, metadata }, 'Message metadata updated');
 
+    const row = result[0];
     return {
-      data: result[0] || null,
+      data: row ? { ...row, role: row.role as MessageRole } : null,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
+    const dbError = toDbQueryError(error);
     logger.error(
       { error, messageId, metadata },
       'Failed to update message metadata',
     );
     return {
       data: null,
-      error,
+      error: dbError,
     };
   }
 }
