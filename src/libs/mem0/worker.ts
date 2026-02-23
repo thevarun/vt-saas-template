@@ -69,8 +69,7 @@ export async function processMemoryExtractionJobs(): Promise<{
       }
 
       const conversationQuery = await import('@/libs/queries/vercelConversations');
-      const { data: conversation } = await conversationQuery.getConversationById(
-        supabase,
+      const { data: conversation } = await conversationQuery.getConversationByIdAdmin(
         job.conversationId,
       );
 

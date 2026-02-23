@@ -4,9 +4,9 @@
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "health_companion.admin_audit_log": {
+    "vt_saas.admin_audit_log": {
       "name": "admin_audit_log",
-      "schema": "health_companion",
+      "schema": "vt_saas",
       "columns": {
         "id": {
           "name": "id",
@@ -113,9 +113,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "health_companion.feedback": {
+    "vt_saas.feedback": {
       "name": "feedback",
-      "schema": "health_companion",
+      "schema": "vt_saas",
       "columns": {
         "id": {
           "name": "id",
@@ -246,9 +246,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "health_companion.threads": {
+    "vt_saas.threads": {
       "name": "threads",
-      "schema": "health_companion",
+      "schema": "vt_saas",
       "columns": {
         "id": {
           "name": "id",
@@ -371,9 +371,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "health_companion.user_preferences": {
+    "vt_saas.user_preferences": {
       "name": "user_preferences",
-      "schema": "health_companion",
+      "schema": "vt_saas",
       "columns": {
         "id": {
           "name": "id",
@@ -482,104 +482,6 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.user_profiles": {
-      "name": "user_profiles",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "display_name": {
-          "name": "display_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "idx_user_profiles_user_id": {
-          "name": "idx_user_profiles_user_id",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "with": {},
-          "method": "btree",
-          "concurrently": false
-        },
-        "idx_user_profiles_username": {
-          "name": "idx_user_profiles_username",
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "with": {},
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "user_profiles_user_id_unique": {
-          "name": "user_profiles_user_id_unique",
-          "columns": [
-            "user_id"
-          ],
-          "nullsNotDistinct": false
-        },
-        "user_profiles_username_unique": {
-          "name": "user_profiles_username_unique",
-          "columns": [
-            "username"
-          ],
-          "nullsNotDistinct": false
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -603,7 +505,7 @@
     }
   },
   "schemas": {
-    "health_companion": "health_companion"
+    "vt_saas": "vt_saas"
   },
   "views": {},
   "sequences": {},

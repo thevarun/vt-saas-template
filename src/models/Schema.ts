@@ -42,9 +42,6 @@ export const threads = vtSaasSchema.table(
   },
   table => ({
     userIdIdx: index('idx_threads_user_id').on(table.userId),
-    conversationIdIdx: index('idx_threads_conversation_id').on(
-      table.conversationId,
-    ),
     userArchivedIdx: index('idx_threads_user_archived').on(
       table.userId,
       table.archived,
@@ -171,7 +168,6 @@ export const shareableLinks = vtSaasSchema.table(
       .notNull(),
   },
   table => ({
-    tokenIdx: index('idx_shareable_links_token').on(table.token),
     createdByIdx: index('idx_shareable_links_created_by').on(table.createdBy),
     resourceIdx: index('idx_shareable_links_resource').on(
       table.resourceType,
@@ -210,7 +206,8 @@ export const mem0Memories = vtSaasSchema.table(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: uuid('user_id').notNull(),
-    conversationId: uuid('conversation_id'),
+    conversationId: uuid('conversation_id')
+      .references(() => vercelConversations.id, { onDelete: 'set null' }),
     memoryText: text('memory_text').notNull(),
     memoryType: text('memory_type'), // 'fact' | 'preference' | 'context'
     metadata: jsonb('metadata'),
@@ -234,7 +231,9 @@ export const memoryExtractionJobs = vtSaasSchema.table(
   'memory_extraction_jobs',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    conversationId: uuid('conversation_id').notNull(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => vercelConversations.id, { onDelete: 'cascade' }),
     status: text('status').notNull(), // 'pending' | 'processing' | 'completed' | 'failed'
     errorMessage: text('error_message'),
     createdAt: timestamp('created_at', { withTimezone: true })

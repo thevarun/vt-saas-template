@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T14:35:00Z"
+last_updated: "2026-02-23T15:00:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -25,8 +25,8 @@ themes_completed:
   - T-002
   - T-005
   - T-007
-themes_pending:
   - T-008
+themes_pending:
   - T-009
   - T-010
   - T-013
@@ -305,9 +305,42 @@ execution_log:
       - src/app/api/chat/messages/route.ts
     validation: pass
     visual_check: N/A
-    commit: "pending"
+    commit: "950693e"
     enrichment_turns: 35
     implementation_turns: 127
     fix_turns: 0
     model: "opus"
     completed_at: "2026-02-23T14:35:00Z"
+  - theme: "T-008"
+    name: "Fix Data Layer Integrity Issues"
+    phase: 3
+    risk: HIGH
+    findings_addressed: ["F-071", "F-072", "F-074", "F-075", "F-076", "F-078", "F-079"]
+    files_changed:
+      - src/app/api/share/[token]/route.ts
+      - src/app/api/share/__tests__/share-token-route.test.ts (new)
+      - src/app/api/profile/update-username/route.ts
+      - src/app/api/profile/__tests__/update-username-route.test.ts (new)
+      - src/app/[locale]/(auth)/dashboard/page.tsx
+      - src/app/[locale]/(auth)/dashboard/__tests__/dashboard-preferences.test.ts (new)
+      - src/app/api/chat/vercel/route.ts
+      - src/app/api/chat/vercel/__tests__/vercel-chat-route.test.ts (new)
+      - src/libs/queries/vercelConversations.ts
+      - src/libs/queries/__tests__/vercelConversations.test.ts
+      - src/libs/mem0/worker.ts
+      - src/models/Schema.ts
+      - src/models/Schema.test.ts
+      - vitest.config.mts
+      - __mocks__/@ai-sdk/anthropic.ts (new)
+      - migrations/0007_data_layer_integrity.sql (new)
+      - migrations/meta/_journal.json
+      - migrations/meta/0006_snapshot.json
+      - migrations/meta/0007_snapshot.json (new)
+    validation: pass
+    visual_check: N/A
+    commit: "pending"
+    enrichment_turns: 24
+    implementation_turns: 166
+    fix_turns: 0
+    model: "opus"
+    completed_at: "2026-02-23T15:00:00Z"

@@ -1,4 +1,3 @@
-import { eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { getLocale } from 'next-intl/server';
 import { Suspense } from 'react';
@@ -18,22 +17,15 @@ const DashboardIndexPage = async () => {
   const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Auto-create default preferences for new users (no redirect loop)
+  // Auto-create default preferences for new users (idempotent upsert)
   if (user) {
-    const existingPreferences = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, user.id))
-      .limit(1);
-
-    if (existingPreferences.length === 0) {
-      // Create default preferences instead of redirecting to onboarding
-      await db.insert(userPreferences).values({
+    await db.insert(userPreferences)
+      .values({
         userId: user.id,
         emailNotifications: true,
         language: locale as 'en' | 'hi' | 'bn',
-      });
-    }
+      })
+      .onConflictDoNothing({ target: userPreferences.userId });
   }
 
   // Extract name or email for personalized greeting

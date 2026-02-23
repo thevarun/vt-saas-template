@@ -28,6 +28,7 @@ vi.mock('@/libs/DB', () => ({
 
 const {
   getConversationById,
+  getConversationByIdAdmin,
   createConversation,
   updateConversation,
   listUserConversations,
@@ -49,7 +50,7 @@ describe('vercelConversations queries', () => {
   afterEach(() => {});
 
   describe('getConversationById', () => {
-    it('returns { data, error: null } on success', async () => {
+    it('returns { data, error: null } on success with userId filter', async () => {
       const mockConversation = {
         id: 'conv-1',
         userId: 'user-1',
@@ -74,11 +75,10 @@ describe('vercelConversations queries', () => {
         throw new Error('DB connection failed');
       });
 
-      const result = await getConversationById(mockSupabase, 'conv-1');
+      const result = await getConversationById(mockSupabase, 'conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
-      // Verify error conforms to DbQueryError shape
       expect(result.error).toHaveProperty('message');
       expect(typeof result.error!.message).toBe('string');
       expect(result.error!.message).toBe('DB connection failed');
@@ -90,7 +90,7 @@ describe('vercelConversations queries', () => {
         throw { code: '23505', detail: 'duplicate key' };
       });
 
-      const result = await getConversationById(mockSupabase, 'conv-1');
+      const result = await getConversationById(mockSupabase, 'conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -102,10 +102,61 @@ describe('vercelConversations queries', () => {
     it('returns { data: null, error: null } when not found', async () => {
       mockLimit.mockResolvedValueOnce([]);
 
-      const result = await getConversationById(mockSupabase, 'nonexistent');
+      const result = await getConversationById(mockSupabase, 'nonexistent', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeNull();
+    });
+
+    it('returns null for wrong userId (ownership enforcement)', async () => {
+      // DB returns empty when userId doesn't match
+      mockLimit.mockResolvedValueOnce([]);
+
+      const result = await getConversationById(mockSupabase, 'conv-1', 'wrong-user');
+
+      expect(result.data).toBeNull();
+      expect(result.error).toBeNull();
+    });
+  });
+
+  describe('getConversationByIdAdmin', () => {
+    it('returns conversation without userId filter', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        userId: 'user-1',
+        title: 'Test',
+        lastMessagePreview: null,
+        archived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockLimit.mockResolvedValueOnce([mockConversation]);
+
+      const result = await getConversationByIdAdmin('conv-1');
+
+      expect(result.data).toEqual(mockConversation);
+      expect(result.error).toBeNull();
+    });
+
+    it('returns null when not found', async () => {
+      mockLimit.mockResolvedValueOnce([]);
+
+      const result = await getConversationByIdAdmin('nonexistent');
+
+      expect(result.data).toBeNull();
+      expect(result.error).toBeNull();
+    });
+
+    it('returns error on DB throw', async () => {
+      mockSelect.mockImplementationOnce(() => {
+        throw new Error('DB failure');
+      });
+
+      const result = await getConversationByIdAdmin('conv-1');
+
+      expect(result.data).toBeNull();
+      expect(result.error).toBeTruthy();
+      expect(result.error!.message).toBe('DB failure');
     });
   });
 
@@ -166,7 +217,7 @@ describe('vercelConversations queries', () => {
   });
 
   describe('updateConversation', () => {
-    it('returns { data, error: null } on success', async () => {
+    it('returns { data, error: null } on success with userId filter', async () => {
       const mockConversation = {
         id: 'conv-1',
         userId: 'user-1',
@@ -178,7 +229,7 @@ describe('vercelConversations queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockConversation]);
 
-      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Updated Title' });
+      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Updated Title' }, 'user-1');
 
       expect(result.data).toEqual(mockConversation);
       expect(result.error).toBeNull();
@@ -189,7 +240,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Update failed');
       });
 
-      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Fail' });
+      const result = await updateConversation(mockSupabase, 'conv-1', { title: 'Fail' }, 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
@@ -197,7 +248,7 @@ describe('vercelConversations queries', () => {
   });
 
   describe('deleteConversation', () => {
-    it('returns { data, error: null } on success', async () => {
+    it('returns { data, error: null } on success with userId filter', async () => {
       const mockConversation = {
         id: 'conv-1',
         userId: 'user-1',
@@ -209,7 +260,7 @@ describe('vercelConversations queries', () => {
       };
       mockReturning.mockResolvedValueOnce([mockConversation]);
 
-      const result = await deleteConversation(mockSupabase, 'conv-1');
+      const result = await deleteConversation(mockSupabase, 'conv-1', 'user-1');
 
       expect(result.data).toEqual(mockConversation);
       expect(result.error).toBeNull();
@@ -220,7 +271,7 @@ describe('vercelConversations queries', () => {
         throw new Error('Delete failed');
       });
 
-      const result = await deleteConversation(mockSupabase, 'conv-1');
+      const result = await deleteConversation(mockSupabase, 'conv-1', 'user-1');
 
       expect(result.data).toBeNull();
       expect(result.error).toBeTruthy();
