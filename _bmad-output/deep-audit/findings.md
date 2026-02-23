@@ -155,21 +155,6 @@ suggestion: |
 === END FINDING ===
 
 === FINDING ===
-id: F-011
-agent: security-and-error-handling
-severity: P3
-confidence: 80
-file: src/app/api/cron/memory-extraction/route.ts
-line: 47-57
-dimension: Security
-title: Timing-safe comparison not used for cron secret validation
-description: |
-  Cron endpoint uses strict equality for secret comparison instead of `crypto.timingSafeEqual()`.
-suggestion: |
-  Use `crypto.timingSafeEqual()` for constant-time comparison.
-=== END FINDING ===
-
-=== FINDING ===
 id: F-012
 agent: security-and-error-handling
 severity: P3
@@ -182,51 +167,6 @@ description: |
   Users could craft requests with `role: "system"` messages to potentially inject system prompts.
 suggestion: |
   Filter messages to only allow `user` and `assistant` roles before passing to AI model.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-013
-agent: performance-profiler
-severity: P1
-confidence: 98
-file: src/libs/api/admin/analytics.ts
-line: 73-98, 192-234
-dimension: Performance
-title: Entire user table fetched into Node.js memory for every analytics computation
-description: |
-  `listAllUsers()` loads all users (1000/page) into a JS array, then five separate filter passes run. `getActivationRate` does unbounded `db.select().from(userPreferences)` and `getFeedbackCount` does unbounded `db.select().from(feedback)`. At 10k users this allocates >50MB per analytics page load.
-suggestion: |
-  Replace with SQL COUNT + WHERE aggregates. Add caching with 5-minute TTL.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-014
-agent: performance-profiler
-severity: P1
-confidence: 97
-file: src/libs/queries/users.ts
-line: 31-93
-dimension: Performance
-title: All users fetched and sorted in-memory for admin user list
-description: |
-  `getUsersList` calls `fetchAllUsers()` on every page navigation or search keystroke, re-fetching the full user corpus. Easily 2-10 seconds TTFB for the admin users page at scale.
-suggestion: |
-  Use Supabase Admin `listUsers({ page, perPage, filter })` for server-side pagination.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-015
-agent: performance-profiler
-severity: P1
-confidence: 95
-file: src/libs/DB.ts
-line: 32-35
-dimension: Performance
-title: Connection pool capped at max:1 starves concurrent serverless requests
-description: |
-  The pg Pool has `max: 1`. When one function instance handles concurrent requests (especially streaming AI chat which holds connections for 10-30s), subsequent requests must wait.
-suggestion: |
-  Increase pool to 3-10 for production, or use a connection pooler (PgBouncer via Supabase).
 === END FINDING ===
 
 === FINDING ===
@@ -245,36 +185,6 @@ suggestion: |
 === END FINDING ===
 
 === FINDING ===
-id: F-017
-agent: performance-profiler
-severity: P2
-confidence: 92
-file: src/libs/api/admin/analytics.ts
-line: 233-245
-dimension: Performance
-title: Unbounded SELECT * on feedback table for trend computation
-description: |
-  `getFeedbackCount()` loads entire feedback table into memory then filters in JavaScript.
-suggestion: |
-  Replace with two parameterized COUNT queries run in parallel via Promise.all.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-018
-agent: performance-profiler
-severity: P2
-confidence: 90
-file: src/libs/queries/auditLog.ts
-line: 48-89
-dimension: Performance
-title: N+1 Supabase Admin API calls to resolve admin emails in audit log
-description: |
-  One `getUserById()` HTTP call per unique admin per page view (up to 50 calls).
-suggestion: |
-  Cache adminId→email map with 5-minute TTL or maintain local admin_users table.
-=== END FINDING ===
-
-=== FINDING ===
 id: F-019
 agent: performance-profiler
 severity: P2
@@ -287,21 +197,6 @@ description: |
   Every protected route makes two sequential round-trips to Supabase Auth (~100ms total TTFB tax).
 suggestion: |
   Refactor updateSession to return the user object and share it with the auth check.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-020
-agent: performance-profiler
-severity: P2
-confidence: 85
-file: src/app/api/admin/feedback/export/route.ts
-line: 52
-dimension: Performance
-title: 10,000 row feedback export loaded entirely into memory before streaming
-description: |
-  Export builds complete CSV string in memory (potentially 5-10MB) before any data reaches the client.
-suggestion: |
-  Stream CSV using TransformStream, fetch rows in batches of 500-1000.
 === END FINDING ===
 
 === FINDING ===
@@ -1085,21 +980,6 @@ suggestion: |
 === END FINDING ===
 
 === FINDING ===
-id: F-073
-agent: data-layer-reviewer
-severity: P2
-confidence: 95
-file: src/models/Schema.ts
-line: 37-39, 63-65, 92-94
-dimension: Data Layer & Database
-title: updatedAt column never auto-updates at database level
-description: |
-  All tables define updatedAt with .defaultNow() (INSERT only). Some update paths set it manually, others don't. Risk of stale timestamps.
-suggestion: |
-  Add database trigger for automatic updated_at management.
-=== END FINDING ===
-
-=== FINDING ===
 id: F-074
 agent: data-layer-reviewer
 severity: P2
@@ -1142,21 +1022,6 @@ description: |
   Check-then-insert on every dashboard load. Two simultaneous tabs cause UNIQUE constraint violation → 500 error.
 suggestion: |
   Use .onConflictDoNothing({ target: userPreferences.userId }).
-=== END FINDING ===
-
-=== FINDING ===
-id: F-077
-agent: data-layer-reviewer
-severity: P2
-confidence: 85
-file: src/models/Schema.ts
-line: 108, 215, 239, 262
-dimension: Data Layer & Database
-title: Free-form text columns used instead of pgEnum for constrained values
-description: |
-  vercelMessages.role, mem0Memories.memoryType, memoryExtractionJobs.status, adminAuditLog.action use text() instead of pgEnum.
-suggestion: |
-  Define pgEnum types for constrained columns (like feedbackTypeEnum already does).
 === END FINDING ===
 
 === FINDING ===
@@ -1247,21 +1112,6 @@ description: |
   Routes use custom error codes not defined in the ApiErrorCode type. Clients receiving these can't match them.
 suggestion: |
   Add to ApiErrorCode or map to existing codes.
-=== END FINDING ===
-
-=== FINDING ===
-id: F-084
-agent: api-contract-reviewer
-severity: P2
-confidence: 97
-file: src/app/api/admin/feedback/[id]/delete/route.ts
-line: 18-19
-dimension: API Contracts & Interface Consistency
-title: DELETE action exposed via POST to verb-suffixed URL, violating REST conventions
-description: |
-  POST /feedback/[id]/delete vs DELETE /users/[userId]. Three feedback action endpoints use verb-suffixed URLs.
-suggestion: |
-  Restructure: DELETE /feedback/[id], PATCH /feedback/[id] with { status: 'archived'|'reviewed' }.
 === END FINDING ===
 
 === FINDING ===

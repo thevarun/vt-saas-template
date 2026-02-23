@@ -60,14 +60,14 @@ id: T-002
 name: Harden Security Vulnerabilities in API Layer
 effort: M
 risk: MEDIUM
-finding_ids: F-001, F-002, F-003, F-004, F-005, F-006, F-011, F-012
+finding_ids: F-001, F-002, F-003, F-004, F-005, F-006, F-012
 dependencies: None
 coverage_gate: REQUIRED
 blast_radius: MODERATE
 warnings: None
 phase: 2
 summary: |
-  Eight security findings across the API layer. F-001 is a P1 where profile update calls admin listUsers via anon-key client. F-002 shows missing Zod validation on displayName. F-003 exposes the feedback endpoint to abuse with no rate limiting. F-004 reveals admin check uses user-writable user_metadata instead of app_metadata. F-005/F-006 show missing input validation on conversation_id and feedback IDs. F-011 and F-012 are lower-severity but address timing-safe comparison and message role sanitization.
+  Seven security findings across the API layer. F-001 is a P1 where profile update calls admin listUsers via anon-key client. F-002 shows missing Zod validation on displayName. F-003 exposes the feedback endpoint to abuse with no rate limiting. F-004 reveals admin check uses user-writable user_metadata instead of app_metadata. F-005/F-006 show missing input validation on conversation_id and feedback IDs. F-012 addresses message role sanitization.
 steps: |
   1. Write tests for profile update route covering listUsers bypass, displayName validation, and expected error responses
   2. Replace admin listUsers() call in profile/update with DB query against userPreferences table
@@ -76,8 +76,7 @@ steps: |
   5. Add conversation_id regex validation to GET /api/chat/messages (matching POST pattern)
   6. Add isValidUuid() check to admin feedback archive, delete, and mark-reviewed routes
   7. Implement IP-based rate limiting for /api/feedback (5 submissions/hour)
-  8. Use crypto.timingSafeEqual() for cron secret comparison
-  9. Filter message roles to only allow 'user' and 'assistant' before passing to AI model in vercel chat route
+  8. Filter message roles to only allow 'user' and 'assistant' before passing to AI model in vercel chat route
 files: |
   - src/app/api/profile/update/route.ts
   - src/libs/auth/isAdmin.ts
@@ -86,7 +85,6 @@ files: |
   - src/app/api/admin/feedback/[id]/delete/route.ts
   - src/app/api/admin/feedback/[id]/mark-reviewed/route.ts
   - src/app/api/feedback/route.ts
-  - src/app/api/cron/memory-extraction/route.ts
   - src/app/api/chat/vercel/route.ts
 tests_before: |
   Tests for profile update route, admin auth flow, feedback submission
@@ -179,38 +177,29 @@ tests_after: |
 
 === THEME ===
 id: T-005
-name: Fix Admin Analytics Performance (N+1 and Memory Bloat)
-effort: M
-risk: MEDIUM
-finding_ids: F-013, F-014, F-017, F-018, F-027
+name: Consolidate Duplicate Analytics Utilities
+effort: S
+risk: LOW
+finding_ids: F-027
 dependencies: None
-coverage_gate: REQUIRED
-blast_radius: MODERATE
+coverage_gate: ADEQUATE
+blast_radius: CONTAINED
 warnings: None
 phase: 3
 summary: |
-  Five findings expose severe performance issues in the admin analytics and user management layer. F-013 loads entire user table into memory for every analytics page load. F-014 fetches all users on every admin page navigation or search keystroke. F-017 loads the entire feedback table for trend computation. F-018 makes N+1 Supabase API calls to resolve admin emails in audit logs. F-027 shows duplicated calculateTrend and listAllUsers functions across modules.
+  F-027 shows duplicated calculateTrend and listAllUsers functions across analytics modules with inconsistent return types. calculateTrend is implemented twice with different return types. listAllUsers duplicates fetchAllUsers. Multiple analytics functions each independently call fetchAllUsers().
 steps: |
-  1. Write characterization tests for analytics endpoints verifying current response shapes and data accuracy
-  2. Consolidate calculateTrend into single utility function with consistent return type
-  3. Consolidate listAllUsers/fetchAllUsers into single function, called once per request
-  4. Replace in-memory user counting with SQL COUNT + WHERE aggregates for analytics metrics
-  5. Replace in-memory feedback filtering with parameterized COUNT queries via Promise.all
-  6. Implement server-side pagination for admin user list using Supabase Admin listUsers({page, perPage, filter})
-  7. Cache adminId→email map with 5-minute TTL for audit log email resolution
-  8. Add 5-minute TTL caching layer for analytics aggregates
+  1. Consolidate calculateTrend into single utility function with consistent return type
+  2. Consolidate listAllUsers/fetchAllUsers into single function, called once per request
+  3. Verify all callsites updated to use consolidated functions
 files: |
   - src/libs/api/admin/analytics.ts
   - src/libs/queries/users.ts
-  - src/libs/queries/auditLog.ts
-  - src/app/api/admin/analytics/route.ts
 tests_before: |
-  Characterization tests for analytics response shapes and calculation accuracy
+  Verify current analytics functions pass
 tests_after: |
-  - Performance test verifying analytics queries execute in <200ms for 1000+ rows
   - Test that calculateTrend returns consistent type
-  - Test pagination parameters are properly forwarded
-  - Test cache TTL behavior
+  - No duplicate function definitions
 === END THEME ===
 
 === THEME ===
@@ -302,14 +291,14 @@ id: T-008
 name: Fix Data Layer Integrity Issues
 effort: M
 risk: HIGH
-finding_ids: F-071, F-072, F-073, F-074, F-075, F-076, F-077, F-078, F-079
+finding_ids: F-071, F-072, F-074, F-075, F-076, F-078, F-079
 dependencies: None
 coverage_gate: REQUIRED
 blast_radius: MODERATE
 warnings: Mixed concerns — separate structural changes from behavior changes
 phase: 3
 summary: |
-  Nine data-layer findings covering race conditions, missing constraints, and authorization gaps. F-071: race condition on share link accessCount. F-072: missing FK constraints on memory tables. F-073: updatedAt never auto-updates. F-074: TOCTOU race in username uniqueness. F-075: multi-step chat mutation without transaction. F-076: race on user preferences auto-creation. F-077: text columns instead of pgEnum. F-078: optional userId creates authorization bypass. F-079: redundant indexes.
+  Seven data-layer findings covering race conditions, missing constraints, and authorization gaps. F-071: race condition on share link accessCount. F-072: missing FK constraints on memory tables. F-074: TOCTOU race in username uniqueness. F-075: multi-step chat mutation without transaction. F-076: race on user preferences auto-creation. F-078: optional userId creates authorization bypass. F-079: redundant indexes.
 steps: |
   1. Write characterization tests for share link access counting, username update, user preferences creation, and conversation creation
   2. Fix share link accessCount with SQL atomic increment
@@ -318,9 +307,7 @@ steps: |
   5. Wrap conversation creation + user message persistence in db.transaction()
   6. Make userId required in getConversationById, updateConversation, deleteConversation
   7. Add FK constraints on mem0Memories.conversationId and memoryExtractionJobs.conversationId (generate migration)
-  8. Add database trigger for automatic updatedAt management (generate migration)
-  9. Define pgEnum types for vercelMessages.role, mem0Memories.memoryType, memoryExtractionJobs.status, adminAuditLog.action (generate migration)
-  10. Remove redundant btree indexes on shareableLinks.token and threads.conversationId (generate migration)
+  8. Remove redundant btree indexes on shareableLinks.token and threads.conversationId (generate migration)
 files: |
   - src/app/api/share/[token]/route.ts
   - src/app/api/profile/update-username/route.ts
@@ -378,14 +365,14 @@ id: T-010
 name: Standardize API Contracts and REST Conventions
 effort: M
 risk: MEDIUM
-finding_ids: F-081, F-084, F-085, F-086, F-087, F-088, F-044
+finding_ids: F-081, F-085, F-086, F-087, F-088, F-044
 dependencies: T-001
 coverage_gate: REQUIRED
 blast_radius: MODERATE
 warnings: None
 phase: 3
 summary: |
-  Seven findings on API contract inconsistencies. F-081: "not found" returns 400 instead of 404. F-084: DELETE actions exposed via POST to verb-suffixed URLs. F-085: snake_case vs camelCase query params. F-086: inconsistent collection metadata field names. F-087: DELETE returns 200 instead of 204. F-088: doubled "not found" in error message. F-044: placeholder UI content shipped to users.
+  Six findings on API contract inconsistencies. F-081: "not found" returns 400 instead of 404. F-085: snake_case vs camelCase query params. F-086: inconsistent collection metadata field names. F-087: DELETE returns 200 instead of 204. F-088: doubled "not found" in error message. F-044: placeholder UI content shipped to users.
 steps: |
   1. Write characterization tests for affected endpoints verifying current response shapes and status codes
   2. Fix "Conversation not found" to use notFoundError('Conversation') returning 404
@@ -393,8 +380,7 @@ steps: |
   4. Rename conversation_id query param to conversationId in GET /api/chat/messages
   5. Standardize collection metadata field to "total" across /threads and /conversations
   6. Change DELETE profile to return 204 No Content
-  7. Restructure feedback admin routes: DELETE /feedback/[id], PATCH /feedback/[id] with { status: 'archived'|'reviewed' }
-  8. Gate or implement actual content for share link viewer (remove placeholder text)
+  7. Gate or implement actual content for share link viewer (remove placeholder text)
 files: |
   - src/app/api/chat/vercel/route.ts
   - src/app/api/share/[token]/route.ts
@@ -402,9 +388,6 @@ files: |
   - src/app/api/threads/route.ts
   - src/app/api/chat/vercel/conversations/route.ts
   - src/app/api/profile/delete/route.ts
-  - src/app/api/admin/feedback/[id]/archive/route.ts
-  - src/app/api/admin/feedback/[id]/delete/route.ts
-  - src/app/api/admin/feedback/[id]/mark-reviewed/route.ts
   - src/app/[locale]/(unauth)/share/[token]/page.tsx
 tests_before: |
   Characterization tests for current status codes and response shapes
@@ -496,26 +479,22 @@ id: T-013
 name: Fix Remaining Performance Issues
 effort: M
 risk: MEDIUM
-finding_ids: F-015, F-016, F-020, F-022, F-023, F-056, F-059
+finding_ids: F-016, F-022, F-023, F-056, F-059
 dependencies: None
 coverage_gate: ADEQUATE
 blast_radius: MODERATE
 warnings: None
 phase: 4
 summary: |
-  Seven remaining performance and efficiency findings. F-015: connection pool capped at max:1 starves concurrent requests. F-016: N+1 queries and sequential dynamic imports in mem0 worker. F-020: 10k-row feedback export loaded entirely into memory. F-022: PostHog with autocapture adds 40-60KB. F-023: uncached refetch on every tab focus. F-056: CI installs unused Firefox browser. F-059: UI component tests assert CSS class names (~470 LOC of brittle tests).
+  Five remaining performance and efficiency findings. F-016: N+1 queries and sequential dynamic imports in mem0 worker. F-022: PostHog with autocapture adds 40-60KB. F-023: uncached refetch on every tab focus. F-056: CI installs unused Firefox browser. F-059: UI component tests assert CSS class names (~470 LOC of brittle tests).
 steps: |
-  1. Increase pg Pool max to 5 for production; add comment explaining reasoning
-  2. Move dynamic imports in mem0/worker.ts to top-level; batch DB inserts; add bounded parallelism
-  3. Stream CSV feedback export using TransformStream; fetch rows in batches of 500
-  4. Lazy-load PostHog via dynamic import after idle; disable autocapture
-  5. Add 30-second stale-time check to conversation list refetch on tab focus
-  6. Change CI to `npx playwright install --with-deps chromium` only
-  7. Reduce UI component tests (skeleton, spinner, loading-card) to 2-3 tests each: renders, custom className, HTML attributes
+  1. Move dynamic imports in mem0/worker.ts to top-level; batch DB inserts; add bounded parallelism
+  2. Lazy-load PostHog via dynamic import after idle; disable autocapture
+  3. Add 30-second stale-time check to conversation list refetch on tab focus
+  4. Change CI to `npx playwright install --with-deps chromium` only
+  5. Reduce UI component tests (skeleton, spinner, loading-card) to 2-3 tests each: renders, custom className, HTML attributes
 files: |
-  - src/libs/DB.ts
   - src/libs/mem0/worker.ts
-  - src/app/api/admin/feedback/export/route.ts
   - src/components/analytics/PostHogProvider.tsx
   - src/components/chat/vercel/ConversationListSidebar.tsx
   - .github/workflows/CI.yml
@@ -523,9 +502,8 @@ files: |
   - src/components/ui/__tests__/spinner.test.tsx
   - src/components/ui/__tests__/loading-card.test.tsx
 tests_before: |
-  Existing tests pass (particularly feedback export and mem0 worker if any exist)
+  Existing tests pass (particularly mem0 worker if any exist)
 tests_after: |
-  - Test streaming CSV export produces valid output
   - Test PostHog loads only after idle
   - Test stale-time prevents rapid refetches
   - Verify CI pipeline time reduction
@@ -565,7 +543,7 @@ phase_2: T-011, T-012, T-001, T-002
 phase_3: T-005, T-007, T-008, T-009, T-010
 phase_4: T-013
 quick_wins: T-003, T-004, T-006
-total_effort: XL
+total_effort: L
 summary: |
-  The refactoring plan addresses 100 code findings across 14 themes in 4 phases. Phase 1 (quick wins) removes ~800+ lines of dead code, cleans AI-generated comment bloat, fixes 10 accessibility/SEO issues, and patches known dependency vulnerabilities — all low-risk with immediate quality improvement. Phase 2 builds the safety net: critical path tests for middleware/auth/deletion (T-011), environment config consolidation (T-012), centralized API auth/error infrastructure (T-001), and security hardening (T-002). Phase 3 tackles the highest-impact structural work: admin analytics performance (T-005), type safety (T-007), data integrity (T-008), chat route decomposition (T-009), and API contract standardization (T-010). Phase 4 handles remaining performance optimizations and test cleanup. Total estimated effort is XL (>10 days) for a senior developer, though phases 1 and 2 can be completed in approximately 5 days. Documentation: MAJOR update recommended after completing all code changes. Run /docs-quick-update to sync docs with refactored code, then address remaining gaps from Documentation Health findings F-101, F-102, F-103, F-104, F-105.
+  The refactoring plan addresses 90 code findings across 14 themes in 4 phases. Ten findings were eliminated after fresh-eyes review identified them as overkill or incorrect for a solo-dev serverless context (F-011, F-013, F-014, F-015, F-017, F-018, F-020, F-073, F-077, F-084). Phase 1 (quick wins) removes ~800+ lines of dead code, cleans AI-generated comment bloat, fixes 10 accessibility/SEO issues, and patches known dependency vulnerabilities — all low-risk with immediate quality improvement. Phase 2 builds the safety net: critical path tests for middleware/auth/deletion (T-011), environment config consolidation (T-012), centralized API auth/error infrastructure (T-001), and security hardening (T-002). Phase 3 tackles structural work: duplicate analytics consolidation (T-005), type safety (T-007), data integrity (T-008), chat route decomposition (T-009), and API contract standardization (T-010). Phase 4 handles remaining performance optimizations and test cleanup. Total estimated effort is L (~8-10 days) for a senior developer, though phases 1 and 2 can be completed in approximately 5 days. Documentation: MAJOR update recommended after completing all code changes. Run /docs-quick-update to sync docs with refactored code, then address remaining gaps from Documentation Health findings F-101, F-102, F-103, F-104, F-105.
 === END EXECUTION ORDER ===

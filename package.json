@@ -116,7 +116,7 @@
     "@testing-library/jest-dom": "^6.6.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.5.2",
-    "@torka/claude-qol": "^0.4.1",
+    "@torka/claude-qol": "^0.4.6",
     "@torka/claude-workflows": "^0.13.2",
     "@types/node": "^25.0.7",
     "@types/pg": "^8.11.10",
