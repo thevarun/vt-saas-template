@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T10:20:00Z"
+last_updated: "2026-02-23T11:45:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -11,15 +11,15 @@ git:
 
 baseline_validation: "pass"
 
-current_phase: 1
-current_theme: null
+current_phase: 2
+current_theme: T-011
 
 themes_completed:
   - T-003
-themes_pending:
   - T-004
   - T-006
   - T-014
+themes_pending:
   - T-011
   - T-012
   - T-001
@@ -74,3 +74,69 @@ execution_log:
     visual_check: N/A
     commit: "f2c7104"
     completed_at: "2026-02-23T10:20:00Z"
+  - theme: "T-004"
+    name: "Clean Up AI-Generated Comment Bloat"
+    phase: 1
+    risk: LOW
+    findings_addressed: ["F-038", "F-039", "F-040", "F-041"]
+    files_changed:
+      - src/app/api/chat/route.ts
+      - src/app/api/chat/vercel/route.ts
+      - src/libs/api/errors/index.ts
+      - src/libs/api/errors/responses.ts
+      - src/libs/api/errors/validation.ts
+      - src/libs/langfuse/config.ts
+      - src/libs/mem0/client.ts
+      - src/libs/mem0/config.ts
+      - src/libs/mem0/queue.ts
+      - src/libs/mem0/retrieval.ts
+      - src/libs/mem0/worker.ts
+    validation: pass
+    visual_check: N/A
+    commit: "6bae560"
+    enrichment_turns: 31
+    implementation_turns: 48
+    fix_turns: 0
+    completed_at: "2026-02-23T11:15:00Z"
+  - theme: "T-006"
+    name: "SEO and Accessibility Quick Fixes"
+    phase: 1
+    risk: LOW
+    findings_addressed: ["F-090", "F-091", "F-092", "F-094", "F-095", "F-096", "F-097", "F-098", "F-099", "F-100"]
+    files_changed:
+      - src/features/landing/CenteredHero.tsx
+      - src/features/landing/Section.tsx
+      - src/templates/Footer.tsx
+      - src/features/landing/CenteredMenu.tsx
+      - src/components/layout/MainAppShell.tsx
+      - src/components/ui/toast.tsx
+      - src/app/[locale]/layout.tsx
+      - src/styles/global.css
+      - src/components/ui/password-input.tsx
+      - src/components/pseo/Breadcrumbs.tsx
+      - package.json
+      - package-lock.json
+      - tests/accessibility.spec.ts (new)
+    validation: pass
+    visual_check: pass
+    commit: "3b11bc5"
+    enrichment_turns: 20
+    implementation_turns: 67
+    fix_turns: 0
+    completed_at: "2026-02-23T11:30:00Z"
+  - theme: "T-014"
+    name: "Patch Dependency Vulnerabilities"
+    phase: 1
+    risk: MEDIUM
+    findings_addressed: ["F-045", "F-046", "F-047"]
+    files_changed:
+      - package.json
+      - package-lock.json
+      - src/libs/Logger.ts
+    validation: pass
+    visual_check: N/A
+    commit: "b4fd135"
+    enrichment_turns: 37
+    implementation_turns: 37
+    fix_turns: 0
+    completed_at: "2026-02-23T11:45:00Z"

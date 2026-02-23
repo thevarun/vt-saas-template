@@ -159,7 +159,7 @@
     "vitest-fail-on-console": "^0.10.1"
   },
   "overrides": {
-    "axios": "^1.13.2",
+    "axios": ">=1.13.5",
     "cookie": "^0.7.2",
     "esbuild": "^0.25.1",
     "glob": "^10.4.6"
