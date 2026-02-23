@@ -1,49 +1,8 @@
-/**
- * Validation Error Formatters
- *
- * Utilities for transforming validation errors (e.g., Zod) into user-friendly formats
- * suitable for API responses and form display.
- */
+/** @module Validation error formatters for transforming Zod errors into field-level messages. */
 
 import type { z } from 'zod';
 
-/**
- * Formats Zod validation errors into field-level error messages
- *
- * Transforms Zod's error format into a flat object mapping field paths to error messages.
- * This format is easier to consume in frontend forms.
- *
- * @param zodError - Zod validation error object
- * @returns Record mapping field paths to error message arrays
- *
- * @example
- * Input (Zod error):
- * ```typescript
- * {
- *   issues: [
- *     { path: ['conversationId'], message: 'Required' },
- *     { path: ['title'], message: 'Too short' }
- *   ]
- * }
- * ```
- *
- * Output:
- * ```typescript
- * {
- *   conversationId: ['Required'],
- *   title: ['Too short']
- * }
- * ```
- *
- * @example Usage in API route:
- * ```typescript
- * const result = schema.safeParse(body);
- * if (!result.success) {
- *   const errors = formatZodErrors(result.error);
- *   return validationError(errors);
- * }
- * ```
- */
+/** Flatten Zod issues into a Record mapping field paths to error message arrays. */
 export function formatZodErrors(
   zodError: z.ZodError,
 ): Record<string, string[]> {

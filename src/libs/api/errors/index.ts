@@ -1,19 +1,4 @@
-/**
- * API Error Handling
- *
- * Centralized error handling utilities for consistent API responses.
- * Export all error types, response builders, validation formatters, and logging utilities.
- *
- * @example
- * ```typescript
- * import {
- *   unauthorizedError,
- *   validationError,
- *   formatZodErrors,
- *   logApiError,
- * } from '@/libs/api/errors';
- * ```
- */
+/** @module Centralized API error handling -- re-exports response builders, validation formatters, and logging. */
 
 // Logging
 export type { ApiErrorContext } from './logger';

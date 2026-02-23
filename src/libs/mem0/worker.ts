@@ -1,26 +1,4 @@
-/**
- * Memory Extraction Worker
- *
- * This module processes pending memory extraction jobs.
- * It's triggered by a cron endpoint that runs every 5 minutes.
- *
- * Processing Flow:
- * 1. Fetch pending jobs from database
- * 2. For each job:
- *    a. Update status to 'processing'
- *    b. Fetch conversation messages
- *    c. Extract memories via Mem0 API
- *    d. Store memories in database
- *    e. Update job status to 'completed' or 'failed'
- * 3. Errors are isolated per job (don't stop processing)
- *
- * Error Handling:
- * - Transient errors: Job stays in 'failed' state (manual retry needed)
- * - Permanent errors: Job marked 'failed' with error message
- * - Processing continues for remaining jobs on failure
- *
- * @see {@link /api/cron/memory-extraction Cron endpoint}
- */
+/** @module Memory extraction worker -- processes pending jobs via Mem0 API, triggered by cron. */
 
 import * as Sentry from '@sentry/nextjs';
 
@@ -33,27 +11,16 @@ import {
 import { getConversationMessages } from '@/libs/queries/vercelMessages';
 import { createClient } from '@/libs/supabase/server';
 
-import { getMem0Client, isMem0Enabled } from './client';
+import { getMem0Client } from './client';
+import { isEnabled } from './config';
 
-/**
- * Process all pending memory extraction jobs
- *
- * This function is called by the cron endpoint.
- * It processes jobs in batches and handles errors gracefully.
- *
- * Graceful Degradation:
- * - Returns immediately if Mem0 is disabled
- * - Logs errors but doesn't throw
- * - Continues processing on job failure
- *
- * @returns Object with job processing stats
- */
+/** Process all pending memory extraction jobs. Returns stats on processed/succeeded/failed. */
 export async function processMemoryExtractionJobs(): Promise<{
   processed: number;
   succeeded: number;
   failed: number;
 }> {
-  if (!isMem0Enabled()) {
+  if (!isEnabled()) {
     logger.info('Mem0 disabled - skipping job processing');
     return { processed: 0, succeeded: 0, failed: 0 };
   }
@@ -75,7 +42,6 @@ export async function processMemoryExtractionJobs(): Promise<{
     processed++;
 
     try {
-      // Update status to 'processing'
       await updateJobStatus(job.id, 'processing');
 
       Sentry.addBreadcrumb({
@@ -87,9 +53,6 @@ export async function processMemoryExtractionJobs(): Promise<{
         },
       });
 
-      // Fetch conversation messages
-      // Note: We need a Supabase client but don't have user context in cron
-      // For now, we'll use the service role client from cookies (server context)
       const { cookies } = await import('next/headers');
       const cookieStore = await cookies();
       const supabase = createClient(cookieStore);
@@ -105,9 +68,6 @@ export async function processMemoryExtractionJobs(): Promise<{
         );
       }
 
-      // Get the first message to extract userId
-      // Note: All messages in a conversation should have the same userId
-      // We need to get it from the conversation record instead
       const conversationQuery = await import('@/libs/queries/vercelConversations');
       const { data: conversation } = await conversationQuery.getConversationById(
         supabase,
@@ -120,16 +80,11 @@ export async function processMemoryExtractionJobs(): Promise<{
 
       const userId = conversation.userId;
 
-      // Format messages for Mem0 API
-      // Cast to proper type expected by Mem0 API
       const formattedMessages = messages.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       }));
 
-      // Extract memories via Mem0 API
-      // The add() method automatically extracts and stores memories
-      // Returns an array of Memory objects directly
       const memories = await client.add(formattedMessages, {
         user_id: userId,
         metadata: {
@@ -148,12 +103,8 @@ export async function processMemoryExtractionJobs(): Promise<{
         'Memories extracted via Mem0 API',
       );
 
-      // Store memories in database
-      // The result is an array of Memory objects
       if (memories && Array.isArray(memories)) {
         for (const memoryData of memories) {
-          // Extract memory text from Mem0 response
-          // The memory text can be in 'memory' field or nested in 'data.memory'
           const memoryText = memoryData.memory
             || memoryData.data?.memory
             || '';
@@ -170,7 +121,6 @@ export async function processMemoryExtractionJobs(): Promise<{
         }
       }
 
-      // Update job status to 'completed'
       await updateJobStatus(job.id, 'completed');
       succeeded++;
 
@@ -184,11 +134,8 @@ export async function processMemoryExtractionJobs(): Promise<{
       Sentry.captureException(error);
       logger.error({ error, jobId: job.id }, 'Job failed');
 
-      // Update job status to 'failed' with error message
       const errorMessage = error.message || 'Unknown error';
       await updateJobStatus(job.id, 'failed', errorMessage);
-
-      // Continue processing other jobs (don't throw)
     }
   }
 
