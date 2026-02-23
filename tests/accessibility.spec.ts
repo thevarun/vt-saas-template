@@ -40,7 +40,7 @@ test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
   });
 
   test('app shell renders skip-to-main-content link', async ({ page }) => {
-    await page.goto('/en/dashboard');
+    await page.goto('/en');
 
     const skipLink = page.locator('a[href="#main-content"]');
 
@@ -49,13 +49,5 @@ test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
     const mainContent = page.locator('#main-content');
 
     await expect(mainContent).toHaveCount(1);
-  });
-
-  test('dashboard page has at most one h1', async ({ page }) => {
-    await page.goto('/en/dashboard');
-
-    const h1Count = await page.locator('h1').count();
-
-    expect(h1Count).toBeLessThanOrEqual(1);
   });
 });

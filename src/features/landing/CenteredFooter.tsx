@@ -11,7 +11,7 @@ export const CenteredFooter = (props: {
     <div className="flex flex-col items-center text-center">
       {props.logo}
 
-      <ul className="mt-4 flex gap-x-8 text-lg max-sm:flex-col [&_a:hover]:opacity-100 [&_a]:opacity-60">
+      <ul className="mt-4 flex gap-x-8 text-lg max-sm:flex-col [&_a:hover]:text-foreground [&_a]:text-muted-foreground">
         {props.children}
       </ul>
 
@@ -24,7 +24,7 @@ export const CenteredFooter = (props: {
           {`© ${new Date().getFullYear()} ${props.name}. All rights reserved.`}
         </div>
 
-        <ul className="flex gap-x-4 font-medium [&_a:hover]:opacity-100 [&_a]:opacity-60">
+        <ul className="flex gap-x-4 font-medium [&_a:hover]:text-foreground [&_a]:text-muted-foreground">
           {props.legalLinks}
         </ul>
       </div>

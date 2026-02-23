@@ -94,6 +94,26 @@ export async function POST(request: Request) {
       return internalError('Failed to update profile');
     }
 
+    // Sync username to user_preferences so the DB uniqueness constraint
+    // stays consistent with auth metadata (fixes P2: check vs update mismatch)
+    try {
+      await db
+        .insert(userPreferences)
+        .values({ userId: user.id, username, displayName })
+        .onConflictDoUpdate({
+          target: userPreferences.userId,
+          set: { username, displayName },
+        });
+    } catch (syncError) {
+      logApiError(syncError, {
+        endpoint: '/api/profile/update',
+        method: 'POST',
+        userId: user.id,
+        metadata: { operation: 'sync_preferences' },
+      });
+      // Auth metadata was already updated; log but don't fail the request
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     logApiError(error, {
