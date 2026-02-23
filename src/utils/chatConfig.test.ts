@@ -1,14 +1,26 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const { mockEnv } = vi.hoisted(() => {
+  const mockEnv = {
+    DIFY_API_URL: undefined as string | undefined,
+    DIFY_API_KEY: undefined as string | undefined,
+    OPENAI_API_KEY: undefined as string | undefined,
+    ANTHROPIC_API_KEY: undefined as string | undefined,
+  };
+  return { mockEnv };
+});
+
+vi.mock('@/libs/Env', () => ({ Env: mockEnv }));
+
+// eslint-disable-next-line import/first
 import { getChatConfig } from './chatConfig';
 
 describe('chatConfig', () => {
   beforeEach(() => {
-    // Clear all environment variables before each test
-    delete process.env.DIFY_API_URL;
-    delete process.env.DIFY_API_KEY;
-    delete process.env.OPENAI_API_KEY;
-    delete process.env.ANTHROPIC_API_KEY;
+    mockEnv.DIFY_API_URL = undefined;
+    mockEnv.DIFY_API_KEY = undefined;
+    mockEnv.OPENAI_API_KEY = undefined;
+    mockEnv.ANTHROPIC_API_KEY = undefined;
   });
 
   describe('getChatConfig', () => {
@@ -20,8 +32,8 @@ describe('chatConfig', () => {
     });
 
     it('should detect Dify configuration when env vars are set', () => {
-      process.env.DIFY_API_URL = 'https://api.dify.ai/v1';
-      process.env.DIFY_API_KEY = 'test-key';
+      mockEnv.DIFY_API_URL = 'https://api.dify.ai/v1';
+      mockEnv.DIFY_API_KEY = 'test-key';
 
       const config = getChatConfig();
 
@@ -30,7 +42,7 @@ describe('chatConfig', () => {
     });
 
     it('should not mark Dify as configured if only URL is set', () => {
-      process.env.DIFY_API_URL = 'https://api.dify.ai/v1';
+      mockEnv.DIFY_API_URL = 'https://api.dify.ai/v1';
 
       const config = getChatConfig();
 
@@ -38,7 +50,7 @@ describe('chatConfig', () => {
     });
 
     it('should detect OpenAI configuration', () => {
-      process.env.OPENAI_API_KEY = 'sk-test';
+      mockEnv.OPENAI_API_KEY = 'sk-test';
 
       const config = getChatConfig();
 
@@ -47,7 +59,7 @@ describe('chatConfig', () => {
     });
 
     it('should detect Anthropic configuration', () => {
-      process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
+      mockEnv.ANTHROPIC_API_KEY = 'sk-ant-test';
 
       const config = getChatConfig();
 
@@ -56,8 +68,8 @@ describe('chatConfig', () => {
     });
 
     it('should prefer OpenAI if both are configured', () => {
-      process.env.OPENAI_API_KEY = 'sk-test';
-      process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
+      mockEnv.OPENAI_API_KEY = 'sk-test';
+      mockEnv.ANTHROPIC_API_KEY = 'sk-ant-test';
 
       const config = getChatConfig();
 
@@ -66,9 +78,9 @@ describe('chatConfig', () => {
     });
 
     it('should detect both chat providers when configured', () => {
-      process.env.DIFY_API_URL = 'https://api.dify.ai/v1';
-      process.env.DIFY_API_KEY = 'test-key';
-      process.env.OPENAI_API_KEY = 'sk-test';
+      mockEnv.DIFY_API_URL = 'https://api.dify.ai/v1';
+      mockEnv.DIFY_API_KEY = 'test-key';
+      mockEnv.OPENAI_API_KEY = 'sk-test';
 
       const config = getChatConfig();
 

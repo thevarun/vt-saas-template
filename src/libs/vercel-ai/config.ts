@@ -5,6 +5,8 @@
  * Environment variables are server-side only - NEVER use NEXT_PUBLIC_ prefix.
  */
 
+import { Env } from '@/libs/Env';
+
 /**
  * Supported AI providers
  */
@@ -48,10 +50,10 @@ export type VercelAIConfig = {
  * Default timeout: 30000ms (30 seconds)
  */
 export const VERCEL_AI_CONFIG: VercelAIConfig = {
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-  provider: (process.env.AI_PROVIDER as AIProvider) || 'openai',
-  model: process.env.DEFAULT_AI_MODEL || 'gpt-4o-mini',
+  openaiApiKey: Env.OPENAI_API_KEY,
+  anthropicApiKey: Env.ANTHROPIC_API_KEY,
+  provider: Env.AI_PROVIDER as AIProvider,
+  model: Env.DEFAULT_AI_MODEL,
   timeout: 30000,
 };
 

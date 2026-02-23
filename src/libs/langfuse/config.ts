@@ -1,5 +1,7 @@
 /** @module LangFuse configuration -- optional observability for LLM tracing. */
 
+import { Env } from '@/libs/Env';
+
 export type LangfuseConfig = {
   publicKey?: string;
   secretKey?: string;
@@ -7,9 +9,9 @@ export type LangfuseConfig = {
 };
 
 export const LANGFUSE_CONFIG: LangfuseConfig = {
-  publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-  secretKey: process.env.LANGFUSE_SECRET_KEY,
-  host: process.env.LANGFUSE_HOST || 'https://cloud.langfuse.com',
+  publicKey: Env.LANGFUSE_PUBLIC_KEY,
+  secretKey: Env.LANGFUSE_SECRET_KEY,
+  host: Env.LANGFUSE_HOST,
 };
 
 /** Returns true if both public and secret keys are set. */
