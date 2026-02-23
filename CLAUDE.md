@@ -25,7 +25,7 @@ The project includes:
 ## Core Architecture
 
 ### Authentication Flow
-- **Middleware**: `src/middleware.ts` handles session refresh and route protection
+- **Middleware**: `src/proxy.ts` handles session refresh and route protection
 - **Supabase Client**:
   - Server-side: `src/libs/supabase/server.ts` (uses cookies)
   - Client-side: `src/libs/supabase/client.ts`
@@ -228,7 +228,7 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 ## Key Development Patterns
 
 ### Adding a New Protected Route
-1. Add route path to `protectedPaths` array in `src/middleware.ts`
+1. Add route path to `protectedPaths` array in `src/proxy.ts`
 2. Create route in `src/app/[locale]/(auth)/` directory structure
 3. Access user session via Supabase client:
    ```typescript
