@@ -136,14 +136,6 @@ export function MainAppShell({ children }: MainAppShellProps) {
 
   return (
     <div className="flex h-screen">
-      {/* Skip navigation for keyboard users */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border focus:border-ring focus:rounded-md"
-      >
-        Skip to main content
-      </a>
-
       {/* AC #6: Mobile Sheet Overlay - MagicPatterns style */}
       <div className="md:hidden">
         <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
@@ -294,9 +286,9 @@ export function MainAppShell({ children }: MainAppShellProps) {
         </header>
 
         {/* Content area - renders route-specific content */}
-        <main id="main-content" className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto">
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );

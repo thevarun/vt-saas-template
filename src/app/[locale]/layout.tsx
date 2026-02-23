@@ -96,13 +96,19 @@ export default async function RootLayout(props: {
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border focus:border-ring focus:rounded-md"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider>
           <PostHogProvider>
             <NextIntlClientProvider
               locale={locale}
               messages={messages}
             >
-              {props.children}
+              <main id="main-content">{props.children}</main>
               <Toaster />
               <SonnerToaster position="bottom-right" />
             </NextIntlClientProvider>
