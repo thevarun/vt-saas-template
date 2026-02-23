@@ -35,6 +35,11 @@ export async function GET(request: Request) {
       return invalidRequestError('conversation_id is required');
     }
 
+    const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;
+    if (!conversationIdPattern.test(conversationId)) {
+      return invalidRequestError('Conversation ID must be alphanumeric with hyphens, max 128 characters');
+    }
+
     // Fetch message history from Dify
     // User ID must match the user who created the conversation
     const difyClient = createDifyClient();

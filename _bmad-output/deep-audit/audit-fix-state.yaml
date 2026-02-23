@@ -3,7 +3,7 @@
 # Lean tracker — enrichment lives in refactoring-plan.md, not here
 
 started_at: "2026-02-23T09:55:00Z"
-last_updated: "2026-02-23T13:30:00Z"
+last_updated: "2026-02-23T14:00:00Z"
 
 git:
   branch: "refactor/audit-fix-20260223"
@@ -22,8 +22,8 @@ themes_completed:
   - T-011
   - T-012
   - T-001
-themes_pending:
   - T-002
+themes_pending:
   - T-005
   - T-007
   - T-008
@@ -227,9 +227,40 @@ execution_log:
       - src/app/[locale]/(unauth)/auth/verify-complete/route.ts
     validation: pass
     visual_check: N/A
-    commit: "pending"
+    commit: "0605989"
     enrichment_turns: 64
     implementation_turns: 256
     fix_turns: 0
     model: "opus"
     completed_at: "2026-02-23T13:30:00Z"
+  - theme: "T-002"
+    name: "Harden Security Vulnerabilities in API Layer"
+    phase: 2
+    risk: MEDIUM
+    findings_addressed: ["F-001", "F-002", "F-003", "F-004", "F-005", "F-006", "F-012"]
+    files_changed:
+      - src/app/api/profile/update/route.ts
+      - src/app/api/profile/update/route.test.ts (new)
+      - src/libs/auth/isAdmin.ts
+      - src/libs/auth/isAdmin.test.ts
+      - docs/admin-setup.md
+      - src/app/api/chat/messages/route.ts
+      - src/app/api/chat/messages/route.test.ts (new)
+      - src/app/api/admin/feedback/[id]/archive/route.ts
+      - src/app/api/admin/feedback/[id]/delete/route.ts
+      - src/app/api/admin/feedback/[id]/mark-reviewed/route.ts
+      - src/app/api/feedback/route.ts
+      - src/app/api/feedback/route.test.ts
+      - src/libs/api/rateLimit.ts (new)
+      - src/libs/api/rateLimit.test.ts (new)
+      - src/app/api/chat/vercel/route.ts
+      - src/libs/vercel-ai/sanitizeMessages.ts (new)
+      - src/libs/vercel-ai/sanitizeMessages.test.ts (new)
+    validation: pass
+    visual_check: N/A
+    commit: "pending"
+    enrichment_turns: 45
+    implementation_turns: 91
+    fix_turns: 0
+    model: "opus"
+    completed_at: "2026-02-23T14:00:00Z"

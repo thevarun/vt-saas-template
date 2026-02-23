@@ -159,4 +159,10 @@ describe('POST /api/admin/feedback/[id]/mark-reviewed', () => {
       metadata: { feedbackType: 'bug' },
     });
   });
+
+  it('returns 400 when id is not a valid UUID', async () => {
+    const response = await POST(createMockRequest(), { params: Promise.resolve({ id: 'not-a-uuid' }) });
+
+    expect(response.status).toBe(400);
+  });
 });

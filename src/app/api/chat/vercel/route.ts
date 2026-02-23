@@ -167,13 +167,18 @@ export async function POST(request: NextRequest): Promise<Response> {
     const memoryContext = formatMemoriesForPrompt(memories);
 
     // Convert messages to standard {role, content} format for streamText
+    // Filter out system and unexpected roles to prevent prompt injection
+    const ALLOWED_ROLES = new Set(['user', 'assistant']);
+
     const messages = Array.isArray(body.messages) && body.messages.length > 0
-      ? body.messages.map((m: any) => ({
-          role: m.role as 'user' | 'assistant' | 'system',
-          content: m.parts
-            ? m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
-            : m.content ?? '',
-        }))
+      ? body.messages
+          .filter((m: any) => ALLOWED_ROLES.has(m.role))
+          .map((m: any) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.parts
+              ? m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
+              : m.content ?? '',
+          }))
       : [{ role: 'user' as const, content: message }];
 
     // Stream text using Vercel AI SDK (handles SSE formatting automatically)

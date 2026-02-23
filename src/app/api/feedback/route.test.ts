@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as rateLimit from '@/libs/api/rateLimit';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 
@@ -30,6 +31,11 @@ vi.mock('@/libs/Logger', () => ({
   },
 }));
 
+vi.mock('@/libs/api/rateLimit', () => ({
+  checkRateLimit: vi.fn(),
+  getClientIp: vi.fn(),
+}));
+
 describe('POST /api/feedback', () => {
   const mockCookieStore = {} as any;
   const mockUser = {
@@ -39,7 +45,10 @@ describe('POST /api/feedback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(cookies as any).mockResolvedValue(mockCookieStore);
+    ;(cookies as any).mockResolvedValue(mockCookieStore)
+    // Default: rate limit allows requests
+    ;(rateLimit.checkRateLimit as any).mockReturnValue({ allowed: true, retryAfterSeconds: 0 })
+    ;(rateLimit.getClientIp as any).mockReturnValue('127.0.0.1');
   });
 
   describe('Valid submissions', () => {
@@ -321,6 +330,28 @@ describe('POST /api/feedback', () => {
       expect(data.data).toHaveProperty('createdAt');
       expect(data.data).not.toHaveProperty('userId');
       expect(data.data).not.toHaveProperty('userEmail');
+    });
+  });
+
+  describe('Rate limiting', () => {
+    it('returns 429 when rate limit is exceeded', async () => {
+      ;(rateLimit.checkRateLimit as any).mockReturnValue({ allowed: false, retryAfterSeconds: 3600 });
+
+      const request = new Request('http://localhost/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bug',
+          message: 'Test message',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(429);
+      expect(data.code).toBe('RATE_LIMIT');
+      expect(response.headers.get('Retry-After')).toBe('3600');
     });
   });
 

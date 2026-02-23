@@ -8,8 +8,10 @@ import {
   logApiError,
   logDbError,
   logValidationError,
+  rateLimitError,
   validationError,
 } from '@/libs/api/errors';
+import { checkRateLimit, getClientIp } from '@/libs/api/rateLimit';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { feedback } from '@/models/Schema';
@@ -53,6 +55,21 @@ type FeedbackInput = z.infer<typeof feedbackSchema>;
  */
 export async function POST(request: Request) {
   try {
+    // Rate limit: 5 submissions per hour per IP
+    const ip = getClientIp(request);
+    const { allowed, retryAfterSeconds } = checkRateLimit(
+      `feedback:${ip}`,
+      5,
+      60 * 60 * 1000, // 1 hour
+    );
+
+    if (!allowed) {
+      return rateLimitError(
+        'Too many feedback submissions. Please try again later.',
+        retryAfterSeconds,
+      );
+    }
+
     // Check authentication (optional - anonymous submissions allowed)
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);

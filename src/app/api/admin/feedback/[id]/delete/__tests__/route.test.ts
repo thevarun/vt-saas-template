@@ -101,4 +101,10 @@ describe('POST /api/admin/feedback/[id]/delete', () => {
       metadata: { feedbackType: 'bug' },
     });
   });
+
+  it('returns 400 when id is not a valid UUID', async () => {
+    const response = await POST({} as NextRequest, { params: Promise.resolve({ id: 'not-a-uuid' }) });
+
+    expect(response.status).toBe(400);
+  });
 });
