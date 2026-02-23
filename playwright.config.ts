@@ -17,6 +17,8 @@ export default defineConfig({
   timeout: 30 * 1000,
   // Fail the build on CI if you accidentally left test.only in the source code.
   forbidOnly: !!process.env.CI,
+  // Retry once in CI to handle flaky auth fixture (shared test user across workers)
+  retries: process.env.CI ? 1 : 0,
   // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: process.env.CI ? 'github' : 'list',
 
