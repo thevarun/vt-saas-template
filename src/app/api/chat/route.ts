@@ -12,7 +12,7 @@ import {
   unauthorizedError,
 } from '@/libs/api/errors';
 import { createDifyClient } from '@/libs/dify/client';
-import type { DifyChatRequest } from '@/libs/dify/types';
+import type { DifyChatRequest, DifyStreamEvent } from '@/libs/dify/types';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import {
@@ -24,7 +24,7 @@ import {
 /** Dify chat proxy endpoint. Validates Supabase session and streams SSE responses from Dify API. */
 
 /** Parse JSON data from an SSE-formatted chunk (e.g. "data: {json}\n\n"). */
-function parseSSEEvent(chunk: string): Record<string, any> | null {
+function parseSSEEvent(chunk: string): DifyStreamEvent | null {
   try {
     const dataMatch = chunk.match(/data: (.+)/);
     if (!dataMatch?.[1]) {
@@ -32,7 +32,7 @@ function parseSSEEvent(chunk: string): Record<string, any> | null {
     }
 
     const jsonStr = dataMatch[1].trim();
-    return JSON.parse(jsonStr);
+    return JSON.parse(jsonStr) as DifyStreamEvent;
   } catch {
     return null;
   }
@@ -111,13 +111,13 @@ async function createOrUpdateThread(
         logger.info({ threadId: newThread.id, conversationId }, 'Thread created successfully');
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Errors don't block chat response
     Sentry.addBreadcrumb({
       category: 'thread',
       level: 'error',
       message: 'Thread creation/update failed',
-      data: { error: error.message, conversationId },
+      data: { error: error instanceof Error ? error.message : 'Unknown error', conversationId },
     });
 
     Sentry.captureException(error);
@@ -232,28 +232,34 @@ export async function POST(request: NextRequest): Promise<Response> {
         'Connection': 'keep-alive',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as Record<string, unknown> | null;
+    const errMessage = error instanceof Error ? error.message : (typeof errObj?.message === 'string' ? errObj.message : String(error));
+    const errCode = typeof errObj?.code === 'string' ? errObj.code : undefined;
+    const errStatus = typeof errObj?.status === 'number' ? errObj.status : undefined;
+    const errDetails = errObj?.details as Record<string, unknown> | undefined;
+
     logApiError(error, {
       endpoint: '/api/chat',
       method: 'POST',
-      errorCode: error.code || (error.status ? 'DIFY_ERROR' : 'INTERNAL_ERROR'),
-      statusCode: error.status || 500,
+      errorCode: errCode || (errStatus ? 'DIFY_ERROR' : 'INTERNAL_ERROR'),
+      statusCode: errStatus || 500,
     });
 
-    if (error.status && error.code) {
+    if (errStatus && errCode) {
       return NextResponse.json(
         {
-          error: error.message || 'Request failed',
-          code: error.code,
+          error: errMessage || 'Request failed',
+          code: errCode,
         },
-        { status: error.status },
+        { status: errStatus },
       );
     }
 
-    if (error.status) {
+    if (errStatus) {
       return difyError(
-        error.message || 'AI service temporarily unavailable',
-        error.details,
+        errMessage || 'AI service temporarily unavailable',
+        errDetails,
       );
     }
 

@@ -62,7 +62,7 @@ export async function GET(): Promise<Response> {
       threads: userThreads ?? [],
       count: userThreads?.length ?? 0,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logApiError(error, {
       endpoint: '/api/threads',
       method: 'GET',
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       { thread: newThread },
       { status: 201 },
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     logApiError(error, {
       endpoint: '/api/threads',
       method: 'POST',

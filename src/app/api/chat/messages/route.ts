@@ -46,16 +46,20 @@ export async function GET(request: Request) {
     const response = await difyClient.getMessages(conversationId, user.id);
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errObj = error as Record<string, unknown> | null;
+    const errMessage = error instanceof Error ? error.message : (typeof errObj?.message === 'string' ? errObj.message : String(error));
+    const errStatus = typeof errObj?.status === 'number' ? errObj.status : undefined;
+
     logApiError(error, {
       endpoint: '/api/chat/messages',
       method: 'GET',
-      errorCode: error.status ? 'DIFY_ERROR' : 'INTERNAL_ERROR',
+      errorCode: errStatus ? 'DIFY_ERROR' : 'INTERNAL_ERROR',
     });
 
     // Handle Dify-specific errors
-    if (error.status) {
-      return difyError(error.message || 'Failed to fetch messages');
+    if (errStatus) {
+      return difyError(errMessage || 'Failed to fetch messages');
     }
 
     return internalError();

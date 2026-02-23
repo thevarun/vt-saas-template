@@ -68,7 +68,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       conversations: conversations ?? [],
       total: conversations?.length ?? 0,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logApiError(error, {
       endpoint: '/api/chat/vercel/conversations',
       method: 'GET',

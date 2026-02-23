@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/nextjs';
 import { streamText } from 'ai';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
 import {
   internalError,
@@ -26,6 +27,23 @@ import { createMessage } from '@/libs/queries/vercelMessages';
 import { createClient } from '@/libs/supabase/server';
 import { createAIProvider } from '@/libs/vercel-ai/client';
 import { isConfigured } from '@/libs/vercel-ai/config';
+
+const chatMessagePartSchema = z.object({
+  type: z.string(),
+  text: z.string().optional(),
+});
+
+const chatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().optional(),
+  parts: z.array(chatMessagePartSchema).optional(),
+});
+
+const vercelChatRequestSchema = z.object({
+  message: z.string().optional(),
+  messages: z.array(chatMessageSchema).optional(),
+  conversationId: z.string().uuid().optional().nullable(),
+});
 
 /** Streaming chat endpoint using Vercel AI SDK. Alternative to the Dify implementation at /api/chat. */
 export async function POST(request: NextRequest): Promise<Response> {
@@ -54,16 +72,21 @@ export async function POST(request: NextRequest): Promise<Response> {
     // Extract and validate request body
     // Supports AssistantChatTransport format ({ messages: [{role, parts}...] })
     // and simple format ({ message: string })
-    const body = await request.json();
-    const conversationId: string | undefined = body.conversationId;
+    const rawBody = await request.json();
+    const parseResult = vercelChatRequestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return invalidRequestError('Invalid request body');
+    }
+    const body = parseResult.data;
+    const conversationId: string | undefined = body.conversationId ?? undefined;
 
     // Extract message from various formats
     let message: string;
     if (Array.isArray(body.messages) && body.messages.length > 0) {
       // AssistantChatTransport format: messages[].parts[{type:"text", text:"..."}]
-      const lastUserMessage = [...body.messages].reverse().find((m: any) => m.role === 'user');
+      const lastUserMessage = [...body.messages].reverse().find(m => m.role === 'user');
       if (lastUserMessage?.parts) {
-        const textPart = lastUserMessage.parts.find((p: any) => p.type === 'text');
+        const textPart = lastUserMessage.parts.find(p => p.type === 'text');
         message = textPart?.text ?? '';
       } else {
         message = lastUserMessage?.content ?? '';
@@ -82,17 +105,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       return invalidRequestError('Message exceeds maximum length of 10,000 characters');
     }
 
-    // Validate conversation ID format if provided
-    if (conversationId !== undefined && conversationId !== null) {
-      if (typeof conversationId !== 'string') {
-        return invalidRequestError('Conversation ID must be a string');
-      }
-
-      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidPattern.test(conversationId)) {
-        return invalidRequestError('Conversation ID must be a valid UUID');
-      }
-    }
+    // Note: conversationId format is validated by Zod schema (uuid)
 
     Sentry.addBreadcrumb({
       category: 'chat',
@@ -172,11 +185,11 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const messages = Array.isArray(body.messages) && body.messages.length > 0
       ? body.messages
-          .filter((m: any) => ALLOWED_ROLES.has(m.role))
-          .map((m: any) => ({
+          .filter(m => ALLOWED_ROLES.has(m.role))
+          .map(m => ({
             role: m.role as 'user' | 'assistant',
             content: m.parts
-              ? m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
+              ? m.parts.filter(p => p.type === 'text').map(p => p.text).join('')
               : m.content ?? '',
           }))
       : [{ role: 'user' as const, content: message }];
@@ -272,7 +285,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         );
 
         // Queue memory extraction (fire-and-forget)
-        queueMemoryExtraction(activeConversationId).catch((error: any) => {
+        queueMemoryExtraction(activeConversationId).catch((error: unknown) => {
           logger.error(
             { error, conversationId: activeConversationId },
             'Failed to queue memory extraction',
@@ -280,7 +293,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           Sentry.captureException(error);
         });
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         logger.error(
           { error, conversationId: activeConversationId },
           'Message persistence failed',
@@ -289,24 +302,28 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    const errCode = (error instanceof Error && 'code' in error) ? (error as { code: string }).code : undefined;
+    const errStatus = (error instanceof Error && 'status' in error) ? (error as { status: number }).status : undefined;
+
     logApiError(error, {
       endpoint: '/api/chat/vercel',
       method: 'POST',
-      errorCode: error.code || 'INTERNAL_ERROR',
-      statusCode: error.status || 500,
+      errorCode: errCode || 'INTERNAL_ERROR',
+      statusCode: errStatus || 500,
     });
 
-    if (error.message?.includes('API key')) {
+    if (errMessage?.includes('API key')) {
       logger.error({ error }, 'AI provider API key error');
       return internalError();
     }
 
-    if (error.message?.includes('timeout')) {
+    if (errMessage?.includes('timeout')) {
       return timeoutError();
     }
 
-    if (error.message?.includes('rate limit')) {
+    if (errMessage?.includes('rate limit')) {
       return rateLimitError();
     }
 

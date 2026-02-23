@@ -26,7 +26,7 @@ export type ApiErrorContext = {
   /** Error code for categorization */
   errorCode?: string;
   /** Additional context data */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };
 
 /**
@@ -152,7 +152,7 @@ export function logApiError(
  * ```
  */
 export function logValidationError(
-  validationErrors: Record<string, any>,
+  validationErrors: Record<string, unknown>,
   context: ApiErrorContext,
 ): void {
   logApiError(new Error('Validation failed'), {
@@ -247,7 +247,7 @@ export function logAuthzError(reason: string, context: ApiErrorContext): void {
  */
 export function logDbError(
   operation: string,
-  error: any,
+  error: unknown,
   context: ApiErrorContext,
 ): void {
   logApiError(error, {

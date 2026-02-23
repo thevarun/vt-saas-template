@@ -106,7 +106,7 @@ export function internalError(
 /** Returns 500 Internal Server Error for Dify API failures. */
 export function difyError(
   message = 'AI service unavailable',
-  details?: Record<string, any>,
+  details?: Record<string, unknown>,
 ): NextResponse<ApiErrorResponse> {
   return createErrorResponse(
     message,

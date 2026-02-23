@@ -8,7 +8,7 @@ export type DifyChatRequest = {
   user: string;
   response_mode: 'streaming' | 'blocking';
   conversation_id?: string;
-  inputs?: Record<string, any>;
+  inputs?: Record<string, unknown>;
 };
 
 export type DifyChatResponse = {
@@ -24,8 +24,8 @@ export type DifyChatResponse = {
 };
 
 export type DifyMetadata = {
-  annotation_reply: any;
-  retriever_resources: any[];
+  annotation_reply: unknown;
+  retriever_resources: unknown[];
   usage: DifyUsage;
 };
 
@@ -69,15 +69,15 @@ export type DifyError = {
 export type DifyMessage = {
   id: string;
   conversation_id: string;
-  inputs: Record<string, any>;
+  inputs: Record<string, unknown>;
   query: string; // User message
   answer: string; // Assistant message
-  message_files: any[];
-  feedback: any | null;
-  retriever_resources: any[];
+  message_files: unknown[];
+  feedback: unknown;
+  retriever_resources: unknown[];
   created_at: number;
-  agent_thoughts: any[];
-  message_metadata: any;
+  agent_thoughts: unknown[];
+  message_metadata: unknown;
   status: string;
   error: string | null;
 };
