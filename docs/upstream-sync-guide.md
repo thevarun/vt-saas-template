@@ -22,6 +22,28 @@ npm install
 npm run lint && npm run check-types && npm test && npm run build
 ```
 
+## Integrating into an Existing Project
+
+If you already have a project and want to adopt the template (instead of starting from "Use this template"):
+
+```bash
+# Add the template as upstream
+git remote add upstream https://github.com/thevarun/vt-saas-template.git
+git fetch upstream --tags
+
+# Merge a release into your existing repo
+git merge v3.3.0 --allow-unrelated-histories
+```
+
+The `--allow-unrelated-histories` flag is required because the two repos have no common ancestor. This initial merge will be the largest — expect many files to appear as additions. Resolve conflicts carefully using the file classification table below, then verify:
+
+```bash
+npm install
+npm run lint && npm run check-types && npm test && npm run build
+```
+
+After this first merge, future syncs follow the normal workflow below (no `--allow-unrelated-histories` needed).
+
 ## Detailed Workflow
 
 ### First-Time Setup
