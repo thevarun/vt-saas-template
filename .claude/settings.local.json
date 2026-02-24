@@ -174,7 +174,8 @@
       "Bash(python3:*)",
       "Bash(PORT=3005 npm run dev:next:*)",
       "Bash(identify:*)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(gh issue:*)"
     ],
     "deny": [],
     "ask": []

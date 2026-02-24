@@ -27,8 +27,8 @@
     "^npm\\s+(test|install|i|ci)(\\s+.*)?$",
     "^npm\\s+run\\s+[\\w:-]+(\\s+[^|;&]*)?(\\s*2>&1)?(\\s*&)?$",
     "^npm\\s+whoami$",
-    "^npm\\s+list(\\s+(-g|--global))?(\\s+[\\w@/-]+)?$",
-    "^npm\\s+ls(\\s+[\\w@/-]+)*$",
+    "^npm\\s+list(\\s+(-g|--global))?(\\s+--depth=?\\d+)?(\\s+[\\w@/-]+)*$",
+    "^npm\\s+ls(\\s+--depth=?\\d+)?(\\s+[\\w@/-]+)*$",
     "^npm\\s+view\\s+[\\w@/-]+(\\s+.*)?$",
     "^npm\\s+pack\\s+[\\w@/-]+\\s+--dry-run",
     "^yarn\\s+(test|lint|typecheck|type-check|check|build|dev|start|install|add|remove)(\\s+.*)?$",
@@ -56,7 +56,7 @@
     "^cargo\\s+(check|test|clippy|fmt\\s+--check|build)(\\s+.*)?$",
     "^go\\s+(test|vet|fmt|build)(\\s+.*)?$",
 
-    "^(jq|grep|rg|fd|ag|awk|cut|tr|diff|comm)\\s+[^|;&]+$",
+    "^(jq|grep|rg|fd|ag|awk|cut|tr|diff|comm)\\s+[^;&]+$",
     "^find\\s+(?!.*-exec)[^|;&]+$",
     "^sed\\s+-n\\s+[^|;&]+$",
     "^(sort|uniq)(\\s+.*)?$",
@@ -103,7 +103,12 @@
     "^rm\\s+-rf?\\s+\\.next(/)?$",
     "^(sips|identify)\\s+[^|;&]+$",
     "^curl\\s+(-[a-zA-Z]+\\s+)*['\"]?https://fonts\\.(googleapis|gstatic)\\.com[^|;&]*$",
-    "^curl\\s+-s\\s+-o\\s+/dev/null\\s+-w\\s+[^|;&]*https?://[^|;&]*$"
+    "^curl\\s+-s\\s+-o\\s+/dev/null\\s+-w\\s+[^|;&]*https?://[^|;&]*$",
+
+    "^npx\\s+(@tailwindcss/(upgrade|cli)|storybook|@next/(codemod|bundle-analyzer)@?\\S*)(\\s+[^|;&]+)?$",
+    "^lsof\\s+-ti:\\d+(-\\d+)?(\\s+[^|;&]*)?$",
+    "^xargs\\s+(grep|wc|cat|head|tail|sed)\\b[^|;&]*$",
+    "^git\\s+ls-files(\\s+[^|;&]+)*$"
   ],
 
   "deny_patterns": [
@@ -132,7 +137,9 @@
     "\\bkillall\\b",
     "\\bxargs\\b.*\\brm\\b",
     "\\b(nc|ncat|netcat)\\b",
-    "\\bcrontab\\s+-[er]"
+    "\\bcrontab\\s+-[er]",
+    "^gh\\s+repo\\s+delete\\b",
+    "^npm\\s+(publish|unpublish)\\b"
   ],
 
   "sensitive_paths": [
