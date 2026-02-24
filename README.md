@@ -108,11 +108,40 @@ npm run db:generate      # Generate migration from schema
 | App Name | Search/replace "VT SaaS Template" throughout `/src/` | 20 min |
 | Theme Variables | `src/styles/global.css` (shadcn/ui theming) | 20 min |
 
+### Applying a Theme from VT Design Studio
+
+Theme token files (`themes/*.tokens.json` in `vt-design-studio`) map directly to this template's CSS variables.
+
+**To apply a theme manually:**
+
+1. Open the theme's `.tokens.json` file (e.g., `rang.tokens.json`)
+2. In `src/styles/global.css`, replace the HSL values in `:root` with values from `colors.light`, and `.dark` with values from `colors.dark`
+3. Convert camelCase token names to kebab-case CSS variables (e.g., `primaryForeground` → `--primary-foreground`)
+4. Update `--radius` from `borderRadius.default`
+5. Update fonts in `src/app/layout.tsx` if the theme specifies different `fonts.heading`/`fonts.body`
+
+The token names match 1:1 — `primary`, `background`, `muted`, `sidebar`, `chart1`–`chart5`, etc.
+
 ### Advanced Customization
 
 - **Component Overrides**: shadcn/ui components live in `/src/components/ui/`. Modify base components or create variants using CVA.
 - **Layout Changes**: Update layouts in `/src/app/[locale]/(auth)/layout.tsx` and similar files. Adjust navigation structure and responsive breakpoints.
 - **Feature Removal**: Remove unwanted features by deleting routes from `/src/app/[locale]/`, cleaning up related components and API routes, and updating navigation.
+
+### Template Content to Replace
+
+Beyond branding, these stubs ship with placeholder content you should replace or remove:
+
+| Stub | Location | Action |
+|------|----------|--------|
+| Navbar links (Product, Docs, Community, Company) | `src/templates/Navbar.tsx` | Point to real pages or remove |
+| Footer links (Terms, Privacy, social icons) | `src/templates/Footer.tsx` | Create real pages or remove |
+| Sidebar nav stubs (Pricing, Settings — disabled) | `src/components/layout/MainAppShell.tsx` | Implement or remove |
+| Sidebar design system routes | `src/components/layout/MainAppShell.tsx` | Remove for production |
+| Onboarding feature tour | `src/components/onboarding/OnboardingFeatureTour.tsx` + `src/locales/en.json` | Replace with your product's features |
+| Dashboard placeholder | `src/components/dashboard/WelcomeDashboard.tsx` | Replace with your product's dashboard |
+| Mem0 cron job | `vercel.json` | Remove if not using Mem0 |
+| PSEO article data | `src/libs/pseo/data.ts` | Replace with your domain content or remove `src/app/[locale]/(unauth)/articles/` |
 
 ### Project Structure
 
@@ -138,6 +167,49 @@ src/
 ├── templates/         # Page templates
 └── utils/             # Utility functions
 ```
+
+## Building a Product on This Template
+
+### What Stays vs What You Customize
+
+| Keep As-Is | Customize for Your Product | Optional — Remove If Unneeded |
+|-----------|---------------------------|-------------------------------|
+| Auth flow & middleware | Landing page copy & layout | AI Chat (see `docs/customization/`) |
+| Admin panel | Onboarding feature tour | PSEO articles |
+| Email infrastructure | Dashboard content | Changelog page |
+| CI/CD pipeline | Nav items & sidebar | Extra locales (hi, bn) |
+| Design system (shadcn/ui) | Branding (see Rebrand Checklist above) | |
+| SEO infrastructure | OG image & SEO defaults | |
+| Error handling | Email templates | |
+
+### Should You Build a POC Separately?
+
+**Recommendation: Build directly on the template.**
+
+- Auth, session handling, and middleware take 2–3 days to re-integrate if you build separately first
+- PGlite means zero database setup — start building your product logic immediately
+- The admin panel gives you visibility into users and data during early testing
+
+One exception: if you're validating a core algorithm that doesn't need a user-facing app yet, a standalone script or notebook is faster.
+
+> **Suggested workflow:** Branding pass (20 min) + stub cleanup (30 min) makes it feel like "your app" quickly. Then start building your first feature.
+
+### When to Enable Optional Services
+
+| Service | Enable At | Notes |
+|---------|----------|-------|
+| Supabase | Day 1 | Required for auth |
+| Vercel | Day 1 | Recommended for hosting |
+| Resend | Alpha | Welcome emails; logs to console without it |
+| PostHog | Alpha | Track user behavior from the start |
+| Sentry | Alpha | Catch errors before users report them |
+| Dify / OpenAI / Anthropic | When building AI features | Choose one chat implementation |
+| LangFuse | Post-launch | After AI features are stable |
+| Mem0 | Only if AI memory is core | Most products don't need this |
+| Crowdin | Only if multi-language | Skip for English-only products |
+| Percy | Post-launch | After design stabilizes |
+
+> **Suggested default:** Supabase + Vercel day 1. Resend + PostHog + Sentry at alpha. Everything else only if the product needs it.
 
 ## Database Management
 
@@ -173,6 +245,41 @@ The application is compatible with any platform that supports Next.js 16:
 - Railway
 - Render
 - Self-hosted with Node.js
+
+## Launch Checklists
+
+### Alpha Launch
+
+- [ ] Branding pass complete (see Quick Rebrand Checklist above)
+- [ ] Template stubs cleaned up (see Template Content to Replace above)
+- [ ] Supabase project configured with env vars
+- [ ] Vercel project connected to repo
+- [ ] `ADMIN_EMAILS` set to your email
+- [ ] CI passes: `npm run lint && npm run check-types && npm test && npm run build`
+- [ ] Sign up → onboarding → dashboard flow works end-to-end
+- [ ] See [Deployment Guide](docs/deployment-guide.md) for Vercel env vars and GitHub secrets
+
+### Production Launch
+
+Everything from alpha, plus:
+
+- [ ] Custom domain on Vercel
+- [ ] Sentry configured (see [Deployment Guide](docs/deployment-guide.md))
+- [ ] PostHog configured
+- [ ] Terms of Service & Privacy Policy pages live (replace footer stub links)
+- [ ] Resend configured with verified sending domain
+- [ ] Supabase email templates customized (verification, password reset)
+- [ ] SEO verified: check `/sitemap.xml`, `/robots.txt`, test OG images at [opengraph.xyz](https://www.opengraph.xyz/)
+- [ ] Sitemap submitted to Google Search Console
+
+## Common Gotchas
+
+- **Next.js 16 async params**: Route params are Promises — always `await props.params`. See [Next.js docs](https://nextjs.org/docs/app/building-your-application/routing/layouts-and-templates).
+- **Mem0 cron 404s**: If you see repeated 404s for `/api/cron/memory-extraction` in Vercel logs, remove the cron entry from `vercel.json` (Mem0 is disabled by default).
+- **PGlite vs production**: PGlite auto-migrates locally; production PostgreSQL needs `npm run db:migrate`.
+- **Email in dev**: Without `RESEND_API_KEY`, emails log to console — this is intentional, not a bug.
+- **Chat nav visibility**: Chat nav items auto-show/hide based on whether API keys are set in env vars.
+- **App name in multiple places**: Update in `src/utils/AppConfig.ts`, `src/libs/seo/constants.ts`, and `src/components/layout/MainAppShell.tsx` (3 hardcoded strings), plus `src/libs/Env.ts` default.
 
 ## Environment Variables
 
