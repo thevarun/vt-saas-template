@@ -99,6 +99,7 @@ jobs:
       # Integration tests requiring real credentials are skipped via test config
       - run: npm run test -- --coverage
         env:
+          DB_SCHEMA: vt_saas
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
           DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
@@ -129,6 +130,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          DB_SCHEMA: vt_saas
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
           DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
@@ -157,6 +159,7 @@ jobs:
         run: npm run test:e2e
         env:
           CI: true
+          DB_SCHEMA: vt_saas
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
           DIFY_API_URL: ${{ secrets.DIFY_API_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
