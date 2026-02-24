@@ -189,6 +189,6 @@ components/
 | Middleware | `src/proxy.ts` | i18n -> session -> auth -> verification -> admin check |
 | App Root | `src/app/[locale]/layout.tsx` | Providers, theme, globals |
 | API Gateway | `src/app/api/` | 37 API route handlers |
-| DB Schema | `src/models/Schema.ts` | 9 tables in vt_saas schema |
+| DB Schema | `src/models/Schema.ts` | 9 tables in configurable schema (`DB_SCHEMA` env var) |
 | Instrumentation | `src/instrumentation.ts` | OpenTelemetry + Sentry |
 | Env Validation | `src/libs/Env.ts` | Runtime env validation (Zod) |

@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export const Env = createEnv({
   server: {
+    DB_SCHEMA: z.string().min(1),
     DATABASE_URL: z.string().optional(),
     LOGTAIL_SOURCE_TOKEN: z.string().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -39,6 +40,7 @@ export const Env = createEnv({
   },
   // You need to destructure all the keys manually
   runtimeEnv: {
+    DB_SCHEMA: process.env.DB_SCHEMA,
     DATABASE_URL: process.env.DATABASE_URL,
     LOGTAIL_SOURCE_TOKEN: process.env.LOGTAIL_SOURCE_TOKEN,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,

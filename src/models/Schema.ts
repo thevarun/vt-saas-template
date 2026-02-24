@@ -20,8 +20,17 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-// Create dedicated vt_saas schema (consolidates all project tables)
-export const vtSaasSchema = pgSchema('vt_saas');
+// DB_SCHEMA env var is required — no silent fallback.
+// Dev (shared Supabase): use a project-specific schema like 'vt_saas'
+// Prod (dedicated Supabase): use 'public'
+if (!process.env.DB_SCHEMA) {
+  throw new Error(
+    'DB_SCHEMA environment variable is required. '
+    + 'Set it to a project-specific name (e.g. "vt_saas") for shared dev, or "public" for dedicated instances.',
+  );
+}
+export const DB_SCHEMA_NAME = process.env.DB_SCHEMA;
+export const vtSaasSchema = pgSchema(DB_SCHEMA_NAME);
 
 // Threads table for multi-threaded chat conversations (Dify implementation)
 export const threads = vtSaasSchema.table(

@@ -217,20 +217,19 @@ This project uses Drizzle ORM with PostgreSQL.
 
 ### Schema Isolation
 
-All tables live under a dedicated PostgreSQL schema (`vt_saas`) instead of `public`. This lets multiple downstream projects share one Supabase instance without table name collisions.
+The `DB_SCHEMA` environment variable controls which PostgreSQL schema all tables are created in. This is **required** — the app will fail to start without it.
 
-When forking this template for a new project, rename the schema in two places:
+| Environment | `DB_SCHEMA` | Why |
+|-------------|-------------|-----|
+| **Development** (shared Supabase) | `vt_saas` (or your project name) | Isolates tables from other projects sharing the same instance |
+| **Production** (dedicated Supabase) | `public` | Standard PostgreSQL default; simplest setup for a dedicated instance |
 
-1. **`src/models/Schema.ts`** — change the `pgSchema()` call:
-   ```ts
-   export const vtSaasSchema = pgSchema('your_project_name');
-   ```
-2. **`src/libs/supabase/threads.ts`** — update the `THREADS_SCHEMA` constant:
-   ```ts
-   const THREADS_SCHEMA = 'your_project_name';
-   ```
+Set it in `.env.local`:
+```bash
+DB_SCHEMA=vt_saas
+```
 
-Then run `npm run db:generate` to create a migration for the new schema.
+When forking this template, pick a unique schema name for your project (e.g. `my_app`) and run `npm run db:generate` to create a migration for the new schema.
 
 ### Making Schema Changes
 
