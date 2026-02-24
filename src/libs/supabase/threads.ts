@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Type matching the health_companion.threads table (snake_case from DB)
+// Type matching the vt_saas.threads table (snake_case from DB)
 export type Thread = {
   id: string;
   user_id: string;
