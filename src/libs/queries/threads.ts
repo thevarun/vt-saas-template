@@ -135,6 +135,9 @@ export async function getThreadByConversationId(
  *
  * @param userId User ID who owns the thread
  * @param input Thread creation parameters
+ * @param input.conversationId Conversation ID to associate with the thread
+ * @param input.title Optional thread title
+ * @param input.lastMessagePreview Optional preview of the last message
  * @returns Created thread data or error
  */
 export async function createThread(

@@ -152,10 +152,11 @@ describe('signUpPage', () => {
     await waitFor(
       () => {
         expect(window.location.href).toContain('/verify-email');
-        expect(window.location.href).toContain('email=test%40example.com');
       },
       { timeout: 1000 },
     );
+
+    expect(window.location.href).toContain('email=test%40example.com');
 
     expect(mockSignUp).toHaveBeenCalledWith({
       email: 'test@example.com',

@@ -78,7 +78,7 @@ export function UserTable({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(() => new Set());
   const [searchValue, setSearchValue] = useState(search);
 
   // User detail dialog state

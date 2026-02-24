@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/render-result-naming-convention -- uses @react-email/render, not @testing-library */
 import { render } from '@react-email/render';
 import { describe, expect, it } from 'vitest';
 

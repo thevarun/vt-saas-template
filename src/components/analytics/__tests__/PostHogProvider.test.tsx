@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as analytics from '@/libs/analytics';
@@ -57,13 +57,13 @@ describe('PostHogProvider', () => {
   });
 
   it('renders children immediately before analytics init', () => {
-    const { getByText } = render(
+    render(
       <PostHogProvider>
         <div>Test Content</div>
       </PostHogProvider>,
     );
 
-    expect(getByText('Test Content')).toBeInTheDocument();
+    expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
   it('falls back to setTimeout when requestIdleCallback is unavailable', () => {

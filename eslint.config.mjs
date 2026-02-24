@@ -57,6 +57,16 @@ export default antfu({
   ],
   ...testingLibrary.configs['flat/react'],
 }, {
+  // Downgrade noisy testing-library rules: tests legitimately use .firstChild/.children
+  // for structural assertions on spinners, skeletons, and CSS class checks
+  files: [
+    '**/*.test.ts?(x)',
+  ],
+  rules: {
+    'testing-library/no-node-access': 'warn',
+    'testing-library/no-container': 'warn',
+  },
+}, {
   files: [
     '**/*.spec.ts',
     '**/*.e2e.ts',
