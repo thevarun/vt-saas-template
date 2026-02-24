@@ -2,7 +2,7 @@
 
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +35,7 @@ export function ConversationListSidebar({ onNavigate }: { onNavigate?: () => voi
   const router = useRouter();
   const { toast } = useToast();
 
-  const fetchConversations = async (showLoading = true) => {
+  const fetchConversations = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true);
@@ -89,12 +89,12 @@ export function ConversationListSidebar({ onNavigate }: { onNavigate?: () => voi
       setLoading(false);
       lastFetchRef.current = Date.now();
     }
-  };
+  }, [toast]);
 
   // AC #5: Fetch conversations on mount
   useEffect(() => {
     fetchConversations();
-  }, []);
+  }, [fetchConversations]);
 
   // Refetch when window regains focus with 30s stale-time guard
   useEffect(() => {
@@ -110,7 +110,7 @@ export function ConversationListSidebar({ onNavigate }: { onNavigate?: () => voi
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [fetchConversations]);
 
   // Listen for conversation updates and update optimistically
   useEffect(() => {
@@ -129,16 +129,20 @@ export function ConversationListSidebar({ onNavigate }: { onNavigate?: () => voi
 
   // Listen for new conversation creation and refetch to show in sidebar
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
     const handleConversationCreated = () => {
       // Refetch conversations after a short delay to allow server to complete conversation creation
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         fetchConversations(false); // false = don't show loading skeleton
       }, 500);
     };
 
     window.addEventListener('conversation-created', handleConversationCreated);
-    return () => window.removeEventListener('conversation-created', handleConversationCreated);
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('conversation-created', handleConversationCreated);
+    };
+  }, [fetchConversations]);
 
   // AC #1: Navigate to new conversation (empty composer)
   const handleNewConversation = () => {

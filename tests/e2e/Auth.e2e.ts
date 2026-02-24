@@ -30,6 +30,7 @@ test.describe('Authentication', () => {
     const testPassword = process.env.TEST_USER_PASSWORD;
 
     // Skip test if credentials not available
+    // eslint-disable-next-line playwright/no-skipped-test -- conditional skip when CI creds unavailable
     test.skip(!testEmail || !testPassword, 'Test credentials not found. Ensure setup.ts ran successfully.');
 
     await authPage.signIn(testEmail!, testPassword!);

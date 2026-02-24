@@ -1,6 +1,5 @@
 import antfu from '@antfu/eslint-config';
 import nextPlugin from '@next/eslint-plugin-next';
-import jestDom from 'eslint-plugin-jest-dom';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import playwright from 'eslint-plugin-playwright';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -57,7 +56,16 @@ export default antfu({
     '**/*.test.ts?(x)',
   ],
   ...testingLibrary.configs['flat/react'],
-  ...jestDom.configs['flat/recommended'],
+}, {
+  // Downgrade noisy testing-library rules: tests legitimately use .firstChild/.children
+  // for structural assertions on spinners, skeletons, and CSS class checks
+  files: [
+    '**/*.test.ts?(x)',
+  ],
+  rules: {
+    'testing-library/no-node-access': 'warn',
+    'testing-library/no-container': 'warn',
+  },
 }, {
   files: [
     '**/*.spec.ts',

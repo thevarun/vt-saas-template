@@ -47,6 +47,7 @@ export function Breadcrumbs({ category, pageTitle, locale, articlesLabel = 'Arti
       {/* JSON-LD structured data for search engines */}
       <script
         type="application/ld+json"
+        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- JSON-LD structured data from trusted schema object
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 

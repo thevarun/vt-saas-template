@@ -244,12 +244,10 @@ describe('ForgotPasswordPage', () => {
     const submitButton = screen.getByRole('button', { name: /send reset link/i });
     await user.click(submitButton);
 
-    await waitFor(() => {
-      const backToSignInButton = screen.getByRole('link', { name: /back to sign in/i });
+    const backToSignInButton = await screen.findByRole('link', { name: /back to sign in/i });
 
-      expect(backToSignInButton).toBeInTheDocument();
-      expect(backToSignInButton).toHaveAttribute('href', '/en/sign-in');
-    });
+    expect(backToSignInButton).toBeInTheDocument();
+    expect(backToSignInButton).toHaveAttribute('href', '/en/sign-in');
   });
 
   it('shows try another email option in success state', async () => {
