@@ -182,6 +182,19 @@ src/
 | SEO infrastructure | OG image & SEO defaults | |
 | Error handling | Email templates | |
 
+### Syncing Upstream Updates
+
+When new features or fixes are released in the template, pull them into your project:
+
+```bash
+npm run upstream:check          # Check for available updates
+git merge v3.2.0                # Merge a tagged release
+npm install                     # Update dependencies
+npm run lint && npm run check-types && npm test && npm run build   # Verify
+```
+
+See [Upstream Sync Guide](docs/upstream-sync-guide.md) for detailed instructions and conflict resolution strategies.
+
 ### Should You Build a POC Separately?
 
 **Recommendation: Build directly on the template.**
@@ -390,6 +403,9 @@ Comprehensive documentation is available in the `docs/` directory:
 - **[Removing Dify Chat](docs/customization/removing-dify-chat.md)** - Remove Dify implementation while keeping Vercel AI SDK
 - **[Removing Vercel AI SDK Chat](docs/customization/removing-vercel-chat.md)** - Remove Vercel implementation while keeping Dify
 - **[Removing All Chat Features](docs/customization/removing-all-chat.md)** - Completely remove all chat functionality
+
+### Maintenance
+- **[Upstream Sync Guide](docs/upstream-sync-guide.md)** - Pull new features and fixes from the template
 
 ## License
 

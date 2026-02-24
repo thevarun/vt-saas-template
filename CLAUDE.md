@@ -21,6 +21,7 @@ The project includes:
 | Development | [docs/development-guide.md](docs/development-guide.md) |
 | Admin Setup | [docs/admin-setup.md](docs/admin-setup.md) |
 | Email System | [docs/email-system.md](docs/email-system.md) |
+| Upstream Sync | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md) |
 
 ## Core Architecture
 
@@ -225,6 +226,7 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run test:e2e` - Playwright E2E tests
 - `npm run dev:next` - Start Next.js only (no Sentry Spotlight)
 - `npm run email:dev` - Start React Email preview server (port 3001)
+- `npm run upstream:check` - Check for upstream template updates
 
 ## Key Development Patterns
 
