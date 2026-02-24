@@ -105,7 +105,7 @@ Admin Check: user.app_metadata.is_admin || ADMIN_EMAILS
 ```
 [Supabase PostgreSQL]
     |
-    |-- vt_saas schema (project-specific)
+    |-- $DB_SCHEMA schema (configurable, e.g. vt_saas or public)
     |   |-- threads (Dify conversations)
     |   |-- userPreferences (settings)
     |   |-- feedback (user feedback)

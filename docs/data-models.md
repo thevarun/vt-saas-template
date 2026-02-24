@@ -6,7 +6,7 @@
 
 ## Schema Overview
 
-Custom `vt_saas` schema isolates project tables from `public`. All tables use UUID primary keys and timestamps.
+Tables live in a configurable PostgreSQL schema (set via `DB_SCHEMA` env var) to isolate project tables from `public`. All tables use UUID primary keys and timestamps.
 
 **Schema File:** `src/models/Schema.ts` | **Migrations:** `migrations/` (7 SQL files + meta)
 
@@ -15,7 +15,7 @@ Custom `vt_saas` schema isolates project tables from `public`. All tables use UU
 ## Tables
 
 ### threads
-Dify chat conversations | **Schema:** `vt_saas`
+Dify chat conversations | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -30,7 +30,7 @@ Dify chat conversations | **Schema:** `vt_saas`
 **Indexes:** user_id, conversation_id, user+archived | **RLS:** Users access own only
 
 ### userPreferences
-User settings | **Schema:** `vt_saas`
+User settings | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -43,7 +43,7 @@ User settings | **Schema:** `vt_saas`
 | createdAt / updatedAt | timestamp | DEFAULT now() |
 
 ### adminAuditLog
-Admin action tracking | **Schema:** `vt_saas`
+Admin action tracking | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -56,7 +56,7 @@ Admin action tracking | **Schema:** `vt_saas`
 | createdAt | timestamp | DEFAULT now() |
 
 ### feedback
-User feedback | **Schema:** `vt_saas`
+User feedback | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -70,7 +70,7 @@ User feedback | **Schema:** `vt_saas`
 | reviewedAt | timestamp | Nullable |
 
 ### vercelConversations
-Vercel AI SDK conversations | **Schema:** `vt_saas`
+Vercel AI SDK conversations | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -82,7 +82,7 @@ Vercel AI SDK conversations | **Schema:** `vt_saas`
 | createdAt / updatedAt | timestamp | |
 
 ### vercelMessages
-Chat message history | **Schema:** `vt_saas`
+Chat message history | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -95,7 +95,7 @@ Chat message history | **Schema:** `vt_saas`
 | createdAt | timestamp | |
 
 ### shareableLinks
-Private share URLs | **Schema:** `vt_saas`
+Private share URLs | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -110,7 +110,7 @@ Private share URLs | **Schema:** `vt_saas`
 | createdAt / updatedAt | timestamp | |
 
 ### mem0Memories
-Conversation memory extraction | **Schema:** `vt_saas`
+Conversation memory extraction | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|
@@ -123,7 +123,7 @@ Conversation memory extraction | **Schema:** `vt_saas`
 | createdAt / updatedAt | timestamp | |
 
 ### memoryExtractionJobs
-Async memory processing | **Schema:** `vt_saas`
+Async memory processing | **Schema:** `DB_SCHEMA`
 
 | Column | Type | Constraints |
 |--------|------|-------------|

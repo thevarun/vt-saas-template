@@ -195,6 +195,7 @@ AI_PROVIDER=openai                # or anthropic
 DEFAULT_AI_MODEL=gpt-4o-mini      # Model to use
 
 # Database
+DB_SCHEMA=              # PostgreSQL schema name (e.g. 'vt_saas' for dev, 'public' for prod)
 DATABASE_URL=           # PostgreSQL connection string
 
 # Email (Resend - Server-side only)

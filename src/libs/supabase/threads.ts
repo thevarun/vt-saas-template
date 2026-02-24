@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Type matching the vt_saas.threads table (snake_case from DB)
+import { DB_SCHEMA_NAME } from '@/models/Schema';
+
+// Type matching the threads table (snake_case from DB)
 export type Thread = {
   id: string;
   user_id: string;
@@ -27,7 +29,6 @@ export type UpdateThreadInput = {
 };
 
 const THREADS_TABLE = 'threads';
-const THREADS_SCHEMA = 'vt_saas';
 
 /**
  * Get all threads for the authenticated user (ordered by updated_at DESC)
@@ -37,7 +38,7 @@ export async function getThreads(
   supabase: SupabaseClient,
 ): Promise<{ data: Thread[] | null; error: Error | null }> {
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .select('*')
     .order('updated_at', { ascending: false });
@@ -54,7 +55,7 @@ export async function getThreadById(
   id: string,
 ): Promise<{ data: Thread | null; error: Error | null }> {
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .select('*')
     .eq('id', id)
@@ -72,7 +73,7 @@ export async function getThreadByConversationId(
   conversationId: string,
 ): Promise<{ data: Thread | null; error: Error | null }> {
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .select('*')
     .eq('conversation_id', conversationId)
@@ -91,7 +92,7 @@ export async function createThread(
   input: CreateThreadInput,
 ): Promise<{ data: Thread | null; error: Error | null }> {
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .insert({
       user_id: userId,
@@ -130,7 +131,7 @@ export async function updateThread(
   }
 
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .update(updateData)
     .eq('id', id)
@@ -149,7 +150,7 @@ export async function deleteThread(
   id: string,
 ): Promise<{ data: Thread | null; error: Error | null }> {
   const { data, error } = await supabase
-    .schema(THREADS_SCHEMA)
+    .schema(DB_SCHEMA_NAME)
     .from(THREADS_TABLE)
     .delete()
     .eq('id', id)

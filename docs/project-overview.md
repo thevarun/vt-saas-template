@@ -56,7 +56,7 @@ A production-ready foundation for building SaaS web applications, designed for a
 - 37 API route endpoints
 - Middleware for auth + i18n + routing (`src/proxy.ts`)
 - 138 React components
-- 9 database tables in custom `vt_saas` schema
+- 9 database tables in configurable schema (`DB_SCHEMA` env var)
 
 ---
 
