@@ -215,6 +215,23 @@ One exception: if you're validating a core algorithm that doesn't need a user-fa
 
 This project uses Drizzle ORM with PostgreSQL.
 
+### Schema Isolation
+
+All tables live under a dedicated PostgreSQL schema (`vt_saas`) instead of `public`. This lets multiple downstream projects share one Supabase instance without table name collisions.
+
+When forking this template for a new project, rename the schema in two places:
+
+1. **`src/models/Schema.ts`** — change the `pgSchema()` call:
+   ```ts
+   export const vtSaasSchema = pgSchema('your_project_name');
+   ```
+2. **`src/libs/supabase/threads.ts`** — update the `THREADS_SCHEMA` constant:
+   ```ts
+   const THREADS_SCHEMA = 'your_project_name';
+   ```
+
+Then run `npm run db:generate` to create a migration for the new schema.
+
 ### Making Schema Changes
 
 1. Edit `src/models/Schema.ts`
