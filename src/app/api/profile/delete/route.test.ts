@@ -75,7 +75,7 @@ describe('DELETE /api/profile/delete', () => {
       error: new Error('No session'),
     });
 
-    const response = await DELETE();
+    const response = await DELETE(new Request('http://localhost/api/profile/delete', { method: 'DELETE' }));
     const body = await response.json();
 
     expect(response.status).toBe(401);
@@ -87,7 +87,7 @@ describe('DELETE /api/profile/delete', () => {
       throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations.');
     });
 
-    const response = await DELETE();
+    const response = await DELETE(new Request('http://localhost/api/profile/delete', { method: 'DELETE' }));
     const body = await response.json();
 
     expect(response.status).toBe(503);
@@ -97,7 +97,7 @@ describe('DELETE /api/profile/delete', () => {
   it('returns 500 when Supabase admin deleteUser returns an error', async () => {
     mockDeleteUser.mockResolvedValue({ error: new Error('DB error') });
 
-    const response = await DELETE();
+    const response = await DELETE(new Request('http://localhost/api/profile/delete', { method: 'DELETE' }));
     const body = await response.json();
 
     expect(response.status).toBe(500);
@@ -105,7 +105,7 @@ describe('DELETE /api/profile/delete', () => {
   });
 
   it('returns 204 No Content on successful deletion', async () => {
-    const response = await DELETE();
+    const response = await DELETE(new Request('http://localhost/api/profile/delete', { method: 'DELETE' }));
 
     expect(response.status).toBe(204);
     expect(mockDeleteUser).toHaveBeenCalledWith(mockUser.id);

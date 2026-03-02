@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
-import { useToast } from '@/hooks/use-toast';
+import { useOAuth } from '@/hooks/useOAuth';
 import { createClient } from '@/libs/supabase/client';
 
 const createSignInSchema = (t: ReturnType<typeof useTranslations<'SignIn'>>) =>
@@ -27,10 +27,9 @@ export default function SignInFormClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = params.locale as string;
-  const { toast } = useToast();
+  const { oauthLoading, handleGoogle, handleGitHub } = useOAuth();
 
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOAuthLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -66,55 +65,8 @@ export default function SignInFormClient() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setOAuthLoading(true);
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: t('error_oauth_google'),
-        variant: 'destructive',
-      });
-      setOAuthLoading(false);
-    }
-    // Note: If no error, user will be redirected to OAuth provider
-    // Loading state persists until redirect completes
-  };
-
-  const handleGitHubSignIn = async () => {
-    setOAuthLoading(true);
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: t('error_oauth_github'),
-        variant: 'destructive',
-      });
-      setOAuthLoading(false);
-    }
-    // Note: If no error, user will be redirected to OAuth provider
-    // Loading state persists until redirect completes
-  };
+  const handleGoogleSignIn = () => handleGoogle(t('error_oauth_google'));
+  const handleGitHubSignIn = () => handleGitHub(t('error_oauth_github'));
 
   const onSubmit = async (data: SignInFormData) => {
     setServerError(null);

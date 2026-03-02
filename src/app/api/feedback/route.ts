@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -11,9 +10,9 @@ import {
   rateLimitError,
   validationError,
 } from '@/libs/api/errors';
-import { checkRateLimit, getClientIp } from '@/libs/api/rateLimit';
+import { withAuth } from '@/libs/api/middleware/withAuth';
+import { checkRateLimit } from '@/libs/api/rateLimit';
 import { db } from '@/libs/DB';
-import { createClient } from '@/libs/supabase/server';
 import { feedback } from '@/models/Schema';
 
 // Zod validation schema for feedback submission
@@ -26,39 +25,32 @@ const feedbackSchema = z.object({
     .trim()
     .min(1, 'Message is required')
     .max(1000, 'Message must be 1000 characters or less'),
-  email: z
-    .string()
-    .email('Invalid email format')
-    .optional()
-    .or(z.literal('')),
 });
-
-type FeedbackInput = z.infer<typeof feedbackSchema>;
 
 /**
  * POST /api/feedback
  *
  * Submit user feedback (bug reports, feature requests, or praise).
- * Supports both authenticated and anonymous submissions.
+ * Requires authentication.
  *
  * Request Body:
  * - type: 'bug' | 'feature' | 'praise' (required)
  * - message: string (required, max 1000 chars)
- * - email: string (optional, only for anonymous users)
  *
  * Response (201):
  * - data: { id, type, message, status, createdAt }
  *
  * Errors:
  * - 400: Validation error (invalid input)
+ * - 401: User not authenticated
+ * - 429: Rate limit exceeded
  * - 500: Database or internal error
  */
-export async function POST(request: Request) {
+export const POST = withAuth(async (_request, { user }) => {
   try {
-    // Rate limit: 5 submissions per hour per IP
-    const ip = getClientIp(request);
+    // Rate limit: 5 submissions per hour per user
     const { allowed, retryAfterSeconds } = checkRateLimit(
-      `feedback:${ip}`,
+      `feedback:${user.id}`,
       5,
       60 * 60 * 1000, // 1 hour
     );
@@ -70,13 +62,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check authentication (optional - anonymous submissions allowed)
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user } } = await supabase.auth.getUser();
-
     // Parse and validate request body
-    const body = await request.json();
+    const body = await _request.json();
     const result = feedbackSchema.safeParse(body);
 
     if (!result.success) {
@@ -84,21 +71,19 @@ export async function POST(request: Request) {
       logValidationError(errors, {
         endpoint: '/api/feedback',
         method: 'POST',
-        userId: user?.id,
+        userId: user.id,
       });
       return validationError(errors);
     }
 
-    const validated: FeedbackInput = result.data;
+    const validated = result.data;
 
     // Prepare database insert data
-    // - Authenticated users: attach userId, ignore email
-    // - Anonymous users: store email (if provided), userId is null
     const insertData = {
       type: validated.type,
       message: validated.message,
-      userId: user?.id ?? null,
-      userEmail: user ? null : (validated.email || null),
+      userId: user.id,
+      userEmail: null,
       status: 'pending' as const,
     };
 
@@ -115,7 +100,7 @@ export async function POST(request: Request) {
       logDbError('insert feedback', dbError, {
         endpoint: '/api/feedback',
         method: 'POST',
-        userId: user?.id,
+        userId: user.id,
       });
       return internalError('Failed to save feedback');
     }
@@ -142,4 +127,4 @@ export async function POST(request: Request) {
     });
     return internalError();
   }
-}
+});

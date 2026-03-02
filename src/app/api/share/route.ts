@@ -1,7 +1,6 @@
 import { randomBytes } from 'node:crypto';
 
 import { desc, eq } from 'drizzle-orm';
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -10,11 +9,10 @@ import {
   internalError,
   invalidRequestError,
   logApiError,
-  unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { db } from '@/libs/DB';
-import { createClient } from '@/libs/supabase/server';
 import { shareableLinks } from '@/models/Schema';
 import type { CreateShareLinkResponse, ShareLink, ShareLinkListResponse } from '@/types/shareLink';
 import {
@@ -25,18 +23,8 @@ import {
  * POST /api/share - Create a new share link
  * Requires authentication
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return unauthorizedError();
-    }
-
     let body;
     try {
       body = await request.json();
@@ -86,24 +74,14 @@ export async function POST(request: NextRequest) {
     });
     return internalError();
   }
-}
+});
 
 /**
  * GET /api/share - List user's share links
  * Requires authentication
  */
-export async function GET() {
+export const GET = withAuth(async (_request, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return unauthorizedError();
-    }
-
     const links = await db
       .select()
       .from(shareableLinks)
@@ -125,4 +103,4 @@ export async function GET() {
     });
     return internalError();
   }
-}
+});

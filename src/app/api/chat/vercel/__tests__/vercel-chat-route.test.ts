@@ -13,6 +13,7 @@ vi.mock('next/headers', () => ({
 
 vi.mock('@/libs/api/errors/logger', () => ({
   logApiError: vi.fn(),
+  logAuthError: vi.fn(),
 }));
 
 vi.mock('@/libs/Logger', () => ({

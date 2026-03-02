@@ -62,7 +62,7 @@ describe('/api/threads endpoints', () => {
       };
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      const response = await GET();
+      const response = await GET(new Request('http://localhost:3000/api/threads'));
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -137,7 +137,7 @@ describe('/api/threads endpoints', () => {
         error: null,
       });
 
-      const response = await GET();
+      const response = await GET(new Request('http://localhost:3000/api/threads'));
       const data = await response.json();
 
       expect(response.status).toBe(200);

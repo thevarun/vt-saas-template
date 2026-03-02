@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -11,11 +10,10 @@ import {
   internalError,
   logApiError,
   logDbError,
-  unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { createThread, getThreadsByUser } from '@/libs/queries/threads';
-import { createClient } from '@/libs/supabase/server';
 
 // Zod schema for POST /api/threads request validation
 const createThreadSchema = z.object({
@@ -31,21 +29,8 @@ const createThreadSchema = z.object({
  * - AC #5: Returns authenticated user's threads (ordered by updated_at DESC)
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export async function GET(): Promise<Response> {
+export const GET = withAuth(async (_request, { user }): Promise<Response> => {
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Query threads table - userId WHERE filter enforces ownership
     const { data: userThreads, error: dbQueryError } = await getThreadsByUser(user.id);
 
@@ -69,7 +54,7 @@ export async function GET(): Promise<Response> {
     });
     return internalError();
   }
-}
+});
 
 /**
  * POST /api/threads
@@ -79,21 +64,8 @@ export async function GET(): Promise<Response> {
  * - AC #6: Creates thread with conversation_id
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export async function POST(request: NextRequest): Promise<Response> {
+export const POST = withAuth(async (request: NextRequest, { user }): Promise<Response> => {
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Parse and validate request body
     const body = await request.json();
     const validationResult = createThreadSchema.safeParse(body);
@@ -144,4 +116,4 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
     return internalError();
   }
-}
+});

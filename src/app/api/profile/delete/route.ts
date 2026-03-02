@@ -1,16 +1,14 @@
 import * as Sentry from '@sentry/nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import {
   internalError,
   logApiError,
   serviceUnavailableError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { logger } from '@/libs/Logger';
 import { createAdminClient } from '@/libs/supabase/admin';
-import { createClient } from '@/libs/supabase/server';
 
 /**
  * DELETE /api/profile/delete
@@ -26,20 +24,8 @@ import { createClient } from '@/libs/supabase/server';
  * - 503: Service role key not configured
  * - 500: Unexpected error during deletion
  */
-export async function DELETE(): Promise<NextResponse> {
+export const DELETE = withAuth(async (_request, { user }) => {
   try {
-    // Verify user is authenticated using regular client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     Sentry.addBreadcrumb({
       category: 'profile',
       message: 'Account deletion initiated',
@@ -86,4 +72,4 @@ export async function DELETE(): Promise<NextResponse> {
     Sentry.captureException(error);
     return internalError();
   }
-}
+});

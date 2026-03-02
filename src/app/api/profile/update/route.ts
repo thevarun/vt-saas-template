@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { conflictError, formatZodErrors, internalError, logApiError, unauthorizedError, validationError } from '@/libs/api/errors';
+import { conflictError, formatZodErrors, internalError, logApiError, validationError } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
 import { usernameSchema } from '@/libs/validations/username';
@@ -18,17 +19,8 @@ const profileUpdateSchema = z.object({
     .regex(/^[\w\s'-]+$/, 'Display name contains invalid characters'),
 });
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     let body;
     try {
       body = await request.json();
@@ -66,6 +58,10 @@ export async function POST(request: Request) {
         return internalError('Failed to check username availability');
       }
     }
+
+    // Need supabase client for updateUser (withAuth validated session but doesn't expose client)
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
     const { error: updateError } = await supabase.auth.updateUser({
       data: {
@@ -112,4 +108,4 @@ export async function POST(request: Request) {
     });
     return internalError();
   }
-}
+});
