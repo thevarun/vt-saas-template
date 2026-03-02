@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -10,11 +9,10 @@ import {
   logApiError,
   logDbError,
   notFoundError,
-  unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { deleteThread, updateThread } from '@/libs/queries/threads';
-import { createClient } from '@/libs/supabase/server';
 
 // Zod schema for PATCH /api/threads/[id] request validation
 const updateThreadSchema = z.object({
@@ -30,24 +28,9 @@ const updateThreadSchema = z.object({
  * - AC #7: Updates title and last_message_preview
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const PATCH = withAuth(async (request: NextRequest, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Parse and validate request body
     const body = await request.json();
     const validationResult = updateThreadSchema.safeParse(body);
@@ -58,9 +41,6 @@ export async function PATCH(
     }
 
     const { title, lastMessagePreview } = validationResult.data;
-
-    // Get thread ID from params
-    const { id } = await params;
 
     // Update thread record - userId WHERE filter enforces ownership
     const { data: updatedThread, error: dbUpdateError } = await updateThread(
@@ -91,7 +71,6 @@ export async function PATCH(
 
     return NextResponse.json({ thread: updatedThread });
   } catch (error: unknown) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/threads/${id}`,
       method: 'PATCH',
@@ -99,7 +78,7 @@ export async function PATCH(
     });
     return internalError();
   }
-}
+});
 
 /**
  * DELETE /api/threads/[id]
@@ -109,27 +88,9 @@ export async function PATCH(
  * - AC #9: Removes thread permanently
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const DELETE = withAuth(async (_request, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    // Get thread ID from params
-    const { id } = await params;
-
     // Delete thread - userId WHERE filter enforces ownership
     const { data: deletedThread, error: dbDeleteError } = await deleteThread(
       id,
@@ -156,7 +117,6 @@ export async function DELETE(
     // Return 204 No Content on success
     return new Response(null, { status: 204 });
   } catch (error: unknown) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/threads/${id}`,
       method: 'DELETE',
@@ -164,4 +124,4 @@ export async function DELETE(
     });
     return internalError();
   }
-}
+});

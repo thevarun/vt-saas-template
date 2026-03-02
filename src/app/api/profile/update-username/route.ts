@@ -1,11 +1,10 @@
 import { eq } from 'drizzle-orm';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { internalError, invalidRequestError, logApiError, unauthorizedError, usernameTakenError, validationError } from '@/libs/api/errors';
+import { internalError, invalidRequestError, logApiError, usernameTakenError, validationError } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { db } from '@/libs/DB';
-import { createClient } from '@/libs/supabase/server';
 import { usernameSchema } from '@/libs/validations/username';
 import { userPreferences } from '@/models/Schema';
 
@@ -13,17 +12,8 @@ const updateUsernameSchema = z.object({
   username: usernameSchema,
 });
 
-export async function PATCH(request: Request) {
+export const PATCH = withAuth(async (request, { user }) => {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     let body;
     try {
       body = await request.json();
@@ -86,4 +76,4 @@ export async function PATCH(request: Request) {
     });
     return internalError();
   }
-}
+});

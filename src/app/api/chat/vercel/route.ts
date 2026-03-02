@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
 import { streamText } from 'ai';
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 
 import {
@@ -9,15 +8,14 @@ import {
   logApiError,
   rateLimitError,
   timeoutError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { logger } from '@/libs/Logger';
 import {
   formatMemoriesForPrompt,
   getRelevantMemories,
 } from '@/libs/mem0/retrieval';
 import { createMessage } from '@/libs/queries/vercelMessages';
-import { createClient } from '@/libs/supabase/server';
 import { CHAT_MAX_MESSAGE_LENGTH } from '@/libs/validations/chat';
 import { createAIProvider } from '@/libs/vercel-ai/client';
 import { isConfigured } from '@/libs/vercel-ai/config';
@@ -31,22 +29,10 @@ import {
 } from './helpers';
 
 /** Streaming chat endpoint using Vercel AI SDK. Alternative to the Dify implementation at /api/chat. */
-export async function POST(request: NextRequest): Promise<Response> {
+export const POST = withAuth(async (request: NextRequest, { user }): Promise<Response> => {
   const startTime = Date.now();
 
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Check if Vercel AI SDK is configured
     if (!isConfigured()) {
       return invalidRequestError(
@@ -166,4 +152,4 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     return internalError();
   }
-}
+});

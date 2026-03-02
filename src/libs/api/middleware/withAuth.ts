@@ -18,6 +18,9 @@ export type AuthenticatedHandler = (
  * Handles Supabase session validation, logs auth failures, and passes the
  * authenticated `User` plus awaited route params to the inner handler.
  *
+ * Accepts both `Request` and `NextRequest` — Next.js passes `NextRequest` at
+ * runtime; plain `Request` is accepted for testability.
+ *
  * @example
  * ```typescript
  * export const POST = withAuth(async (request, { user, params }) => {
@@ -27,20 +30,20 @@ export type AuthenticatedHandler = (
  * ```
  */
 export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: NextRequest, routeContext?: { params?: Promise<any> }) => {
+  return async (request: Request, routeContext?: { params?: Promise<any> }) => {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       logAuthError('Invalid session', {
-        endpoint: request.nextUrl?.pathname ?? 'unknown',
+        endpoint: (request as NextRequest).nextUrl?.pathname ?? 'unknown',
         method: request.method ?? 'unknown',
       });
       return unauthorizedError();
     }
 
     const params = routeContext?.params ? await routeContext.params : undefined;
-    return handler(request, { user, params });
+    return handler(request as NextRequest, { user, params });
   };
 }

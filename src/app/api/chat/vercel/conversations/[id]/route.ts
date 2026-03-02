@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -10,16 +9,15 @@ import {
   logApiError,
   logDbError,
   notFoundError,
-  unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import {
   deleteConversation,
   getConversationById,
   updateConversation,
 } from '@/libs/queries/vercelConversations';
 import { getConversationMessages } from '@/libs/queries/vercelMessages';
-import { createClient } from '@/libs/supabase/server';
 
 // Zod schema for PATCH /api/chat/vercel/conversations/[id] request validation
 const updateConversationSchema = z.object({
@@ -36,27 +34,9 @@ const updateConversationSchema = z.object({
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const GET = withAuth(async (_request, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    // Get conversation ID from params
-    const { id } = await params;
-
     // Fetch conversation and messages in parallel
     const [convResult, messagesResult] = await Promise.all([
       getConversationById(id, user.id),
@@ -96,7 +76,6 @@ export async function GET(
       messages: messages ?? [],
     });
   } catch (error: unknown) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,
       method: 'GET',
@@ -104,7 +83,7 @@ export async function GET(
     });
     return internalError();
   }
-}
+});
 
 /**
  * PATCH /api/chat/vercel/conversations/[id]
@@ -115,24 +94,9 @@ export async function GET(
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const PATCH = withAuth(async (request: NextRequest, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Parse and validate request body
     const body = await request.json();
     const validationResult = updateConversationSchema.safeParse(body);
@@ -143,9 +107,6 @@ export async function PATCH(
     }
 
     const { title, archived } = validationResult.data;
-
-    // Get conversation ID from params
-    const { id } = await params;
 
     // Update conversation - userId filter ensures user ownership
     const { data: updatedConversation, error: dbUpdateError } = await updateConversation(
@@ -172,7 +133,6 @@ export async function PATCH(
 
     return NextResponse.json({ conversation: updatedConversation });
   } catch (error: unknown) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,
       method: 'PATCH',
@@ -180,7 +140,7 @@ export async function PATCH(
     });
     return internalError();
   }
-}
+});
 
 /**
  * DELETE /api/chat/vercel/conversations/[id]
@@ -191,27 +151,9 @@ export async function PATCH(
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const DELETE = withAuth(async (_request, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    // Get conversation ID from params
-    const { id } = await params;
-
     // Delete conversation - userId filter ensures user ownership
     // Messages are automatically deleted via cascade (schema: onDelete: 'cascade')
     const { data: deletedConversation, error: dbDeleteError } = await deleteConversation(
@@ -238,7 +180,6 @@ export async function DELETE(
     // Return 204 No Content on success
     return new Response(null, { status: 204 });
   } catch (error: unknown) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/chat/vercel/conversations/${id}`,
       method: 'DELETE',
@@ -246,4 +187,4 @@ export async function DELETE(
     });
     return internalError();
   }
-}
+});

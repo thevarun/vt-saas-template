@@ -1,5 +1,4 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -10,12 +9,11 @@ import {
   invalidRequestError,
   logApiError,
   notFoundError,
-  unauthorizedError,
   validationError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
-import { createClient } from '@/libs/supabase/server';
 import { shareableLinks } from '@/models/Schema';
 import type { ShareLinkAccessResponse } from '@/types/shareLink';
 import {
@@ -86,24 +84,9 @@ export async function GET(
  * PATCH /api/share/[token] - Revoke a share link
  * Requires authentication and ownership
  */
-export async function PATCH(
-  request: NextRequest,
-  props: { params: Promise<{ token: string }> },
-) {
-  const params = await props.params;
+export const PATCH = withAuth(async (request: NextRequest, { user, params }) => {
+  const token = params?.token;
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return unauthorizedError();
-    }
-
-    const { token } = params;
-
     if (!token) {
       return validationError('Token is required');
     }
@@ -150,4 +133,4 @@ export async function PATCH(
     });
     return internalError();
   }
-}
+});

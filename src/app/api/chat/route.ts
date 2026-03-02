@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nextjs';
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -8,8 +7,8 @@ import {
   internalError,
   invalidRequestError,
   logApiError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { createDifyClient } from '@/libs/dify/client';
 import type { DifyChatRequest, DifyStreamEvent } from '@/libs/dify/types';
 import { logger } from '@/libs/Logger';
@@ -18,7 +17,6 @@ import {
   getThreadByConversationId,
   updateThread,
 } from '@/libs/queries/threads';
-import { createClient } from '@/libs/supabase/server';
 import { CHAT_MAX_MESSAGE_LENGTH, CONVERSATION_ID_PATTERN } from '@/libs/validations/chat';
 
 /** Dify chat proxy endpoint. Validates Supabase session and streams SSE responses from Dify API. */
@@ -124,20 +122,8 @@ async function createOrUpdateThread(
 }
 
 /** Chat endpoint that validates Supabase session and proxies streaming requests to Dify API. */
-export async function POST(request: NextRequest): Promise<Response> {
+export const POST = withAuth(async (request: NextRequest, { user }): Promise<Response> => {
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Extract message and conversationId from request body
     const body = await request.json();
     const { message, conversationId } = body;
@@ -262,4 +248,4 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     return internalError();
   }
-}
+});

@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import {
@@ -6,10 +5,9 @@ import {
   internalError,
   invalidRequestError,
   logApiError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { createDifyClient } from '@/libs/dify/client';
-import { createClient } from '@/libs/supabase/server';
 import { CONVERSATION_ID_PATTERN } from '@/libs/validations/chat';
 
 /**
@@ -17,17 +15,8 @@ import { CONVERSATION_ID_PATTERN } from '@/libs/validations/chat';
  * Fetches conversation message history from Dify
  * Requires authentication and conversationId query parameter
  */
-export async function GET(request: Request) {
+export const GET = withAuth(async (request, { user }) => {
   try {
-    // Auth check
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Get conversationId from query params (accept legacy snake_case for backward compat)
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get('conversationId')
@@ -65,4 +54,4 @@ export async function GET(request: Request) {
 
     return internalError();
   }
-}
+});

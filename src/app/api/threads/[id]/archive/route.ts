@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import {
@@ -8,10 +6,9 @@ import {
   logApiError,
   logDbError,
   notFoundError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { getThreadById, updateThread } from '@/libs/queries/threads';
-import { createClient } from '@/libs/supabase/server';
 
 /**
  * PATCH /api/threads/[id]/archive
@@ -21,27 +18,9 @@ import { createClient } from '@/libs/supabase/server';
  * - AC #8: Toggles archive status
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export async function PATCH(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
+export const PATCH = withAuth(async (_request, { user, params }) => {
+  const id = params?.id;
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
-    // Get thread ID from params
-    const { id } = await params;
-
     // First, fetch the current thread to get its archived status
     // userId WHERE filter enforces ownership
     const { data: currentThread, error: fetchError } = await getThreadById(
@@ -72,7 +51,6 @@ export async function PATCH(
 
     return NextResponse.json({ thread: updatedThread });
   } catch (error: any) {
-    const { id } = await params;
     logApiError(error, {
       endpoint: `/api/threads/${id}/archive`,
       method: 'PATCH',
@@ -80,4 +58,4 @@ export async function PATCH(
     });
     return internalError();
   }
-}
+});

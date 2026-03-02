@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -7,10 +6,9 @@ import {
   internalError,
   logApiError,
   logDbError,
-  unauthorizedError,
 } from '@/libs/api/errors';
+import { withAuth } from '@/libs/api/middleware/withAuth';
 import { listUserConversations } from '@/libs/queries/vercelConversations';
-import { createClient } from '@/libs/supabase/server';
 
 /**
  * GET /api/chat/vercel/conversations
@@ -25,21 +23,8 @@ import { createClient } from '@/libs/supabase/server';
  * - AC #6: Supports pagination with limit/offset query params
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export async function GET(request: NextRequest): Promise<Response> {
+export const GET = withAuth(async (request: NextRequest, { user }): Promise<Response> => {
   try {
-    // Validate Supabase session
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    // Return 401 for unauthorized requests
-    if (authError || !user) {
-      return unauthorizedError();
-    }
-
     // Extract and validate pagination query params
     const url = new URL(request.url);
     const limit = Math.min(Number.parseInt(url.searchParams.get('limit') || '50', 10), 100);
@@ -74,4 +59,4 @@ export async function GET(request: NextRequest): Promise<Response> {
     });
     return internalError();
   }
-}
+});

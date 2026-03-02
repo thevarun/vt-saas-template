@@ -18,6 +18,7 @@ vi.mock('@/libs/DB', () => ({
 
 vi.mock('@/libs/api/errors/logger', () => ({
   logApiError: vi.fn(),
+  logAuthError: vi.fn(),
 }));
 
 const { createClient } = await import('@/libs/supabase/server');
@@ -136,7 +137,7 @@ describe('GET /api/share', () => {
       },
     } as any);
 
-    const response = await GET();
+    const response = await GET(new Request('http://localhost:3000/api/share'));
 
     expect(response.status).toBe(401);
   });
@@ -190,7 +191,7 @@ describe('GET /api/share', () => {
     const { db } = await import('@/libs/DB');
     vi.mocked(db as any).select = mockSelect;
 
-    const response = await GET();
+    const response = await GET(new Request('http://localhost:3000/api/share'));
 
     expect(response.status).toBe(200);
 
@@ -224,7 +225,7 @@ describe('GET /api/share', () => {
     const { db } = await import('@/libs/DB');
     vi.mocked(db as any).select = mockSelect;
 
-    const response = await GET();
+    const response = await GET(new Request('http://localhost:3000/api/share'));
 
     expect(response.status).toBe(200);
 

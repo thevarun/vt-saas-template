@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { PasswordInput } from '@/components/ui/password-input';
-import { useToast } from '@/hooks/use-toast';
+import { useOAuth } from '@/hooks/useOAuth';
 import { trackEvent } from '@/libs/analytics';
 import { createClient } from '@/libs/supabase/client';
 
@@ -30,10 +30,9 @@ export default function SignUpPage() {
   const t = useTranslations('SignUp');
   const params = useParams();
   const locale = params.locale as string;
-  const { toast } = useToast();
+  const { oauthLoading, handleGoogle, handleGitHub } = useOAuth();
 
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOAuthLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const signUpSchema = createSignUpSchema(t);
@@ -53,51 +52,8 @@ export default function SignUpPage() {
     trackEvent('signup_started', {});
   }, []);
 
-  const handleGoogleSignUp = async () => {
-    setOAuthLoading(true);
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: t('error_oauth_google'),
-        variant: 'destructive',
-      });
-      setOAuthLoading(false);
-    }
-  };
-
-  const handleGitHubSignUp = async () => {
-    setOAuthLoading(true);
-    const supabase = createClient();
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}/dashboard`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: t('error_oauth_github'),
-        variant: 'destructive',
-      });
-      setOAuthLoading(false);
-    }
-  };
+  const handleGoogleSignUp = () => handleGoogle(t('error_oauth_google'));
+  const handleGitHubSignUp = () => handleGitHub(t('error_oauth_github'));
 
   const onSubmit = async (data: SignUpFormData) => {
     setServerError(null);

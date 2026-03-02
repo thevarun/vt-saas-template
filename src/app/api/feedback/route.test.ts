@@ -33,7 +33,6 @@ vi.mock('@/libs/Logger', () => ({
 
 vi.mock('@/libs/api/rateLimit', () => ({
   checkRateLimit: vi.fn(),
-  getClientIp: vi.fn(),
 }));
 
 describe('POST /api/feedback', () => {
@@ -47,8 +46,39 @@ describe('POST /api/feedback', () => {
     vi.clearAllMocks()
     ;(cookies as any).mockResolvedValue(mockCookieStore)
     // Default: rate limit allows requests
-    ;(rateLimit.checkRateLimit as any).mockReturnValue({ allowed: true, retryAfterSeconds: 0 })
-    ;(rateLimit.getClientIp as any).mockReturnValue('127.0.0.1');
+    ;(rateLimit.checkRateLimit as any).mockReturnValue({ allowed: true, retryAfterSeconds: 0 });
+  });
+
+  function mockAuth(user: { id: string; email: string } | null = mockUser) {
+    (createClient as any).mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user },
+          error: user ? null : new Error('Not authenticated'),
+        }),
+      },
+    });
+  }
+
+  describe('Authentication', () => {
+    it('returns 401 for unauthenticated requests', async () => {
+      mockAuth(null);
+
+      const request = new Request('http://localhost/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bug',
+          message: 'Test message',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.code).toBe('AUTH_REQUIRED');
+    });
   });
 
   describe('Valid submissions', () => {
@@ -62,24 +92,17 @@ describe('POST /api/feedback', () => {
         userEmail: null,
         createdAt: new Date().toISOString(),
         reviewedAt: null,
-      }
+      };
 
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([mockFeedback]),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -110,24 +133,17 @@ describe('POST /api/feedback', () => {
         userEmail: null,
         createdAt: new Date().toISOString(),
         reviewedAt: null,
-      }
+      };
 
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([mockFeedback]),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -155,24 +171,17 @@ describe('POST /api/feedback', () => {
         userEmail: null,
         createdAt: new Date().toISOString(),
         reviewedAt: null,
-      }
+      };
 
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([mockFeedback]),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -190,97 +199,6 @@ describe('POST /api/feedback', () => {
       expect(data.data.type).toBe('praise');
     });
 
-    it('accepts anonymous feedback with email', async () => {
-      const mockFeedback = {
-        id: 'feedback-id',
-        type: 'bug',
-        message: 'Anonymous bug report',
-        status: 'pending',
-        userId: null,
-        userEmail: 'anonymous@example.com',
-        createdAt: new Date().toISOString(),
-        reviewedAt: null,
-      }
-
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
-
-      const mockInsert = vi.fn().mockReturnValue({
-        values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([mockFeedback]),
-        }),
-      })
-
-      ;(db.insert as any) = mockInsert;
-
-      const request = new Request('http://localhost/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'bug',
-          message: 'Anonymous bug report',
-          email: 'anonymous@example.com',
-        }),
-      });
-
-      const response = await POST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(201);
-      expect(data.data.message).toBe('Anonymous bug report');
-    });
-
-    it('accepts anonymous feedback without email', async () => {
-      const mockFeedback = {
-        id: 'feedback-id',
-        type: 'feature',
-        message: 'Anonymous feature request',
-        status: 'pending',
-        userId: null,
-        userEmail: null,
-        createdAt: new Date().toISOString(),
-        reviewedAt: null,
-      }
-
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
-
-      const mockInsert = vi.fn().mockReturnValue({
-        values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([mockFeedback]),
-        }),
-      })
-
-      ;(db.insert as any) = mockInsert;
-
-      const request = new Request('http://localhost/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'feature',
-          message: 'Anonymous feature request',
-        }),
-      });
-
-      const response = await POST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(201);
-      expect(data.data.message).toBe('Anonymous feature request');
-    });
-
     it('does not return sensitive fields in response', async () => {
       const mockFeedback = {
         id: 'feedback-id',
@@ -291,24 +209,17 @@ describe('POST /api/feedback', () => {
         userEmail: null,
         createdAt: new Date().toISOString(),
         reviewedAt: null,
-      }
+      };
 
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([mockFeedback]),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -335,7 +246,8 @@ describe('POST /api/feedback', () => {
 
   describe('Rate limiting', () => {
     it('returns 429 when rate limit is exceeded', async () => {
-      ;(rateLimit.checkRateLimit as any).mockReturnValue({ allowed: false, retryAfterSeconds: 3600 });
+      mockAuth();
+      (rateLimit.checkRateLimit as any).mockReturnValue({ allowed: false, retryAfterSeconds: 3600 });
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -357,14 +269,7 @@ describe('POST /api/feedback', () => {
 
   describe('Validation errors', () => {
     it('returns 400 for empty message', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -384,14 +289,7 @@ describe('POST /api/feedback', () => {
     });
 
     it('returns 400 for whitespace-only message', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -410,14 +308,7 @@ describe('POST /api/feedback', () => {
     });
 
     it('returns 400 for missing message', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -435,14 +326,7 @@ describe('POST /api/feedback', () => {
     });
 
     it('returns 400 for message exceeding 1000 characters', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const longMessage = 'a'.repeat(1001);
 
@@ -463,43 +347,8 @@ describe('POST /api/feedback', () => {
       expect(data.details).toBeDefined();
     });
 
-    it('returns 400 for invalid email format', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
-
-      const request = new Request('http://localhost/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'bug',
-          message: 'Test message',
-          email: 'invalid-email',
-        }),
-      });
-
-      const response = await POST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data.code).toBe('VALIDATION_ERROR');
-      expect(data.details).toBeDefined();
-    });
-
     it('returns 400 for invalid feedback type', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -519,14 +368,7 @@ describe('POST /api/feedback', () => {
     });
 
     it('returns 400 for missing feedback type', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -546,22 +388,15 @@ describe('POST /api/feedback', () => {
 
   describe('Error handling', () => {
     it('returns 500 when database insert fails', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([]),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
@@ -580,22 +415,15 @@ describe('POST /api/feedback', () => {
     });
 
     it('returns 500 when database throws error', async () => {
-      ;(createClient as any).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: mockUser },
-            error: null,
-          }),
-        },
-      });
+      mockAuth();
 
       const mockInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockRejectedValue(new Error('Database error')),
         }),
-      })
+      });
 
-      ;(db.insert as any) = mockInsert;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/feedback', {
         method: 'POST',
