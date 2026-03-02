@@ -1,6 +1,6 @@
 'use client';
 
-import type { Thread } from '@/libs/supabase/threads';
+import type { Thread } from '@/libs/queries/threads';
 
 import { ChatInterface } from './ChatInterface';
 import { ThreadTitleEditor } from './ThreadTitleEditor';
@@ -28,7 +28,7 @@ export function ThreadView({ thread }: ThreadViewProps) {
       {/* Key forces full remount when navigating between threads, ensuring history reloads */}
       {/* min-h-0 required for flex child to allow overflow scrolling */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ChatInterface key={thread.id} threadId={thread.id} conversationId={thread.conversation_id} />
+        <ChatInterface key={thread.id} threadId={thread.id} conversationId={thread.conversationId} />
       </div>
     </div>
   );

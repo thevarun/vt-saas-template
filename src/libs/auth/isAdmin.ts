@@ -1,5 +1,24 @@
 import type { User } from '@supabase/supabase-js';
 
+// Lazily cache admin emails for O(1) lookup
+let cachedAdminEmails: Set<string> | null = null;
+let cachedEnvValue: string | undefined;
+
+function getAdminEmailSet(): Set<string> {
+  const envValue = process.env.ADMIN_EMAILS;
+  if (cachedAdminEmails && cachedEnvValue === envValue) {
+    return cachedAdminEmails;
+  }
+  cachedEnvValue = envValue;
+  cachedAdminEmails = new Set(
+    (envValue ?? '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(e => e.length > 0),
+  );
+  return cachedAdminEmails;
+}
+
 /**
  * Determines if a user has admin privileges.
  *
@@ -25,15 +44,10 @@ export function isAdmin(user: User | null | undefined): boolean {
     return true;
   }
 
-  // Fallback: check ADMIN_EMAILS environment variable
-  const adminEmails = process.env.ADMIN_EMAILS;
-  if (adminEmails && user.email) {
-    const emailList = adminEmails
-      .split(',')
-      .map(email => email.trim().toLowerCase())
-      .filter(email => email.length > 0);
-
-    return emailList.includes(user.email.toLowerCase());
+  // Fallback: check ADMIN_EMAILS (lazily cached for performance)
+  const adminEmails = getAdminEmailSet();
+  if (user.email && adminEmails.size > 0) {
+    return adminEmails.has(user.email.toLowerCase());
   }
 
   return false;

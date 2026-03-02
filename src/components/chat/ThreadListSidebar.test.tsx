@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Thread } from '@/libs/supabase/threads';
+import type { Thread } from '@/libs/queries/threads';
 
 import { ThreadListSidebar } from './ThreadListSidebar';
 
@@ -20,23 +20,23 @@ vi.mock('next/navigation', () => ({
 const mockThreads: Thread[] = [
   {
     id: '1',
-    user_id: 'user-1',
-    conversation_id: 'conv-1',
+    userId: 'user-1',
+    conversationId: 'conv-1',
     title: 'Health Tips',
-    last_message_preview: 'How can I improve my diet?',
+    lastMessagePreview: 'How can I improve my diet?',
     archived: false,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    createdAt: new Date('2024-01-01T00:00:00Z'),
+    updatedAt: new Date('2024-01-01T00:00:00Z'),
   },
   {
     id: '2',
-    user_id: 'user-1',
-    conversation_id: 'conv-2',
+    userId: 'user-1',
+    conversationId: 'conv-2',
     title: 'Fitness Advice',
-    last_message_preview: 'What exercises should I do?',
+    lastMessagePreview: 'What exercises should I do?',
     archived: false,
-    created_at: '2024-01-02T00:00:00Z',
-    updated_at: '2024-01-02T00:00:00Z',
+    createdAt: new Date('2024-01-02T00:00:00Z'),
+    updatedAt: new Date('2024-01-02T00:00:00Z'),
   },
 ];
 

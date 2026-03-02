@@ -1,22 +1,25 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useCallback } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-type FeedbackPaginationProps = {
-  currentPage: number;
-  totalPages: number;
+type PaginationProps = {
+  'currentPage': number;
+  'totalPages': number;
+  'labels': {
+    previous: string;
+    next: string;
+    pageInfo: string;
+  };
+  'data-testid'?: string;
 };
 
 /**
- * FeedbackPagination Component
- * URL-based pagination controls for the feedback list.
+ * Reusable URL-based pagination controls.
  */
-export function FeedbackPagination({ currentPage, totalPages }: FeedbackPaginationProps) {
-  const t = useTranslations('Admin.Feedback');
+export function Pagination({ currentPage, totalPages, labels, 'data-testid': testId }: PaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -31,7 +34,7 @@ export function FeedbackPagination({ currentPage, totalPages }: FeedbackPaginati
   );
 
   return (
-    <div className="flex items-center justify-center gap-4" data-testid="feedback-pagination">
+    <div className="flex items-center justify-center gap-4" data-testid={testId}>
       <Button
         variant="outline"
         size="sm"
@@ -39,10 +42,10 @@ export function FeedbackPagination({ currentPage, totalPages }: FeedbackPaginati
         disabled={currentPage <= 1}
         data-testid="pagination-prev"
       >
-        {t('pagination.previous')}
+        {labels.previous}
       </Button>
       <span className="text-sm text-muted-foreground">
-        {t('pagination.page', { current: currentPage, total: totalPages })}
+        {labels.pageInfo}
       </span>
       <Button
         variant="outline"
@@ -51,7 +54,7 @@ export function FeedbackPagination({ currentPage, totalPages }: FeedbackPaginati
         disabled={currentPage >= totalPages}
         data-testid="pagination-next"
       >
-        {t('pagination.next')}
+        {labels.next}
       </Button>
     </div>
   );

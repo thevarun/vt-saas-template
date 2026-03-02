@@ -19,9 +19,7 @@ vi.mock('@/libs/supabase/server', () => ({
 
 vi.mock('@/libs/DB', () => ({
   db: {
-    select: vi.fn(),
     insert: vi.fn(),
-    update: vi.fn(),
   },
 }));
 
@@ -133,23 +131,15 @@ describe('PATCH /api/profile/update-preferences', () => {
       },
     });
 
-    // Mock select returning empty (new user)
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([]),
+    // Mock upsert chain: db.insert().values().onConflictDoUpdate().returning()
+    const mockInsert = vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockInsertedProfile]),
         }),
       }),
     });
 
-    // Mock insert
-    const mockInsert = vi.fn().mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([mockInsertedProfile]),
-      }),
-    });
-
-    (db.select as any) = mockSelect;
     (db.insert as any) = mockInsert;
 
     const request = new Request('http://localhost/api/profile/update-preferences', {
@@ -177,16 +167,10 @@ describe('PATCH /api/profile/update-preferences', () => {
   });
 
   it('updates existing preferences for existing user', async () => {
-    const existingProfile = {
+    const mockUpdatedProfile = {
       id: 'profile-id',
       userId: mockUser.id,
       username: 'existinguser',
-      emailNotifications: false,
-      language: 'hi',
-    };
-
-    const mockUpdatedProfile = {
-      ...existingProfile,
       emailNotifications: true,
       language: 'en',
     };
@@ -200,26 +184,16 @@ describe('PATCH /api/profile/update-preferences', () => {
       },
     });
 
-    // Mock select returning existing user
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([existingProfile]),
-        }),
-      }),
-    });
-
-    // Mock update
-    const mockUpdate = vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
+    // Mock upsert chain (onConflictDoUpdate handles existing user)
+    const mockInsert = vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([mockUpdatedProfile]),
         }),
       }),
     });
 
-    (db.select as any) = mockSelect;
-    (db.update as any) = mockUpdate;
+    (db.insert as any) = mockInsert;
 
     const request = new Request('http://localhost/api/profile/update-preferences', {
       method: 'PATCH',
@@ -240,7 +214,7 @@ describe('PATCH /api/profile/update-preferences', () => {
       language: 'en',
       username: 'existinguser',
     });
-    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockInsert).toHaveBeenCalled();
   });
 
   it('accepts all valid language options', async () => {
@@ -249,16 +223,11 @@ describe('PATCH /api/profile/update-preferences', () => {
     for (const language of languages) {
       vi.clearAllMocks();
 
-      const existingProfile = {
+      const mockUpdatedProfile = {
         id: 'profile-id',
         userId: mockUser.id,
         username: 'testuser',
         emailNotifications: true,
-        language: 'en',
-      };
-
-      const mockUpdatedProfile = {
-        ...existingProfile,
         language,
       };
 
@@ -271,24 +240,15 @@ describe('PATCH /api/profile/update-preferences', () => {
         },
       });
 
-      const mockSelect = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([existingProfile]),
-          }),
-        }),
-      });
-
-      const mockUpdate = vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
+      const mockInsert = vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          onConflictDoUpdate: vi.fn().mockReturnValue({
             returning: vi.fn().mockResolvedValue([mockUpdatedProfile]),
           }),
         }),
       });
 
-      (db.select as any) = mockSelect;
-      (db.update as any) = mockUpdate;
+      (db.insert as any) = mockInsert;
 
       const request = new Request('http://localhost/api/profile/update-preferences', {
         method: 'PATCH',
@@ -317,23 +277,15 @@ describe('PATCH /api/profile/update-preferences', () => {
       },
     });
 
-    // Mock select returning empty (new user)
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([]),
+    // Mock upsert returning empty (failed)
+    const mockInsert = vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([]),
         }),
       }),
     });
 
-    // Mock insert returning empty (failed)
-    const mockInsert = vi.fn().mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([]),
-      }),
-    });
-
-    (db.select as any) = mockSelect;
     (db.insert as any) = mockInsert;
 
     const request = new Request('http://localhost/api/profile/update-preferences', {

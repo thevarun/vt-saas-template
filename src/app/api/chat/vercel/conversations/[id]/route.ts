@@ -57,11 +57,15 @@ export async function GET(
     // Get conversation ID from params
     const { id } = await params;
 
-    // Fetch conversation - userId filter ensures user ownership
-    const { data: conversation, error: dbQueryError } = await getConversationById(id, user.id);
+    // Fetch conversation and messages in parallel
+    const [convResult, messagesResult] = await Promise.all([
+      getConversationById(id, user.id),
+      getConversationMessages(id),
+    ]);
 
     // Return 404 if conversation not found or not owned by user
     // (Security through obscurity - don't reveal existence)
+    const { data: conversation, error: dbQueryError } = convResult;
     if (dbQueryError || !conversation) {
       if (!conversation) {
         return notFoundError('Conversation');
@@ -76,9 +80,7 @@ export async function GET(
       return dbError('Failed to fetch conversation');
     }
 
-    // Fetch messages for the conversation
-    const { data: messages, error: messagesError } = await getConversationMessages(id);
-
+    const { data: messages, error: messagesError } = messagesResult;
     if (messagesError) {
       logDbError('fetch conversation messages', messagesError, {
         endpoint: `/api/chat/vercel/conversations/${id}`,

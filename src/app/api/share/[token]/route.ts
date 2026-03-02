@@ -123,28 +123,24 @@ export async function PATCH(
 
     const { isActive } = validation.data;
 
-    const [link] = await db
-      .select()
-      .from(shareableLinks)
-      .where(
-        and(
-          eq(shareableLinks.token, token),
-          eq(shareableLinks.createdBy, user.id),
-        ),
-      );
-
-    if (!link) {
-      return notFoundError('Share link');
-    }
-
     const now = new Date();
-    await db
+    const [updated] = await db
       .update(shareableLinks)
       .set({
         isActive,
         updatedAt: now,
       })
-      .where(eq(shareableLinks.token, token));
+      .where(
+        and(
+          eq(shareableLinks.token, token),
+          eq(shareableLinks.createdBy, user.id),
+        ),
+      )
+      .returning();
+
+    if (!updated) {
+      return notFoundError('Share link');
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -76,25 +76,6 @@ export type ApiErrorResponse = {
 };
 
 /**
- * Standard API success response format
- *
- * All successful responses from API endpoints wrap data in this structure:
- * - data: The response payload
- *
- * @example
- * ```typescript
- * {
- *   data: {
- *     thread: { id: "123", title: "My Thread" }
- *   }
- * }
- * ```
- */
-export type ApiSuccessResponse<T> = {
-  data: T;
-};
-
-/**
  * HTTP status codes used for API responses
  *
  * Maps error types to appropriate HTTP status codes

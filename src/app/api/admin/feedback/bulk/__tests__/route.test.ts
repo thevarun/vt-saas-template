@@ -15,23 +15,18 @@ vi.mock('@/libs/auth/isAdmin', () => ({
   isAdmin: () => mockIsAdmin(),
 }));
 
-const mockTxUpdate = vi.fn();
-const mockTxDelete = vi.fn();
+const mockDbUpdate = vi.fn();
+const mockDbDelete = vi.fn();
 
 vi.mock('@/libs/DB', () => ({
   db: {
-    transaction: async (fn: (tx: unknown) => Promise<void>) => {
-      const tx = {
-        update: () => {
-          mockTxUpdate();
-          return { set: () => ({ where: vi.fn() }) };
-        },
-        delete: () => {
-          mockTxDelete();
-          return { where: vi.fn() };
-        },
-      };
-      await fn(tx);
+    update: () => {
+      mockDbUpdate();
+      return { set: () => ({ where: vi.fn() }) };
+    },
+    delete: () => {
+      mockDbDelete();
+      return { where: vi.fn() };
     },
   },
 }));
@@ -100,7 +95,7 @@ describe('POST /api/admin/feedback/bulk', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.count).toBe(2);
-    expect(mockTxUpdate).toHaveBeenCalled();
+    expect(mockDbUpdate).toHaveBeenCalled();
   });
 
   it('returns 200 for bulk delete', async () => {
@@ -110,7 +105,7 @@ describe('POST /api/admin/feedback/bulk', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.count).toBe(2);
-    expect(mockTxDelete).toHaveBeenCalled();
+    expect(mockDbDelete).toHaveBeenCalled();
   });
 
   it('logs bulk action', async () => {

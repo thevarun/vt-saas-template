@@ -3,23 +3,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import {
-  internalError,
-  invalidRequestError,
-  logApiError,
-  unauthorizedError,
-  validationError,
-} from '@/libs/api/errors';
+import { internalError, invalidRequestError, logApiError, unauthorizedError, validationError } from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
+import { usernameSchema } from '@/libs/validations/username';
 import { userPreferences } from '@/models/Schema';
 
-const usernameSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
+const checkUsernameSchema = z.object({
+  username: usernameSchema,
 });
 
 export async function POST(request: Request) {
@@ -40,7 +31,7 @@ export async function POST(request: Request) {
       return invalidRequestError('Invalid JSON in request body');
     }
 
-    const validation = usernameSchema.safeParse(body);
+    const validation = checkUsernameSchema.safeParse(body);
     if (!validation.success) {
       return validationError(
         { _error: [validation.error.issues[0]?.message || 'Invalid username format'] },

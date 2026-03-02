@@ -18,6 +18,7 @@ import {
 } from '@/libs/mem0/retrieval';
 import { createMessage } from '@/libs/queries/vercelMessages';
 import { createClient } from '@/libs/supabase/server';
+import { CHAT_MAX_MESSAGE_LENGTH } from '@/libs/validations/chat';
 import { createAIProvider } from '@/libs/vercel-ai/client';
 import { isConfigured } from '@/libs/vercel-ai/config';
 
@@ -69,8 +70,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       return invalidRequestError('Message is required');
     }
 
-    if (message.length > 10000) {
-      return invalidRequestError('Message exceeds maximum length of 10,000 characters');
+    if (message.length > CHAT_MAX_MESSAGE_LENGTH) {
+      return invalidRequestError(`Message exceeds maximum length of ${CHAT_MAX_MESSAGE_LENGTH.toLocaleString()} characters`);
     }
 
     Sentry.addBreadcrumb({

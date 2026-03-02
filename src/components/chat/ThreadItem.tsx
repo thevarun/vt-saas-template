@@ -4,7 +4,7 @@ import { Archive } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import type { Thread } from '@/libs/supabase/threads';
+import type { Thread } from '@/libs/queries/threads';
 
 type ThreadItemProps = {
   thread: Thread;
@@ -65,7 +65,7 @@ export function ThreadItem({ thread, onArchive, onNavigate, collapsed }: ThreadI
             {thread.title || 'New Conversation'}
           </span>
           <span className={`truncate text-xs text-muted-foreground ${collapsed ? 'sr-only' : ''}`}>
-            {thread.last_message_preview || 'Start a conversation'}
+            {thread.lastMessagePreview || 'Start a conversation'}
           </span>
         </div>
         <div

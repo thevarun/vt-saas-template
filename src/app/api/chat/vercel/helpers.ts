@@ -165,36 +165,27 @@ export function persistAssistantResponse(params: {
       const tokenCount = (typeof rawTokenCount === 'number' && !Number.isNaN(rawTokenCount)) ? rawTokenCount : null;
       const latencyMs = Date.now() - startTime;
 
-      // Persist assistant message
-      const { error: assistantMessageError } = await createMessage(
-        conversationId,
-        'assistant',
-        finalText,
-        { tokenCount, latencyMs },
-      );
+      // Persist assistant message and update conversation metadata in parallel
+      const lastMessagePreview = finalText.slice(0, 100);
+      const [messageResult, updateResult] = await Promise.all([
+        createMessage(conversationId, 'assistant', finalText, { tokenCount, latencyMs }),
+        updateConversation(conversationId, { lastMessagePreview }, userId),
+      ]);
 
-      if (assistantMessageError) {
+      if (messageResult.error) {
         logger.error(
-          { error: assistantMessageError, conversationId },
+          { error: messageResult.error, conversationId },
           'Failed to persist assistant message',
         );
-        Sentry.captureException(assistantMessageError);
+        Sentry.captureException(messageResult.error);
       }
 
-      // Update conversation metadata
-      const lastMessagePreview = finalText.slice(0, 100);
-      const { error: updateError } = await updateConversation(
-        conversationId,
-        { lastMessagePreview },
-        userId,
-      );
-
-      if (updateError) {
+      if (updateResult.error) {
         logger.error(
-          { error: updateError, conversationId },
+          { error: updateResult.error, conversationId },
           'Failed to update conversation metadata',
         );
-        Sentry.captureException(updateError);
+        Sentry.captureException(updateResult.error);
       }
 
       // Log metrics
