@@ -11,15 +11,55 @@ The template uses [semantic versioning](https://semver.org/) with auto-generated
 ## Quick Start
 
 ```bash
-# 1. Check for updates (sets up remote on first run)
-npm run upstream:check
+# Using Claude Code (recommended):
+/upstream-sync
 
-# 2. Merge a specific release
+# Or manually:
+git remote add upstream https://github.com/thevarun/vt-saas-template.git
+git fetch upstream --tags
 git merge v3.2.0
-
-# 3. Verify everything works
 npm install
 npm run lint && npm run check-types && npm test && npm run build
+```
+
+## Downstream Project Setup
+
+If you forked or templated this project, run the `/init-downstream` Claude Code command first. It handles:
+
+1. **Schema rename** — regenerates a clean migration under your project's schema name
+2. **Merge strategies** — configures `.gitattributes` with `merge=ours` for files you customize
+3. **gh CLI targeting** — runs `gh repo set-default` so PRs/issues target your repo, not the template
+4. **Template cleanup** — removes template-only artifacts (`.template-cleanup` manifest)
+
+### Two Protection Mechanisms
+
+**For files you keep but customize** (e.g., `README.md`, `AppConfig.ts`):
+- `.gitattributes` with `merge=ours` keeps your version during upstream merges
+- Setup: `git config merge.ours.driver true` (done by `/init-downstream`)
+
+**For files you delete** (e.g., removed features):
+- `/upstream-sync` auto-detects re-added files by checking git history for previous deletions
+- After merge, it shows which deleted files came back and offers to remove them
+- No config file needed — git history is the source of truth
+
+### Manual Equivalent (without Claude Code)
+
+If you're not using Claude Code, here's the manual setup:
+
+```bash
+# 1. Rename schema: update .env.example, delete migrations/*, regenerate
+DB_SCHEMA=my_app npm run db:generate
+
+# 2. Configure merge strategies
+git config merge.ours.driver true
+cp .gitattributes.downstream .gitattributes
+# Edit .gitattributes — remove lines for features you deleted
+
+# 3. Fix gh CLI targeting
+gh repo set-default
+
+# 4. Clean template artifacts (see .template-cleanup for list)
+# Remove files listed in .template-cleanup, then delete the manifest
 ```
 
 ## Integrating into an Existing Project
@@ -48,23 +88,23 @@ After this first merge, future syncs follow the normal workflow below (no `--all
 
 ### First-Time Setup
 
-Run the check script — it automatically adds the upstream remote:
+Add the upstream remote:
 
 ```bash
-npm run upstream:check
+git remote add upstream https://github.com/thevarun/vt-saas-template.git
+git fetch upstream --tags
 ```
 
-This does three things:
-1. Adds `upstream` remote pointing to `https://github.com/thevarun/vt-saas-template.git`
-2. Fetches all upstream tags
-3. Shows available releases and what's changed since your last sync
+Or use the `/upstream-sync` Claude Code command — it handles this automatically.
 
 ### Checking for Updates
 
-Run `npm run upstream:check` anytime. It shows:
-- Recent release tags
-- Number of new commits since your last sync
-- One-line summary of recent changes
+```bash
+git fetch upstream --tags
+git log --oneline $(git merge-base HEAD upstream/main)..upstream/main
+```
+
+Or run `/upstream-sync` which shows releases, new commits, and release notes.
 
 ### Performing a Sync
 
@@ -72,10 +112,7 @@ Run `npm run upstream:check` anytime. It shows:
 
 2. **Merge the release tag** (not `upstream/main`):
    ```bash
-   npm run upstream:check -- --merge v3.2.0
-   ```
-   Or manually:
-   ```bash
+   git checkout -b sync/v3.2.0
    git merge v3.2.0
    ```
 
@@ -166,10 +203,11 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-### Script can't find upstream remote
+### Upstream remote not working
 
 ```bash
 git remote -v                    # check current remotes
 git remote remove upstream       # remove broken remote
-npm run upstream:check           # re-adds it automatically
+git remote add upstream https://github.com/thevarun/vt-saas-template.git
+git fetch upstream --tags
 ```

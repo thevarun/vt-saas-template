@@ -1,0 +1,14 @@
+# Downstream merge strategies — protects your customized files during upstream syncs
+# Setup: git config merge.ours.driver true
+# NOTE: merge=ours works for files you KEEP but customize.
+# For files you DELETE, /upstream-sync auto-detects re-additions via git history.
+
+CLAUDE.md merge=ours
+AGENTS.md merge=ours
+README.md merge=ours
+_bmad-output/** merge=ours
+_bmad/** merge=ours
+src/utils/AppConfig.ts merge=ours
+src/libs/seo/constants.ts merge=ours
+public/og-image.png merge=ours
+public/favicon.ico merge=ours

@@ -19,7 +19,7 @@
     "db:migrate": "dotenv -c production -- drizzle-kit migrate",
     "db:studio": "dotenv -c production -- drizzle-kit studio",
     "email:dev": "email dev --dir src/libs/email/templates --port 3001",
-    "upstream:check": "bash scripts/upstream-check.sh",
+
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",
     "storybook:serve": "http-server storybook-static --port 6006 --silent",
