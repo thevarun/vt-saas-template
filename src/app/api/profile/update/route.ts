@@ -3,24 +3,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import {
-  conflictError,
-  formatZodErrors,
-  internalError,
-  logApiError,
-  unauthorizedError,
-  validationError,
-} from '@/libs/api/errors';
+import { conflictError, formatZodErrors, internalError, logApiError, unauthorizedError, validationError } from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
+import { usernameSchema } from '@/libs/validations/username';
 import { userPreferences } from '@/models/Schema';
 
 const profileUpdateSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
+  username: usernameSchema,
   displayName: z
     .string()
     .min(1, 'Display name is required')

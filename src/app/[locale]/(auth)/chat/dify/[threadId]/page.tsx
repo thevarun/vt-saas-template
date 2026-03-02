@@ -5,8 +5,8 @@ import { getTranslations } from 'next-intl/server';
 import { AppShell } from '@/components/chat/AppShell';
 import { ThreadListSidebar } from '@/components/chat/ThreadListSidebar';
 import { ThreadView } from '@/components/chat/ThreadView';
+import { getThreadById } from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
-import { getThreadById } from '@/libs/supabase/threads';
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string; threadId: string }>;
@@ -38,7 +38,7 @@ export default async function ThreadPage(props: {
     redirect(`/${locale}/sign-in`);
   }
 
-  const { data: thread, error } = await getThreadById(supabase, threadId);
+  const { data: thread, error } = await getThreadById(threadId, user.id);
 
   // AC #1.4: Handle 404 error if thread not found (redirect to /chat)
   if (error || !thread) {

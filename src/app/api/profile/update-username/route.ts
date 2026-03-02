@@ -3,24 +3,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import {
-  internalError,
-  invalidRequestError,
-  logApiError,
-  unauthorizedError,
-  usernameTakenError,
-  validationError,
-} from '@/libs/api/errors';
+import { internalError, invalidRequestError, logApiError, unauthorizedError, usernameTakenError, validationError } from '@/libs/api/errors';
 import { db } from '@/libs/DB';
 import { createClient } from '@/libs/supabase/server';
+import { usernameSchema } from '@/libs/validations/username';
 import { userPreferences } from '@/models/Schema';
 
 const updateUsernameSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
+  username: usernameSchema,
 });
 
 export async function PATCH(request: Request) {
@@ -50,24 +40,16 @@ export async function PATCH(request: Request) {
 
     const { username } = validation.data;
 
-    // Check if username is already taken by another user
-    const existingProfile = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.username, username))
-      .limit(1);
+    // Check username availability and get current profile in parallel
+    const [existingProfile, currentProfile] = await Promise.all([
+      db.select().from(userPreferences).where(eq(userPreferences.username, username)).limit(1),
+      db.select().from(userPreferences).where(eq(userPreferences.userId, user.id)).limit(1),
+    ]);
 
     const existingUser = existingProfile[0];
     if (existingUser && existingUser.userId !== user.id) {
       return usernameTakenError();
     }
-
-    // Get current user preferences
-    const currentProfile = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, user.id))
-      .limit(1);
 
     const profile = currentProfile[0];
     try {

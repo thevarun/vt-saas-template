@@ -36,14 +36,7 @@ export function OnboardingFeatureTour() {
   const localePrefix = locale === 'en' ? '' : `/${locale}`;
 
   const handleContinue = () => {
-    // Track step completion
-    try {
-      trackOnboardingStepCompleted(2, 'feature_tour');
-    } catch (error) {
-      console.error('[OnboardingFeatureTour] Failed to track step completion:', error);
-    }
-
-    // Use hard navigation for server component page with query params
+    trackOnboardingStepCompleted(2, 'feature_tour');
     window.location.href = `${localePrefix}/onboarding?step=3`;
   };
 

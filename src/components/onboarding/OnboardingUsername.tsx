@@ -11,16 +11,13 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUsernameValidation } from '@/hooks/useUsernameValidation';
 import { trackEvent, trackOnboardingStepCompleted } from '@/libs/analytics';
+import { usernameSchema } from '@/libs/validations/username';
 
 import { ProgressIndicator } from './ProgressIndicator';
 import { UsernameInput } from './UsernameInput';
 
 const usernameFormSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
-    .regex(/^[a-z0-9_]+$/, 'Username must contain only lowercase letters, numbers, and underscores'),
+  username: usernameSchema,
 });
 
 type UsernameFormData = z.infer<typeof usernameFormSchema>;
@@ -44,11 +41,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
     const onboardingStartTime = localStorage.getItem('onboarding_start_time');
     if (!onboardingStartTime) {
       localStorage.setItem('onboarding_start_time', Date.now().toString());
-      try {
-        trackEvent('onboarding_started', {});
-      } catch (error) {
-        console.error('[OnboardingUsername] Failed to track onboarding start:', error);
-      }
+      trackEvent('onboarding_started', {});
     }
   }, []);
 
@@ -77,12 +70,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
   const onSubmit = async (data: UsernameFormData) => {
     // If username unchanged and user already exists, just proceed
     if (skipAvailabilityCheck) {
-      // Track step completion
-      try {
-        trackOnboardingStepCompleted(1, 'username');
-      } catch (error) {
-        console.error('[OnboardingUsername] Failed to track step completion:', error);
-      }
+      trackOnboardingStepCompleted(1, 'username');
       window.location.href = `${localePrefix}/onboarding?step=2`;
       return;
     }
@@ -103,12 +91,7 @@ export function OnboardingUsername({ initialData }: OnboardingUsernameProps) {
       const result = await response.json();
 
       if (response.ok) {
-        // Track step completion
-        try {
-          trackOnboardingStepCompleted(1, 'username');
-        } catch (error) {
-          console.error('[OnboardingUsername] Failed to track step completion:', error);
-        }
+        trackOnboardingStepCompleted(1, 'username');
 
         toast({
           title: 'Success',

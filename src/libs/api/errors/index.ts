@@ -31,7 +31,7 @@ export {
 } from './responses';
 
 // Types
-export type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse, ValidationDetails } from './types';
+export type { ApiErrorCode, ApiErrorResponse, ValidationDetails } from './types';
 export { HTTP_STATUS } from './types';
 // Validation formatters
 export {

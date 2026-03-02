@@ -36,12 +36,10 @@ export const POST = withAdminAuth(async (request, { user }) => {
     const { action, ids } = parsed.data;
 
     if (action === 'mark-reviewed') {
-      await db.transaction(async (tx) => {
-        await tx.update(feedback).set({
-          status: 'reviewed',
-          reviewedAt: new Date(),
-        }).where(inArray(feedback.id, ids));
-      });
+      await db.update(feedback).set({
+        status: 'reviewed',
+        reviewedAt: new Date(),
+      }).where(inArray(feedback.id, ids));
 
       void logAdminAction({
         adminId: user.id,
@@ -51,9 +49,7 @@ export const POST = withAdminAuth(async (request, { user }) => {
         metadata: { count: ids.length, ids },
       });
     } else if (action === 'delete') {
-      await db.transaction(async (tx) => {
-        await tx.delete(feedback).where(inArray(feedback.id, ids));
-      });
+      await db.delete(feedback).where(inArray(feedback.id, ids));
 
       void logAdminAction({
         adminId: user.id,

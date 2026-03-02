@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { ExportCsvButton } from '@/components/admin/ExportCsvButton';
 import { FeedbackFilters } from '@/components/admin/FeedbackFilters';
 import { FeedbackList } from '@/components/admin/FeedbackList';
-import { FeedbackPagination } from '@/components/admin/FeedbackPagination';
+import { Pagination } from '@/components/admin/Pagination';
 import {
   Card,
   CardContent,
@@ -81,7 +81,16 @@ export default async function FeedbackPage(props: {
       </Card>
 
       {totalPages > 1 && (
-        <FeedbackPagination currentPage={page} totalPages={totalPages} />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          labels={{
+            previous: t('pagination.previous'),
+            next: t('pagination.next'),
+            pageInfo: t('pagination.page', { current: page, total: totalPages }),
+          }}
+          data-testid="feedback-pagination"
+        />
       )}
     </div>
   );

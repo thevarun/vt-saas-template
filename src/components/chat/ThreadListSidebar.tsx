@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { Thread } from '@/libs/supabase/threads';
+import type { Thread } from '@/libs/queries/threads';
 import { cn } from '@/utils/Helpers';
 
 import { ErrorThreadState } from './ErrorThreadState';
@@ -64,7 +64,7 @@ export function ThreadListSidebar({ onNavigate }: { onNavigate?: () => void }) {
         // Check if any thread changed (by ID and updated_at timestamp)
         const hasChanges = activeThreads.some((newThread: Thread, i: number) =>
           prev[i]?.id !== newThread.id
-          || prev[i]?.updated_at !== newThread.updated_at
+          || prev[i]?.updatedAt !== newThread.updatedAt
           || prev[i]?.title !== newThread.title,
         );
 

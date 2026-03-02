@@ -10,6 +10,7 @@ import {
 } from '@/libs/api/errors';
 import { createDifyClient } from '@/libs/dify/client';
 import { createClient } from '@/libs/supabase/server';
+import { CONVERSATION_ID_PATTERN } from '@/libs/validations/chat';
 
 /**
  * GET /api/chat/messages
@@ -36,8 +37,7 @@ export async function GET(request: Request) {
       return invalidRequestError('conversationId is required');
     }
 
-    const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;
-    if (!conversationIdPattern.test(conversationId)) {
+    if (!CONVERSATION_ID_PATTERN.test(conversationId)) {
       return invalidRequestError('Conversation ID must be alphanumeric with hyphens, max 128 characters');
     }
 

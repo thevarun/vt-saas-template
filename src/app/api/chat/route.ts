@@ -19,6 +19,7 @@ import {
   updateThread,
 } from '@/libs/queries/threads';
 import { createClient } from '@/libs/supabase/server';
+import { CHAT_MAX_MESSAGE_LENGTH, CONVERSATION_ID_PATTERN } from '@/libs/validations/chat';
 
 /** Dify chat proxy endpoint. Validates Supabase session and streams SSE responses from Dify API. */
 
@@ -145,8 +146,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       return invalidRequestError('Message is required');
     }
 
-    if (message.length > 10000) {
-      return invalidRequestError('Message exceeds maximum length of 10,000 characters');
+    if (message.length > CHAT_MAX_MESSAGE_LENGTH) {
+      return invalidRequestError(`Message exceeds maximum length of ${CHAT_MAX_MESSAGE_LENGTH.toLocaleString()} characters`);
     }
 
     // Validate conversation ID format if provided
@@ -155,8 +156,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         return invalidRequestError('Conversation ID must be a string');
       }
 
-      const conversationIdPattern = /^[a-z0-9-]{1,128}$/i;
-      if (!conversationIdPattern.test(conversationId)) {
+      if (!CONVERSATION_ID_PATTERN.test(conversationId)) {
         return invalidRequestError('Conversation ID must be alphanumeric with hyphens, max 128 characters');
       }
     }

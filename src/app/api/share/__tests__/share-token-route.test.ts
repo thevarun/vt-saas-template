@@ -19,9 +19,15 @@ vi.mock('@/libs/Logger', () => ({
 }));
 
 // Mock DB with chainable query builder
-// GET route: db.select().from().where() -> [link] (no limit, resolves to array)
-// GET route update: db.update().set().where() -> void
-const mockUpdateSetWhere = vi.fn().mockResolvedValue(undefined);
+// GET route: db.update().set().where() -> awaited (no returning)
+// PATCH route: db.update().set().where().returning() -> [link] or []
+const mockUpdateReturning = vi.fn().mockResolvedValue([]);
+const mockUpdateSetWhere = vi.fn().mockImplementation(() => {
+  // Return a thenable that also has .returning() for PATCH route
+  const result = Promise.resolve(undefined);
+  (result as any).returning = mockUpdateReturning;
+  return result;
+});
 const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateSetWhere });
 const mockUpdateFn = vi.fn().mockReturnValue({ set: mockUpdateSet });
 
@@ -127,6 +133,13 @@ describe('GET /api/share/[token]', () => {
 describe('PATCH /api/share/[token]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Restore the thenable-with-returning mock (GET's beforeEach overrides it)
+    mockUpdateSetWhere.mockImplementation(() => {
+      const result = Promise.resolve(undefined);
+      (result as any).returning = mockUpdateReturning;
+      return result;
+    });
+    mockUpdateReturning.mockResolvedValue([]);
   });
 
   it('returns 401 without authentication', async () => {

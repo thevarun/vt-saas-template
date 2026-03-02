@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
 import { AuditLogFilters } from '@/components/admin/AuditLogFilters';
-import { AuditLogPagination } from '@/components/admin/AuditLogPagination';
 import { AuditLogTable } from '@/components/admin/AuditLogTable';
+import { Pagination } from '@/components/admin/Pagination';
 import {
   Card,
   CardContent,
@@ -66,7 +66,16 @@ export default async function AuditLogPage(props: {
       </Card>
 
       {totalPages > 1 && (
-        <AuditLogPagination currentPage={page} totalPages={totalPages} />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          labels={{
+            previous: t('pagination.previous'),
+            next: t('pagination.next'),
+            pageInfo: t('pagination.pageOf', { current: page, total: totalPages }),
+          }}
+          data-testid="audit-log-pagination"
+        />
       )}
     </div>
   );
