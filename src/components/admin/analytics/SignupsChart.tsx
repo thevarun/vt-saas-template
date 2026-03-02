@@ -29,7 +29,7 @@ type SignupsChartProps = {
 const chartConfig = {
   signups: {
     label: 'Signups',
-    color: 'hsl(var(--primary))',
+    color: 'var(--color-primary)',
   },
 };
 
@@ -59,12 +59,12 @@ export function SignupsChart({
               <linearGradient id="fillSignups" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="hsl(var(--primary))"
+                  stopColor="var(--color-primary)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="hsl(var(--primary))"
+                  stopColor="var(--color-primary)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -87,7 +87,7 @@ export function SignupsChart({
             <Area
               type="monotone"
               dataKey="signups"
-              stroke="hsl(var(--primary))"
+              stroke="var(--color-primary)"
               strokeWidth={2}
               fill="url(#fillSignups)"
             />
