@@ -31,6 +31,8 @@ If you forked or templated this project, run the `/init-downstream` Claude Code 
 3. **gh CLI targeting** — runs `gh repo set-default` so PRs/issues target your repo, not the template
 4. **Template cleanup** — removes template-only artifacts (`.template-cleanup` manifest)
 
+See the [First Steps After Forking](../README.md#first-steps-after-forking) section in the README for a quick overview.
+
 ### Two Protection Mechanisms
 
 **For files you keep but customize** (e.g., `README.md`, `AppConfig.ts`):

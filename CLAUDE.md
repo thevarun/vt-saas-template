@@ -226,8 +226,8 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run test:e2e` - Playwright E2E tests
 - `npm run dev:next` - Start Next.js only (no Sentry Spotlight)
 - `npm run email:dev` - Start React Email preview server (port 3001)
-- `/upstream-sync` - Interactive upstream sync (Claude Code command)
-- `/init-downstream` - Post-fork project initialization (Claude Code command)
+- `/init-downstream` - **Run first after forking.** Renames DB schema, configures merge strategies (`.gitattributes`), fixes `gh` CLI targeting, cleans template artifacts. See `docs/upstream-sync-guide.md` for manual equivalent.
+- `/upstream-sync` - **Pull upstream template updates.** Fetches releases, merges with conflict classification, auto-detects re-added deleted files. Requires `/init-downstream` to have run first.
 
 ## Key Development Patterns
 
