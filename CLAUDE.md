@@ -226,7 +226,8 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run test:e2e` - Playwright E2E tests
 - `npm run dev:next` - Start Next.js only (no Sentry Spotlight)
 - `npm run email:dev` - Start React Email preview server (port 3001)
-- `npm run upstream:check` - Check for upstream template updates
+- `/upstream-sync` - Interactive upstream sync (Claude Code command)
+- `/init-downstream` - Post-fork project initialization (Claude Code command)
 
 ## Key Development Patterns
 

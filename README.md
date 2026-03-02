@@ -187,10 +187,14 @@ src/
 When new features or fixes are released in the template, pull them into your project:
 
 ```bash
-npm run upstream:check          # Check for available updates
-git merge v3.2.0                # Merge a tagged release
-npm install                     # Update dependencies
-npm run lint && npm run check-types && npm test && npm run build   # Verify
+# With Claude Code (recommended):
+/upstream-sync
+
+# Or manually:
+git fetch upstream --tags
+git merge v3.2.0
+npm install
+npm run lint && npm run check-types && npm test && npm run build
 ```
 
 See [Upstream Sync Guide](docs/upstream-sync-guide.md) for detailed instructions and conflict resolution strategies.

@@ -1,0 +1,10 @@
+# Template-only artifacts — safe to remove in downstream projects
+# Used by /init-downstream command
+
+_bmad-output/**
+_bmad/**
+.github/workflows-archived/**
+.github/dependabot.yml
+.github/workflows/dependabot-auto-merge.yml
+migrations/complete-migration-with-rls.sql
+migrations/rls-policies-threads.sql

@@ -5,57 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1766967732800,
-      "tag": "0000_strange_vulture",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1769153606586,
-      "tag": "0001_normal_scorpion",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1769419027829,
-      "tag": "0002_elite_iron_monger",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1769421237398,
-      "tag": "0003_tidy_skaar",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1769574687582,
-      "tag": "0004_eager_dexter_bennett",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1770003556485,
-      "tag": "0005_awesome_psynapse",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1770722095213,
-      "tag": "0006_narrow_demogoblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1771876800000,
-      "tag": "0007_data_layer_integrity",
+      "when": 1772432359446,
+      "tag": "0000_glorious_blockbuster",
       "breakpoints": true
     }
   ]
