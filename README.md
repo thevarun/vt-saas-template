@@ -281,6 +281,8 @@ The application is compatible with any platform that supports Next.js 16:
 
 ## Launch Checklists
 
+> **Automated audit:** Run `/launch-checklist` in Claude Code to scan 35 checks across auth, security, SEO, email, legal, performance, and more — outputs a scored report with fix guidance.
+
 ### Alpha Launch
 
 - [ ] Branding pass complete (see Quick Rebrand Checklist above)

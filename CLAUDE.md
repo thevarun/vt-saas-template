@@ -228,6 +228,7 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run email:dev` - Start React Email preview server (port 3001)
 - `/upstream-sync` - Interactive upstream sync (Claude Code command)
 - `/init-downstream` - Post-fork project initialization (Claude Code command)
+- `/launch-checklist` - Autonomous production-readiness audit (35 checks, scorecard report)
 
 ## Key Development Patterns
 
