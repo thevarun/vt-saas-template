@@ -104,7 +104,7 @@
     "@faker-js/faker": "^10.3.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@next/eslint-plugin-next": "^16.1.6",
-    "@percy/cli": "1.31.8",
+    "@percy/cli": "1.31.9",
     "@percy/playwright": "^1.0.6",
     "@playwright/test": "^1.58.2",
     "@react-email/preview-server": "^5.2.9",
