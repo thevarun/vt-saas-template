@@ -67,7 +67,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
-    "framer-motion": "^12.34.4",
+    "framer-motion": "^12.37.0",
     "langfuse": "^3.38.6",
     "langfuse-vercel": "^3.38.6",
     "lucide-react": "^0.577.0",
