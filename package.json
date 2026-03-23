@@ -107,7 +107,7 @@
     "@percy/cli": "1.31.9",
     "@percy/playwright": "^1.0.6",
     "@playwright/test": "^1.58.2",
-    "@react-email/preview-server": "^5.2.9",
+    "@react-email/preview-server": "^5.2.10",
     "@storybook/addon-links": "^10.3.3",
     "@storybook/addon-onboarding": "^10.3.3",
     "@storybook/nextjs": "^10.3.3",
