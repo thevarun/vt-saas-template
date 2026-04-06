@@ -32,7 +32,7 @@ jobs:
       # ALL changed files match these patterns (not just "any").
       # Any file NOT matching these patterns triggers full CI.
       # This is safer - new files trigger CI by default.
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           predicate-quantifier: every
@@ -172,7 +172,7 @@ jobs:
 
       - name: Upload test artifacts
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
