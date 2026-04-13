@@ -124,8 +124,8 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@vitejs/plugin-react": "^5.1.4",
-    "@vitest/coverage-v8": "^4.1.2",
-    "@vitest/expect": "^4.1.2",
+    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/expect": "^4.1.4",
     "commitizen": "^4.3.1",
     "cross-env": "^10.1.0",
     "dotenv-cli": "^11.0.0",
@@ -155,7 +155,7 @@
     "tsx": "^4.19.1",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.2",
+    "vitest": "^4.1.4",
     "vitest-fail-on-console": "^0.10.1"
   },
   "overrides": {
