@@ -82,7 +82,7 @@
     "posthog-node": "^5.28.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-hook-form": "^7.71.2",
+    "react-hook-form": "^7.72.1",
     "react-markdown": "^10.1.0",
     "recharts": "^2.15.4",
     "remark-gfm": "^4.0.1",
