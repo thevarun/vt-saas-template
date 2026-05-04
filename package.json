@@ -61,7 +61,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-table": "^8.20.5",
     "@types/react-dom": "^19.2.3",
-    "@vercel/otel": "^2.1.1",
+    "@vercel/otel": "^2.1.2",
     "ai": "^6.0.175",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
