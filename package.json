@@ -53,7 +53,7 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^1.0.12",
-    "@sentry/nextjs": "^10.48.0",
+    "@sentry/nextjs": "^10.51.0",
     "@spotlightjs/spotlight": "^2.5.0",
     "@supabase/ssr": "0.10.2",
     "@supabase/supabase-js": "2.105.0",
