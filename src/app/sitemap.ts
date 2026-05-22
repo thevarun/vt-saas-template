@@ -9,9 +9,9 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
  *
  * PUBLIC ROUTES (included in sitemap):
  * - / (landing page)
- * - /articles (pSEO index)
- * - /articles/[category] (pSEO category pages)
- * - /articles/[category]/[slug] (pSEO article pages)
+ * - /blog (pSEO index)
+ * - /blog/[category] (pSEO category pages)
+ * - /blog/[category]/[slug] (pSEO article pages)
  * - Future: /about, /pricing, /blog/[slug], /docs/[...path]
  *
  * PRIVATE ROUTES (excluded from sitemap, disallowed in robots.txt):
@@ -94,7 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categoryParams = await getAllCategoryParams();
   for (const param of categoryParams) {
     entries.push(
-      ...generateLocalizedUrls(`/articles/${param.category}`, {
+      ...generateLocalizedUrls(`/blog/${param.category}`, {
         changeFrequency: 'weekly',
         priority: 0.7,
       }),
@@ -103,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Articles index page
   entries.push(
-    ...generateLocalizedUrls('/articles', {
+    ...generateLocalizedUrls('/blog', {
       changeFrequency: 'weekly',
       priority: 0.8,
     }),
@@ -120,7 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const isDefaultLocale = locale === AppConfig.defaultLocale;
         const localePrefix = isDefaultLocale ? '' : `/${locale}`;
         entries.push({
-          url: `${siteUrl}${localePrefix}/articles/${param.category}/${param.slug}`,
+          url: `${siteUrl}${localePrefix}/blog/${param.category}/${param.slug}`,
           lastModified: new Date(page.lastModified),
           changeFrequency: 'weekly',
           priority: 0.7,

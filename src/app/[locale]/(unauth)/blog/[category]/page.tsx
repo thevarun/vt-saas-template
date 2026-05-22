@@ -31,10 +31,10 @@ export async function generateMetadata(props: CategoryPageProps): Promise<Metada
   const baseUrl = getBaseUrl();
 
   return {
-    title: `${category.name} Articles`,
+    title: category.name,
     description: category.description,
     alternates: {
-      canonical: `${baseUrl}/${locale}/articles/${categorySlug}`,
+      canonical: `${baseUrl}/${locale}/blog/${categorySlug}`,
     },
   };
 }
@@ -58,8 +58,8 @@ export default async function CategoryPage(props: CategoryPageProps) {
               Home
             </Link>
             <span className="mx-2">/</span>
-            <Link href={`/${locale}/articles`} className="hover:text-foreground">
-              Articles
+            <Link href={`/${locale}/blog`} className="hover:text-foreground">
+              Blog
             </Link>
             <span className="mx-2">/</span>
             <span className="text-foreground">{category.name}</span>
@@ -72,7 +72,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
           {pages.map(page => (
             <Link
               key={page.id}
-              href={`/${locale}/articles/${categorySlug}/${page.slug}`}
+              href={`/${locale}/blog/${categorySlug}/${page.slug}`}
               className="group block"
             >
               <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">
@@ -92,7 +92,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
 
         {pages.length === 0 && (
           <div className="py-16 text-center">
-            <p className="text-muted-foreground">No articles in this category yet.</p>
+            <p className="text-muted-foreground">No posts in this category yet.</p>
           </div>
         )}
       </div>

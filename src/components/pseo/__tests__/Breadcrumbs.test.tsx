@@ -39,12 +39,12 @@ describe('Breadcrumbs Component', () => {
     );
 
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Articles')).toBeInTheDocument();
+    expect(screen.getByText('Blog')).toBeInTheDocument();
     expect(screen.getByText('Productivity')).toBeInTheDocument();
     expect(screen.getByText('Time Management')).toBeInTheDocument();
   });
 
-  it('should make home, articles, and category links clickable', () => {
+  it('should make home, blog, and category links clickable', () => {
     render(
       <Breadcrumbs
         category={mockCategory}
@@ -57,13 +57,13 @@ describe('Breadcrumbs Component', () => {
 
     expect(homeLink).toHaveAttribute('href', '/en');
 
-    const articlesLink = screen.getByRole('link', { name: 'Articles' });
+    const blogLink = screen.getByRole('link', { name: 'Blog' });
 
-    expect(articlesLink).toHaveAttribute('href', '/en/articles');
+    expect(blogLink).toHaveAttribute('href', '/en/blog');
 
     const categoryLink = screen.getByRole('link', { name: 'Productivity' });
 
-    expect(categoryLink).toHaveAttribute('href', '/en/articles/productivity');
+    expect(categoryLink).toHaveAttribute('href', '/en/blog/productivity');
   });
 
   it('should not make current page clickable', () => {

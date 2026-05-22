@@ -4,24 +4,24 @@ import Link from 'next/link';
 import { getPagesByCategory, loadCategories } from '@/libs/pseo/data';
 import { getBaseUrl } from '@/utils/Helpers';
 
-type ArticlesPageProps = {
+type BlogPageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export async function generateMetadata(props: ArticlesPageProps): Promise<Metadata> {
+export async function generateMetadata(props: BlogPageProps): Promise<Metadata> {
   const { locale } = await props.params;
   const baseUrl = getBaseUrl();
 
   return {
-    title: 'Articles',
-    description: 'Browse our collection of articles across various topics.',
+    title: 'Blog',
+    description: 'Browse our collection of posts across various topics.',
     alternates: {
-      canonical: `${baseUrl}/${locale}/articles`,
+      canonical: `${baseUrl}/${locale}/blog`,
     },
   };
 }
 
-export default async function ArticlesIndexPage(props: ArticlesPageProps) {
+export default async function BlogIndexPage(props: BlogPageProps) {
   const { locale } = await props.params;
   const categories = await loadCategories();
 
@@ -40,13 +40,13 @@ export default async function ArticlesIndexPage(props: ArticlesPageProps) {
             Home
           </Link>
           <span className="mx-2">/</span>
-          <span className="font-medium text-foreground">Articles</span>
+          <span className="font-medium text-foreground">Blog</span>
         </nav>
 
         <header className="mb-12">
-          <h1 className="mb-3 text-4xl font-bold text-foreground">Articles</h1>
+          <h1 className="mb-3 text-4xl font-bold text-foreground">Blog</h1>
           <p className="text-lg text-muted-foreground">
-            Browse our collection of articles across various topics.
+            Browse our collection of posts across various topics.
           </p>
         </header>
 
@@ -59,7 +59,7 @@ export default async function ArticlesIndexPage(props: ArticlesPageProps) {
                   <p className="mt-1 text-muted-foreground">{category.description}</p>
                 </div>
                 <Link
-                  href={`/${locale}/articles/${category.slug}`}
+                  href={`/${locale}/blog/${category.slug}`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   View all &rarr;
@@ -69,7 +69,7 @@ export default async function ArticlesIndexPage(props: ArticlesPageProps) {
                 {pages.map(page => (
                   <Link
                     key={page.id}
-                    href={`/${locale}/articles/${category.slug}/${page.slug}`}
+                    href={`/${locale}/blog/${category.slug}/${page.slug}`}
                     className="group block"
                   >
                     <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">
