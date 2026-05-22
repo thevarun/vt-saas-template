@@ -37,7 +37,7 @@ export async function generateMetadata(props: PseoPageProps): Promise<Metadata> 
   }
 
   const baseUrl = getBaseUrl();
-  const pageUrl = `${baseUrl}/${locale}/articles/${categorySlug}/${slug}`;
+  const pageUrl = `${baseUrl}/${locale}/blog/${categorySlug}/${slug}`;
 
   return {
     title: page.title,

@@ -27,12 +27,12 @@ export function RelatedPages({ pages, categorySlug, locale }: RelatedPagesProps)
 
   return (
     <section className="mt-12 border-t border-border pt-8">
-      <h2 className="mb-6 text-2xl font-bold text-foreground">Related Articles</h2>
+      <h2 className="mb-6 text-2xl font-bold text-foreground">Related Posts</h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pages.map(page => (
           <Link
             key={page.id}
-            href={`/${locale}/articles/${categorySlug}/${page.slug}`}
+            href={`/${locale}/blog/${categorySlug}/${page.slug}`}
             className="group block"
           >
             <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">

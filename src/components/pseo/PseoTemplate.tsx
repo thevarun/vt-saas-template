@@ -36,13 +36,13 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
   // Construct the current page URL for sharing
   const pageUrl = typeof window !== 'undefined'
     ? window.location.href
-    : `/${locale}/articles/${category.slug}/${page.slug}`;
+    : `/${locale}/blog/${category.slug}/${page.slug}`;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-5xl px-4 py-12">
         {/* Breadcrumb navigation */}
-        <Breadcrumbs category={category} pageTitle={page.title} locale={locale} articlesLabel="Articles" />
+        <Breadcrumbs category={category} pageTitle={page.title} locale={locale} rootLabel="Blog" />
 
         {/* Article header */}
         <header className="mb-8">

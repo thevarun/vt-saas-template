@@ -51,7 +51,7 @@ describe('sitemap', () => {
     const entries = await sitemap();
 
     // Homepage entries should have priority 1.0
-    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    const homepageEntries = entries.filter(e => !e.url.includes('/blog'));
     homepageEntries.forEach((entry) => {
       expect(entry.priority).toBe(1.0);
     });
@@ -60,7 +60,7 @@ describe('sitemap', () => {
   it('sets correct changeFrequency for homepage', async () => {
     const entries = await sitemap();
 
-    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    const homepageEntries = entries.filter(e => !e.url.includes('/blog'));
     homepageEntries.forEach((entry) => {
       expect(entry.changeFrequency).toBe('daily');
     });
