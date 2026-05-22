@@ -39,40 +39,54 @@ export type PseoPage = {
   lastModified: string;
 };
 
-// Cache for loaded data (populated at build time)
+// Cache for loaded data (populated on first load in production).
+// Disabled in dev so file changes under data/pseo/ surface without restart.
+const SHOULD_CACHE = process.env.NODE_ENV === 'production';
 let categoriesCache: PseoCategory[] | null = null;
 let pagesCache: PseoPage[] | null = null;
 
 /**
  * Load categories from JSON file
- * Data is cached after first load for performance
+ * Data is cached after first load in production; in dev, the cache is
+ * bypassed so edits to data/pseo/categories.json reflect on next request
+ * without a dev-server restart.
  */
 export async function loadCategories(): Promise<PseoCategory[]> {
-  if (categoriesCache) {
+  if (SHOULD_CACHE && categoriesCache) {
     return categoriesCache;
   }
 
   const dataPath = join(process.cwd(), 'data', 'pseo', 'categories.json');
   const content = await readFile(dataPath, 'utf-8');
-  categoriesCache = JSON.parse(content) as PseoCategory[];
+  const categories = JSON.parse(content) as PseoCategory[];
 
-  return categoriesCache;
+  if (SHOULD_CACHE) {
+    categoriesCache = categories;
+  }
+
+  return categories;
 }
 
 /**
  * Load all pages from JSON file
- * Data is cached after first load for performance
+ * Data is cached after first load in production; in dev, the cache is
+ * bypassed so edits to data/pseo/pages.json reflect on next request
+ * without a dev-server restart.
  */
 export async function loadPages(): Promise<PseoPage[]> {
-  if (pagesCache) {
+  if (SHOULD_CACHE && pagesCache) {
     return pagesCache;
   }
 
   const dataPath = join(process.cwd(), 'data', 'pseo', 'pages.json');
   const content = await readFile(dataPath, 'utf-8');
-  pagesCache = JSON.parse(content) as PseoPage[];
+  const pages = JSON.parse(content) as PseoPage[];
 
-  return pagesCache;
+  if (SHOULD_CACHE) {
+    pagesCache = pages;
+  }
+
+  return pages;
 }
 
 /**
