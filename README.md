@@ -96,6 +96,20 @@ npm run db:studio        # Open Drizzle Studio
 npm run db:generate      # Generate migration from schema
 ```
 
+### Optional: Claude-Powered Docs Sync
+
+An automated docs-maintenance workflow ships with this template (`.github/workflows/docs-sync.yml`). On pushes to `main` that touch watched code surfaces, Claude reviews recent changes and accumulates documentation updates into a single rolling PR on the `docs-sync/auto` branch. Cold periods cost zero GitHub Actions minutes — the path filter prevents the workflow from starting.
+
+**One-time setup per repo:**
+
+1. Run `/install-github-app` in Claude Code (terminal). This installs the Claude Code GitHub App and configures the `CLAUDE_CODE_OAUTH_TOKEN` repo secret.
+2. Adjust the `paths:` filter in `.github/workflows/docs-sync.yml` to match your project's documented code surfaces (default covers `src/libs`, `src/models`, `src/app/api`, etc.).
+3. Adjust `.github/docs-sync.config.json` — `allowlist` / `denylist` (which doc files Claude may edit) and `rangeDays` (diff window).
+
+**To disable:** delete `.github/workflows/docs-sync.yml`.
+
+The workflow vendors a copy of the upstream `meta:docs-quick-update` command at `.github/prompts/docs-quick-update.md` — refresh that file when the upstream command improves.
+
 ## Customizing This Template
 
 ### Quick Rebrand Checklist
