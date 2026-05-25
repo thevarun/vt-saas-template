@@ -1,0 +1,174 @@
+name: Docs Sync
+
+# Automated documentation maintenance via /meta:docs-quick-update --ci.
+#
+# How it works:
+#   - Push to main touching watched code surfaces → workflow runs.
+#   - Cold periods (no relevant changes) cost zero GHA minutes (paths filter).
+#   - Concurrency-grouped + queued: rapid back-to-back merges process in order.
+#   - Single rolling PR on `docs-sync/auto` accumulates updates; one open PR max.
+#   - Project-specific behavior lives in `.github/docs-sync.config.json`
+#     (allowlist, denylist, diff window).
+#
+# Prerequisites:
+#   - Run `/install-github-app` in Claude Code first to set up the Claude
+#     Code GitHub App and configure `CLAUDE_CODE_OAUTH_TOKEN` repo secret.
+#
+# Per-project tuning:
+#   - Adjust the `paths:` filter below to match your project's documented
+#     code surfaces.
+#   - Adjust `.github/docs-sync.config.json` for allowlist/denylist/range.
+#
+# The vendored command at `.github/prompts/docs-quick-update.md` is a copy of
+# `meta:docs-quick-update` from the vt-spells private plugin marketplace.
+# Refresh by overwriting that file when the upstream command improves.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Adjust these for your project. Defaults below cover common surfaces
+      # in a vt-saas-template-derived app.
+      - 'src/models/**'
+      - 'src/libs/**'
+      - 'src/app/api/**'
+      - src/proxy.ts
+      - src/instrumentation.ts
+  workflow_dispatch: {}
+
+concurrency:
+  group: docs-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout main with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Skip if commit is cosmetic (Conventional Commits filter)
+        id: filter
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          SUBJECT=$(git log -1 --format=%s)
+          echo "Commit subject: $SUBJECT"
+          # Skip prefixes that are unlikely to need doc updates.
+          # Matches both bare (chore:) and scoped (chore(deps):) forms.
+          if echo "$SUBJECT" | grep -qE '^(chore|test|style|ci|build|refactor|docs|perf)(\([^)]+\))?!?:'; then
+            echo "Cosmetic / non-feature commit — skipping docs sync."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for existing rolling PR
+        if: steps.filter.outputs.skip != 'true'
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER=$(gh pr list --head docs-sync/auto --state open --json number --jq '.[0].number // empty')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Found existing rolling PR #$PR_NUMBER"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No existing rolling PR"
+          fi
+
+      - name: Prepare rolling branch
+        if: steps.filter.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ "${{ steps.existing.outputs.exists }}" = "true" ]; then
+            git fetch origin docs-sync/auto
+            git checkout docs-sync/auto
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::error::Rebase of docs-sync/auto onto main failed. Resolve manually on the PR, then re-run."
+              exit 1
+            fi
+          else
+            git checkout -b docs-sync/auto
+          fi
+
+      - name: Load command prompt
+        if: steps.filter.outputs.skip != 'true'
+        run: |
+          {
+            echo 'DOCS_PROMPT<<PROMPT_EOF'
+            cat .github/prompts/docs-quick-update.md
+            echo ""
+            echo "---"
+            echo ""
+            echo "Execute the command above with the \`--ci\` flag."
+            echo 'PROMPT_EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Run Claude docs-quick-update --ci
+        if: steps.filter.outputs.skip != 'true'
+        # Pinned to v1.0.133. Dependabot will bump as new releases ship.
+        uses: anthropics/claude-code-action@787c5a0ce96a9a6cfb050ea0c8f4c05f2447c251 # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --model claude-sonnet-4-6
+          prompt: ${{ env.DOCS_PROMPT }}
+
+      - name: Commit and push doc updates
+        if: steps.filter.outputs.skip != 'true'
+        id: commit
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No documentation changes produced. Exiting clean."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "docs: sync with code changes through ${GITHUB_SHA:0:7}"
+          git push origin docs-sync/auto
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open rolling PR if new
+        if: steps.commit.outputs.changed == 'true' && steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head docs-sync/auto \
+            --title "docs: automated documentation sync" \
+            --body "$(cat <<'EOF'
+          Auto-generated documentation updates from recent code changes on `main`.
+
+          **Source command:** `/meta:docs-quick-update --ci`
+          **Config:** `.github/docs-sync.config.json`
+          **Workflow:** `.github/workflows/docs-sync.yml`
+
+          ### How this PR evolves
+
+          This is a **rolling PR**. Future runs push additional commits to `docs-sync/auto` rather than opening new PRs. Merge when you're happy with the current state; the next relevant code change on `main` opens a fresh rolling PR.
+
+          ### If a suggestion is wrong
+
+          Just edit the file directly on the `docs-sync/auto` branch. The next workflow run will rebase onto `main` and add new commits on top of your edits.
+          EOF
+          )"
