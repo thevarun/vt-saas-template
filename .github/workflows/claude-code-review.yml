@@ -57,11 +57,15 @@ jobs:
             actions: read
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: code-review@claude-code-plugins
-          # `--comment` posts findings as inline PR comments during the session
-          # (works around the TodoWrite-orphan bug — see header). If a test PR
-          # produces a clean run but posts nothing, the plugin's `gh` calls are
-          # likely being denied by the default sandbox allowlist — uncomment:
-          # claude_args: --allowedTools "Bash(gh:*)"
-          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # `--comment` posts line-level findings live during the session, but the
+          # plugin's final *summary* rides the session's last result — which the
+          # action drops because the plugin ends on a TodoWrite tool call. So a
+          # clean diff (no inline findings) intermittently posts NOTHING.
+          # Upstream, still open: anthropics/claude-code-action#1087 / #1054.
+          # Fix: tell Claude to ALWAYS post the summary itself via `gh pr comment`
+          # (an explicit tool call, not the orphaned final message).
+          prompt: |
+            /code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+            After completing the review, ALWAYS post exactly one summary comment on this PR using an explicit `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "<summary>"` tool call — do NOT rely on your final assistant message. Include the key findings, or post `✅ Claude review: no issues found.` when the diff is clean.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
