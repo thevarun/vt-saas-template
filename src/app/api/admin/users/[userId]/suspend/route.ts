@@ -18,9 +18,9 @@ import { isValidUuid } from '@/utils/validation';
  * Requires admin authentication.
  * Cannot suspend own account (self-preservation).
  */
-export const POST = withAdminAuth(async (request, { user, params }) => {
+export const POST = withAdminAuth<{ userId: string }>(async (request, { user, params }) => {
   try {
-    const { userId } = params;
+    const { userId } = params ?? { userId: '' };
 
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');

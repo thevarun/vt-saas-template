@@ -28,8 +28,8 @@ const updateThreadSchema = z.object({
  * - AC #7: Updates title and last_message_preview
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export const PATCH = withAuth(async (request: NextRequest, { user, params }) => {
-  const id = params?.id;
+export const PATCH = withAuth<{ id: string }>(async (request: NextRequest, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -88,8 +88,8 @@ export const PATCH = withAuth(async (request: NextRequest, { user, params }) => 
  * - AC #9: Removes thread permanently
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export const DELETE = withAuth(async (_request, { user, params }) => {
-  const id = params?.id;
+export const DELETE = withAuth<{ id: string }>(async (_request, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // Delete thread - userId WHERE filter enforces ownership
     const { data: deletedThread, error: dbDeleteError } = await deleteThread(

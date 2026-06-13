@@ -29,6 +29,8 @@ export const Env = createEnv({
     MEM0_API_KEY: z.string().optional(),
     // Cron endpoint authentication
     CRON_SECRET: z.string().optional(),
+    // Inbound webhook authentication (timing-safe X-Webhook-Secret guard)
+    WEBHOOK_SECRET: z.string().min(16).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -60,6 +62,7 @@ export const Env = createEnv({
     ENABLE_MEM0: process.env.ENABLE_MEM0,
     MEM0_API_KEY: process.env.MEM0_API_KEY,
     CRON_SECRET: process.env.CRON_SECRET,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

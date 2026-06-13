@@ -23,6 +23,7 @@ vi.mock('@/libs/Logger', () => ({
 vi.mock('@sentry/nextjs', () => ({
   addBreadcrumb: vi.fn(),
   captureException: vi.fn(),
+  setUser: vi.fn(),
 }));
 
 const mockIsConfigured = vi.fn().mockReturnValue(true);
