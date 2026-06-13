@@ -57,15 +57,33 @@ jobs:
             actions: read
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: code-review@claude-code-plugins
-          # `--comment` posts line-level findings live during the session, but the
-          # plugin's final *summary* rides the session's last result — which the
-          # action drops because the plugin ends on a TodoWrite tool call. So a
-          # clean diff (no inline findings) intermittently posts NOTHING.
-          # Upstream, still open: anthropics/claude-code-action#1087 / #1054.
-          # Fix: tell Claude to ALWAYS post the summary itself via `gh pr comment`
-          # (an explicit tool call, not the orphaned final message).
-          prompt: |
-            /code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
-            After completing the review, ALWAYS post exactly one summary comment on this PR using an explicit `gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "<summary>"` tool call — do NOT rely on your final assistant message. Include the key findings, or post `✅ Claude review: no issues found.` when the diff is clean.
+          # `--comment` posts line-level findings live during the session. The
+          # plugin's final *summary* rides the session's last result, which the
+          # action intermittently drops when the session ends on a TodoWrite tool
+          # call — so a clean diff can post NOTHING (upstream, still open:
+          # anthropics/claude-code-action#1087 / #1054). The "Ensure review is
+          # never silent" step below backstops that so a result always appears.
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
+
+      # Backstop for the dropped-summary bug above: if the review completed but no
+      # Claude comment landed on the PR (clean diff + orphaned summary), post a
+      # deterministic fallback so the review is never silently empty. Real issues
+      # still post inline live, so this only ever shows on a clean diff.
+      - name: Ensure review is never silent
+        if: steps.claude-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          posted=$(gh pr view "$PR" --repo "$REPO" --json comments,reviews \
+            --jq '[(.comments[]?, .reviews[]?) | select((((.author // {}).login) // "") | test("claude"; "i"))] | length')
+          if [ "${posted:-0}" -eq 0 ]; then
+            echo "No Claude review comment detected — posting fallback."
+            gh pr comment "$PR" --repo "$REPO" \
+              --body "🤖 **Claude review complete** — no blocking issues surfaced. _(Detailed summary dropped by upstream [claude-code-action#1087](https://github.com/anthropics/claude-code-action/issues/1087); any line-level findings appear inline.)_"
+          else
+            echo "Claude review comment present ($posted) — no fallback needed."
+          fi
