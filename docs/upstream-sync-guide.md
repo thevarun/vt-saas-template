@@ -211,3 +211,27 @@ git remote remove upstream       # remove broken remote
 git remote add upstream https://github.com/thevarun/vt-saas-template.git
 git fetch upstream --tags
 ```
+
+---
+
+## Contributing changes back to the template
+
+The template is the **source of truth for shared code** — anything generic enough to help the *next* product belongs here, not just in one fork. Keeping a single lineage (rather than divergent copies across forks) is the whole point of the template.
+
+### Principle: template-first
+
+- **Build it in the template first** when you already know a change is generic — tooling, CI, build config, infra, auth, DB workflow, shared UI/primitives, error/API conventions. It lands once and every fork inherits it on the next sync. Per-fork edits multiply the work N times.
+- **Contribute it back** when something built inside a product turns out to be reusable. Don't leave two copies drifting.
+
+### Flow for contributing back (product → template)
+
+1. Branch the **template** repo (not the product).
+2. Copy the file(s) over and **strip product specifics** — branding, copy, product-domain endpoints, hardcoded routes — until it's generic.
+3. Open a PR on the template, review, merge, and let semantic-release **tag** it.
+4. Pull it back into the product via `/upstream-sync` (or `git fetch upstream --tags` + merge the new tag). Resolve the one conflict where your local copy meets the now-generic version, then delete the product-local copy.
+
+### Anti-patterns
+
+- ❌ Editing shared code in the product and cherry-picking commits up to the template — it works (shared history), but it inverts ownership and you'll fight drift forever.
+- ❌ Maintaining a product-local fork of code that also lives in the template — pick one home (the template) and sync.
+- ✅ **Exception:** product-specific, urgent (security/outage), or experimental/unproven changes may land in the product first; promote to the template once stable.
