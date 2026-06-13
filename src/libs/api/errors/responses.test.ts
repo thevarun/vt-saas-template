@@ -10,6 +10,7 @@ import {
   dbError,
   difyError,
   forbiddenError,
+  goneError,
   internalError,
   invalidRequestError,
   notFoundError,
@@ -18,6 +19,8 @@ import {
 } from './responses';
 import type { ApiErrorResponse } from './types';
 import { HTTP_STATUS } from './types';
+
+const UPPER_SNAKE_CASE_RE = /^[A-Z_]+$/;
 
 describe('API Error Response Builders', () => {
   describe('createErrorResponse', () => {
@@ -300,7 +303,7 @@ describe('API Error Response Builders', () => {
         expect(json.error.length).toBeGreaterThan(0);
 
         // Code should be uppercase snake case
-        expect(json.code).toMatch(/^[A-Z_]+$/);
+        expect(json.code).toMatch(UPPER_SNAKE_CASE_RE);
       }
     });
 
@@ -322,6 +325,30 @@ describe('API Error Response Builders', () => {
 
         expect(response.status).toBe(status);
       }
+    });
+  });
+
+  // The inline snapshot guards the canonical error shape from drift across forks.
+  describe('canonical shape contract', () => {
+    it('canonical error shape is { error: string, code: ApiErrorCode, details?: object }', async () => {
+      const res = createErrorResponse('msg', 'INTERNAL_ERROR', 500, { foo: 'bar' });
+
+      await expect(res.json()).resolves.toMatchInlineSnapshot(`
+        {
+          "code": "INTERNAL_ERROR",
+          "details": {
+            "foo": "bar",
+          },
+          "error": "msg",
+        }
+      `);
+    });
+
+    it('goneError emits status 410 with code "GONE"', async () => {
+      const res = goneError();
+
+      expect(res.status).toBe(410);
+      await expect(res.json()).resolves.toMatchObject({ code: 'GONE' });
     });
   });
 });

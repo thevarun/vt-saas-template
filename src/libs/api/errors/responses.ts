@@ -1,4 +1,20 @@
-/** @module API error response builders for consistent error format: { error, code, details? } */
+/**
+ * @module API error response builders for consistent error format.
+ *
+ * CANONICAL ERROR SHAPE (HTTP API responses, NOT Server Actions):
+ *
+ *   { error: string, code: ApiErrorCode, details?: object }
+ *
+ * Server Actions use a DIFFERENT shape — see `src/libs/actions/types.ts` ActionResult<T>:
+ *
+ *   { data: null, error: { message: string, code: ApiErrorCode } }
+ *
+ * Do not conflate the two. Client code calling HTTP routes uses `parseApiError` from
+ * `src/libs/api/client/parseError.ts` which reads `json.error` (string) and `json.code`.
+ * Client code calling Server Actions destructures `{ data, error }` and reads `error.message`.
+ *
+ * Drift detection: see Vitest snapshot in `responses.test.ts > canonical shape contract`.
+ */
 
 import { NextResponse } from 'next/server';
 
@@ -174,13 +190,32 @@ export function usernameTakenError(
   );
 }
 
-/** Returns 410 Gone -- use when a resource has been permanently removed or expired. */
+/** Returns 429 Too Many Requests when a user's quota is exhausted. */
+export function quotaExhaustedError(resetsAt: Date): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(
+    'Usage limit reached',
+    'QUOTA_EXHAUSTED',
+    HTTP_STATUS.TOO_MANY_REQUESTS,
+    { resets_at: resetsAt.toISOString() },
+  );
+}
+
+/**
+ * Returns 410 Gone -- use when a resource has been permanently removed or expired.
+ *
+ * MIGRATION NOTE: expired/revoked share links previously returned 404 with
+ * `code: 'NOT_FOUND'`. They now return 410 with `code: 'GONE'` (a more accurate
+ * semantic for "existed but is no longer available"). Downstream forks that
+ * branch on the error code client-side must audit any handler that checked for
+ * `'NOT_FOUND'` on share-link responses and add a `'GONE'` branch.
+ * `displayError.ts` maps `'GONE'` to a user-facing message.
+ */
 export function goneError(
   message = 'Resource is no longer available',
 ): NextResponse<ApiErrorResponse> {
   return createErrorResponse(
     message,
-    'NOT_FOUND',
+    'GONE',
     HTTP_STATUS.GONE,
   );
 }
