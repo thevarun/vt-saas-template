@@ -1,0 +1,32 @@
+---
+paths:
+  - "src/models/Schema.ts"
+  - "migrations/**"
+---
+
+# Database rules
+
+The must-not-break rules for schema changes and migrations. Self-contained — no external doc required.
+
+- **Never `db:push`.** It diffs the live DB against `Schema.ts`, sees RLS / triggers / cross-schema FKs as drift, and emits `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`. There is no `db:push` npm script; don't add one, and don't invoke the raw `drizzle-kit push`.
+- **`db:migrate` is journal-driven, not file-driven.** It applies only the `.sql` files listed in `migrations/meta/_journal.json`. A hand-written `migrations/0099_foo.sql` not in the journal is silently skipped — don't `git mv` files in and expect them to run.
+- **Never commit migration files on a feature branch.** The pre-commit hook (`.husky/pre-commit`) blocks `migrations/` writes on non-`main` branches.
+- **Generate migrations on `main` only** (`db:generate`), inspect the SQL (`DROP POLICY` / `DROP CONSTRAINT fk_*_auth_users` = drift → abort), then commit `.sql` + `_journal.json` + `NNNN_snapshot.json` together. Production applies them at build time via `db:migrate:ci`.
+
+## Destructive-change checklist (DROP / RENAME column or table)
+
+`db:generate` is **app-blind** — it diffs `Schema.ts` → DB and will happily emit `DROP COLUMN` for a column the app still queries. `check-types` won't save you either: tables are read via the **Supabase-JS client** (snake_case `.select('…')` strings, the generated `src/libs/supabase/types.ts`, and per-query local row types) — none of which is bound to the Drizzle schema you edited. A drop that compiles can still 400 every query at runtime. Before any drop/rename:
+
+- **Grep BOTH naming conventions.** The same column appears as camelCase (Drizzle: `displayName`) *and* snake_case (Supabase-JS / `types.ts` / `.select()` strings: `display_name`). Search `*.ts`/`*.tsx` for the **snake_case** name too — that's where the misses hide. A camelCase-only grep returning "0 usages" is a false negative.
+- **Grep writers, not just readers** (`column:` literals, `.set({ … })`, `.insert({ … })`). `@deprecated` comments lie — verify nothing still writes it.
+- **Route drops through a deploy, not a hand-applied prod change.** Additive/idempotent guards (CHECKs, triggers, new nullable columns) are safe to apply ahead of the app. **Destructive** DDL must flow `Schema.ts → committed migration → preview deploy → smoke-check the affected screen → prod via `db:migrate:ci`` so a 400 surfaces in preview, not prod. Never hand-drop a prod column ahead of the matching app deploy.
+- **When you DO edit `Schema.ts`, update the parallel type sources in the same change** — regenerate `src/libs/supabase/types.ts` and fix any per-query local row types — or the drift is invisible until runtime.
+
+## Client roles: one query client, Drizzle for DDL only
+
+The app has two DB libraries; they are **not** two interchangeable query clients. Use each for its role:
+
+- **Supabase-JS** (`supabase.from(...)`, `supabase.auth.*`, `supabase.storage.*`) → **the query client for runtime data**, plus auth + storage (which only it can do). Query code lives in `src/libs/queries/`. **New query code uses supabase-js.**
+- **Drizzle** (`Schema.ts`, `db:generate`, `db:migrate`) → **schema-as-code + migrations only**. Its value is version-controlled, diff-based DDL — not querying. Don't reach for `db.select()` in new query code; prefer supabase-js for consistency.
+
+Because of this split, **`src/libs/supabase/types.ts` is the runtime query type source and must be generated, not hand-written**: `npm run db:gen-types` (`supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema "$DB_SCHEMA"`) after every applied migration. The generated `Database` type feeds the `TableRow` / `TableInsert` / `TableUpdate` helpers in `src/libs/supabase/db-types.ts`, which type Supabase-JS write payloads against the live schema — that's the safety net that turns a dropped/renamed column into a `tsc` error instead of a prod 400. Regenerate after every migration so it stays in sync.

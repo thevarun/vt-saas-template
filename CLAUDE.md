@@ -23,6 +23,8 @@ The project includes:
 | Email System | [docs/email-system.md](docs/email-system.md) |
 | Upstream Sync | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md) |
 
+Subsystem rules live in `.claude/rules/` and load automatically when you touch matching files (each rule's front-matter `paths` glob determines when it applies): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO content authoring).
+
 ## Core Architecture
 
 ### Authentication Flow
@@ -404,6 +406,7 @@ After implementing front-end changes, use Playwright MCP tools to navigate to af
 - **ESLint**: Antfu config (no semicolons, single quotes for JSX attributes)
 - **Formatting**: Prettier + ESLint with auto-fix on save
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
+- **No lazy-`require()` of local ESM modules**: Never use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this has caused a provider module to silently lose its named export in production). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
 
 ## Research
 
