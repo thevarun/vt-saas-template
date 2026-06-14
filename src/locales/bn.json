@@ -86,8 +86,12 @@
       "templateDescription": "Choose which email template to test.",
       "templates": {
         "welcome": "Welcome Email",
+        "signupConfirmation": "Signup Confirmation",
+        "magicLink": "Magic Link",
         "passwordReset": "Password Reset",
-        "verifyEmail": "Email Verification"
+        "emailChange": "Email Change",
+        "reauthentication": "Reauthentication",
+        "inviteUser": "Invite User"
       },
       "emailLabel": "Recipient Email",
       "emailPlaceholder": "recipient@example.com",

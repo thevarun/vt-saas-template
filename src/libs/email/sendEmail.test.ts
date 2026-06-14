@@ -75,6 +75,32 @@ describe('sendEmail helpers', () => {
       expect(result.success).toBe(true);
     });
 
+    it('forwards from and text overrides to the client payload', async () => {
+      const { sendEmail } = await import('./sendEmail');
+
+      const MockTemplate = React.createElement('div', null, 'Hello');
+      await sendEmail(
+        'user@example.com',
+        'Subject',
+        MockTemplate,
+        {
+          from: 'Lifecycle Sender <hello@example.com>',
+          text: 'Plain-text alternative',
+        },
+      );
+
+      expect(mockSend).toHaveBeenCalledWith(
+        {
+          to: 'user@example.com',
+          subject: 'Subject',
+          react: MockTemplate,
+          from: 'Lifecycle Sender <hello@example.com>',
+          text: 'Plain-text alternative',
+        },
+        { emailType: undefined, disableRetry: undefined },
+      );
+    });
+
     it('passes emailType to client', async () => {
       const { sendEmail } = await import('./sendEmail');
 

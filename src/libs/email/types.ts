@@ -19,6 +19,8 @@ export type EmailTag = {
 export type EmailPayload = {
   to: string | string[];
   subject: string;
+  /** Overrides the default system FROM address. Used for lifecycle emails. */
+  from?: string;
   react?: ReactElement;
   html?: string;
   text?: string;
