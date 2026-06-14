@@ -8,6 +8,31 @@ GitHub's "Use this template" creates an independent repo with no link back to th
 
 The template uses [semantic versioning](https://semver.org/) with auto-generated releases. Each release is a git tag (e.g., `v3.2.0`) with a changelog entry.
 
+## How (and how often) to sync
+
+A template is a **scaffold, not a library** — downstream products are *expected* to diverge heavily (remove features, add product code). So syncing is **periodic and selective**, not frequent or wholesale. Match the mechanism to the kind of code:
+
+| Bucket | Examples | How it should flow downstream |
+|---|---|---|
+| **Stable shared core** (fixes must propagate) | crypto/token utils, auth middleware, error/API spine, DB guardrails | Ideally a **versioned package** (`npm`) → `npm update`, zero conflicts. Until extracted: selective sync, high priority. |
+| **Scaffold / boilerplate** | app shell, config wiring, example pages, folder layout | **Copied once at fork.** Diverge freely; don't sync back. |
+| **Cross-cutting deltas** | a new CI workflow, a doc, a one-off pattern | **Periodic, selective re-apply** per release (below). |
+
+### Products graduate from wholesale merge → selective sync
+
+- **Early (low divergence):** the `git merge <tag>` flow (Quick Start / Detailed Workflow) is fine and cheapest.
+- **Mature (heavy divergence):** a wholesale merge of an old base **explodes** — it re-introduces features you deleted and collides your migration history. Stop merging the tag; **sync selectively.**
+- **Heuristic:** dry-run `git merge --no-ff <tag>` then `git merge --abort`. If it shows more than ~20–30 conflicts, or touches `migrations/` or removed-feature files, you've graduated → go selective.
+
+### Selective sync (the realistic default once you've diverged)
+
+1. `git fetch upstream --tags`
+2. See the delta since your last sync: `git log --oneline <last-synced-tag>..<new-tag>` (or read the template CHANGELOG).
+3. Build a short **pull-list** — only the changes relevant to THIS product (a security fix, a useful util). Skip anything tied to features you don't have.
+4. Apply each: try `git cherry-pick <sha>`; if the surrounding code has diverged it won't apply cleanly — **re-apply the change by hand, using the upstream commit as the spec.** (Barely-touched shared code often cherry-picks; product-customized code needs re-application.)
+5. Verify (`lint && check-types && test && build`) + QA the touched flow.
+6. Record what you pulled (e.g., commit `sync: <fix> from template vX`) so the next sync knows where you stand.
+
 ## Quick Start
 
 ```bash
@@ -166,6 +191,10 @@ If upstream added new tables and you also modified the schema:
 2. Run `npm run db:generate` to create a clean migration
 3. Test with `npm run dev`
 
+### Migrations / migration history (`migrations/`, `drizzle/meta/*`)
+
+**Migrations are product-owned — never merge the template's migration history.** Your product has its own lineage (SQL files, snapshots, `_journal.json`). On conflict, **keep yours** and reject the template's migration files. To adopt a schema change the template introduced, re-create it as a **new migration in your own lineage** (`db:generate`) — don't import the template's.
+
 ### .env.example
 
 Accept upstream changes to get new environment variable documentation, then re-add any custom variables your project needs.
@@ -173,7 +202,7 @@ Accept upstream changes to get new environment variable documentation, then re-a
 ## Best Practices
 
 - **Sync to tagged releases**, not `upstream/main` — tags are tested and stable
-- **Sync regularly** — smaller, frequent merges have fewer conflicts than large catch-up merges
+- **Sync periodically, and selectively once you've diverged** — small frequent merges are easiest *early*; mature, heavily-diverged products sync selectively (see "How (and how often) to sync") instead of merging whole tags
 - **Read the changelog first** — understand what changed before merging
 - **Run the full CI check after every sync**: `npm run lint && npm run check-types && npm test && npm run build`
 - **Minimize edits to core files** — the less you modify template infrastructure, the fewer conflicts you'll encounter
@@ -213,6 +242,10 @@ git fetch upstream --tags
 ```
 
 ---
+
+## Endgame: extract must-not-diverge core into a package
+
+When you have multiple products **and** a shared piece that must never drift (security/correctness-critical — crypto, auth, error handling), graduate it from copied scaffold to a **versioned package** (`@org/core` on npm / GitHub Packages). Then fixes propagate via `npm update` with zero merge conflicts. Do it lazily — only when the propagation pain is real, and prefer one small package over many.
 
 ## Contributing changes back to the template
 
