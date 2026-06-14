@@ -14,7 +14,13 @@ import {
   internalError,
   invalidRequestError,
   notFoundError,
+  quotaExhaustedError,
+  rateLimitError,
+  saveFailedError,
+  serviceUnavailableError,
+  timeoutError,
   unauthorizedError,
+  usernameTakenError,
   validationError,
 } from './responses';
 import type { ApiErrorResponse } from './types';
@@ -285,9 +291,16 @@ describe('API Error Response Builders', () => {
         notFoundError('Resource'),
         conflictError('Conflict message'),
         invalidRequestError('Invalid message'),
+        usernameTakenError(),
         dbError(),
+        saveFailedError(),
         internalError(),
         difyError(),
+        serviceUnavailableError(),
+        timeoutError(),
+        rateLimitError(),
+        quotaExhaustedError(new Date('2026-01-01T00:00:00.000Z')),
+        goneError(),
       ];
 
       for (const error of errors) {
@@ -315,9 +328,16 @@ describe('API Error Response Builders', () => {
         { fn: () => notFoundError('Resource'), status: 404 },
         { fn: () => conflictError('Message'), status: 409 },
         { fn: () => invalidRequestError('Message'), status: 400 },
+        { fn: usernameTakenError, status: 409 },
         { fn: dbError, status: 500 },
+        { fn: saveFailedError, status: 500 },
         { fn: internalError, status: 500 },
         { fn: difyError, status: 500 },
+        { fn: serviceUnavailableError, status: 503 },
+        { fn: timeoutError, status: 408 },
+        { fn: rateLimitError, status: 429 },
+        { fn: () => quotaExhaustedError(new Date('2026-01-01T00:00:00.000Z')), status: 429 },
+        { fn: goneError, status: 410 },
       ];
 
       for (const { fn, status } of statusTests) {

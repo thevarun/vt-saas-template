@@ -200,16 +200,7 @@ export function quotaExhaustedError(resetsAt: Date): NextResponse<ApiErrorRespon
   );
 }
 
-/**
- * Returns 410 Gone -- use when a resource has been permanently removed or expired.
- *
- * MIGRATION NOTE: expired/revoked share links previously returned 404 with
- * `code: 'NOT_FOUND'`. They now return 410 with `code: 'GONE'` (a more accurate
- * semantic for "existed but is no longer available"). Downstream forks that
- * branch on the error code client-side must audit any handler that checked for
- * `'NOT_FOUND'` on share-link responses and add a `'GONE'` branch.
- * `displayError.ts` maps `'GONE'` to a user-facing message.
- */
+/** Returns 410 Gone -- use when a resource has been permanently removed or expired. */
 export function goneError(
   message = 'Resource is no longer available',
 ): NextResponse<ApiErrorResponse> {
