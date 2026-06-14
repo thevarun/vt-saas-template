@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 env:
   PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
@@ -23,38 +27,48 @@ jobs:
     timeout-minutes: 2
     outputs:
       docs_only: ${{ steps.filter.outputs.docs_only }}
+      deps_only: ${{ steps.filter.outputs.deps_only }}
       is_dependabot: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v6
 
-      # Denylist approach: Define what counts as "docs only".
-      # Uses predicate-quantifier: 'every' so docs_only=true ONLY when
-      # ALL changed files match these patterns (not just "any").
-      # Any file NOT matching these patterns triggers full CI.
-      # This is safer - new files trigger CI by default.
-      - uses: dorny/paths-filter@v3
+      # Denylist approach: Define what counts as "docs only" or "deps only".
+      # The flag is true ONLY when ALL changed files match the pattern (not just
+      # "any"), so any file outside these patterns triggers full CI — safer,
+      # since new files trigger CI by default.
+      #
+      # Each filter is a SINGLE brace-glob alternation matched with the `every`
+      # quantifier ("every changed file matches this one pattern"). A *multi-entry*
+      # list under `every` is an AND across patterns — no single file can match
+      # `*.md` AND `docs/**` AND `LICENSE` at once — so docs_only/deps_only were
+      # always false and full CI (E2E + Vercel preview) ran on every docs-only PR.
+      # Keep this as a job-level skip (downstream `if:`), never a trigger-level
+      # `paths-ignore`: a skipped job reports success to branch protection,
+      # whereas an un-triggered required check stays Pending and blocks the PR.
+      #
+      # deps_only: lockfile/manifest-only PRs (e.g. Dependabot bumps).
+      # Build + Lint + Types + Unit still run (catch typing/runtime fallout).
+      # E2E is skipped — runtime fallout in deps shows up in unit tests
+      # or build, and Vercel Preview deploys provide a smoke gate too.
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           predicate-quantifier: every
           filters: |
             docs_only:
-              - '*.md'
-              - 'docs/**'
-              - '_bmad-output/**'
-              - '.github/*.md'
-              - '.github/ISSUE_TEMPLATE/**'
-              - '.github/PULL_REQUEST_TEMPLATE/**'
-              - '.vscode/**'
-              - LICENSE
-              - .editorconfig
+              - '{*.md,docs/**,_bmad-output/**,.github/*.md,.github/ISSUE_TEMPLATE/**,.github/PULL_REQUEST_TEMPLATE/**,.vscode/**,LICENSE,.editorconfig}'
+            deps_only:
+              - '{package.json,package-lock.json,.github/dependabot.yml}'
 
   # ============================================
-  # Lint & Type Check (always runs)
+  # Install & Build (shared by downstream jobs)
   # ============================================
-  lint:
-    name: Lint & Types
+  install:
+    name: Install & Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: [changes]
+    if: needs.changes.outputs.docs_only != 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -67,6 +81,50 @@ jobs:
           cache: npm
 
       - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+        env:
+          DB_SCHEMA: vt_saas
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
+          DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+
+      # Cache node_modules and build output for downstream jobs
+      - uses: actions/cache/save@v5
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
+
+  # ============================================
+  # Lint & Type Check
+  # ============================================
+  lint:
+    name: Lint & Types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [changes, install]
+    if: needs.changes.outputs.docs_only != 'true'
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/cache/restore@v5
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
 
       - name: Validate commits (PR only, skip Dependabot)
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
@@ -82,7 +140,7 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [changes, lint]
+    needs: [changes, install]
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
@@ -91,9 +149,13 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: npm
 
-      - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
+      - uses: actions/cache/restore@v5
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
 
       # Dependabot PRs don't have access to secrets, use placeholders
       # Integration tests requiring real credentials are skipped via test config
@@ -106,15 +168,22 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
 
   # ============================================
-  # Build & E2E Tests (skip for docs-only changes)
-  # E2E skipped for Dependabot PRs (no access to secrets)
+  # E2E Tests
+  # Skipped for: docs-only changes, deps-only changes, and Dependabot PRs.
+  # - Docs-only: nothing to E2E.
+  # - Deps-only: build + types + unit cover dep fallout; Vercel Preview
+  #   acts as the runtime smoke gate. Saves ~5 min per dep PR.
+  # - Dependabot: no access to repo secrets, so E2E couldn't run anyway.
   # ============================================
   e2e:
     name: Build & E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [changes, lint]
-    if: needs.changes.outputs.docs_only != 'true'
+    needs: [changes, install]
+    if: |
+      needs.changes.outputs.docs_only != 'true'
+      && needs.changes.outputs.deps_only != 'true'
+      && needs.changes.outputs.is_dependabot != 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -122,24 +191,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: npm
 
-      - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
+      - uses: actions/cache/restore@v5
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
 
-      # Dependabot PRs don't have access to secrets, use placeholders for build
-      - name: Build
-        run: npm run build
-        env:
-          DB_SCHEMA: vt_saas
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          DIFY_API_KEY: ${{ secrets.DIFY_API_KEY || 'test-placeholder-key' }}
-          DIFY_API_URL: ${{ secrets.DIFY_API_URL || 'https://api.dify.ai/v1' }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
-
-      # Skip E2E tests for Dependabot PRs (require real credentials)
       - name: Cache Playwright browsers
-        if: needs.changes.outputs.is_dependabot != 'true'
         uses: actions/cache@v5
         id: playwright-cache
         with:
@@ -147,15 +207,14 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Playwright browsers
-        if: needs.changes.outputs.is_dependabot != 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Install Playwright deps
-        if: needs.changes.outputs.is_dependabot != 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
       - name: Run E2E tests
-        if: needs.changes.outputs.is_dependabot != 'true'
         run: npm run test:e2e
         env:
           CI: true
@@ -166,13 +225,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
-      - name: Skip E2E (Dependabot PR)
-        if: needs.changes.outputs.is_dependabot == 'true'
-        run: echo "E2E tests skipped for Dependabot PR (no access to secrets)"
-
       - name: Upload test artifacts
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
