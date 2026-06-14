@@ -57,7 +57,9 @@ These codes are defined in the `ApiErrorCode` union in `src/libs/api/errors/type
 | `GONE` | 410 | Resource gone | Resource existed but is permanently removed or expired |
 | `CONFLICT` | 409 | Resource conflict | Duplicate unique field or resource conflict |
 | `USERNAME_TAKEN` | 409 | Username taken | Username is already in use by another user |
+| `DUPLICATE_CONVERSATION_ID` | 409 | Duplicate conversation | Conversation ID already exists (Dify chat threads) |
 | `MESSAGE_TOO_LONG` | 400 | Input too long | Input exceeds the maximum allowed length |
+| `INVALID_CONVERSATION_ID` | 400 | Invalid conversation ID | Conversation ID is malformed (Dify chat threads) |
 | `QUOTA_EXHAUSTED` | 429 | Quota exhausted | User's usage quota is exhausted for the current period |
 | `RATE_LIMIT` | 429 | Rate limited | Too many requests |
 | `TIMEOUT` | 408 | Request timeout | Request exceeded the time limit |
@@ -65,6 +67,7 @@ These codes are defined in the `ApiErrorCode` union in `src/libs/api/errors/type
 | `DB_ERROR` | 500 | Database error | Database operation failed |
 | `SAVE_FAILED` | 500 | Persistence failed | Failed to persist data |
 | `INTERNAL_ERROR` | 500 | Server error | Unexpected server error |
+| `DIFY_ERROR` | 500 | AI service error | Upstream Dify chat API failed (Dify chat) |
 
 ## HTTP Status Codes
 
@@ -418,6 +421,8 @@ async function submitForm(data: FormData) {
 
 `getErrorMessage` looks up `errors.<CODE>` via next-intl, falling back to a built-in default when no translation exists. Locale messages live in a single flat file per locale (`src/locales/en.json`, `src/locales/hi.json`, …). Add an `errors` namespace keyed by error code:
 
+> **Note:** the lookup key is the lowercase `errors` namespace, matching `displayError.ts`. This is distinct from the existing top-level `Errors` (capital E) namespace, which holds UI error-boundary copy (`Errors.boundary`, `Errors.auth`, …), not error codes. Out of the box the locale files ship the `Errors` boundary copy but **no** `errors.<CODE>` entries, so every code currently resolves via the built-in English defaults in `getDefaultErrorMessage` until you add the `errors` block below.
+
 ### `src/locales/en.json`
 
 ```json
@@ -527,4 +532,3 @@ describe('POST /api/items', () => {
 - **Translations**: `src/locales/{locale}.json` (`errors` namespace)
 - **API Conventions**: `docs/api-contracts.md`
 - **Error Boundaries (UI)**: `docs/error-handling-guide.md`
-</content>
