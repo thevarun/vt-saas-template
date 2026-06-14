@@ -137,4 +137,3 @@ When a fork adds routes, document them in this file using a compact table per fe
 | `DELETE /api/items/[id]` | `withAuth` (owner) | — | 204 |
 
 Prefer this over an exhaustive auto-generated inventory: a short, hand-maintained table per feature is easier to keep accurate as the product evolves.
-</content>
