@@ -19,7 +19,6 @@ The application uses a hierarchical error boundary strategy:
 Global Error Boundary (global-error.tsx)
 └── Locale Error Boundary ([locale]/error.tsx)
     └── Auth Routes Error Boundary ((auth)/error.tsx)
-        ├── Chat Error Boundary (chat/error.tsx)
         └── Component Error Boundaries (ErrorBoundary.tsx)
 ```
 
@@ -30,7 +29,7 @@ Global Error Boundary (global-error.tsx)
 **Purpose:** Catches errors in the root layout. This is the last line of defense.
 
 **When it triggers:**
-- Errors in `src/app/layout.tsx`
+- Errors in the root layout (`src/app/[locale]/layout.tsx`)
 - Errors in middleware (in some cases)
 - Catastrophic failures not caught by lower boundaries
 
@@ -71,18 +70,7 @@ Global Error Boundary (global-error.tsx)
 - "Sign Out" option (for auth-related errors)
 - Context-aware messaging
 
-#### Chat Error Boundary
-
-**Location:** `src/app/[locale]/(auth)/chat/error.tsx`
-
-**Purpose:** Isolates errors in the chat interface.
-
-**Features:**
-- "Start New Chat" button (clears conversation state)
-- "Try Again" button
-- "View Dashboard" link
-- Preserves conversation history where possible
-- Logs chat-specific context (conversation_id)
+> Add a route-specific `error.tsx` inside any feature segment under `(auth)/` to isolate that feature's failures from the rest of the dashboard, following the same pattern as the auth boundary above.
 
 ### 4. Component Error Boundary
 
@@ -242,18 +230,18 @@ Provide links to safe routes:
 Preserve partial functionality:
 
 ```typescript
-// In chat error boundary
-const handleStartNewChat = () => {
-  // Clear conversation state
-  localStorage.removeItem('dify_conversation_id');
+// In a feature error boundary — drop transient state and recover in place
+const handleRecover = () => {
+  // Clear any volatile in-progress state (e.g. an unsaved wizard step)
+  localStorage.removeItem('feature_draft_state');
   reset();
 };
 
-<button onClick={handleStartNewChat}>Start New Chat</button>
+<button onClick={handleRecover}>Start Over</button>
 ```
 
 **Best for:**
-- Chat/messaging features
+- Multi-step flows and wizards
 - Forms with saved drafts
 - Data displays with cached content
 
@@ -266,12 +254,12 @@ All error boundaries automatically log errors to Sentry with context:
 ```typescript
 Sentry.captureException(error, {
   tags: {
-    errorBoundary: 'chat-route',
+    errorBoundary: 'auth-route',
     locale: params.locale,
   },
   contexts: {
-    chat: {
-      conversationId: localStorage.getItem('dify_conversation_id'),
+    route: {
+      feature: 'dashboard',
     },
   },
 });
