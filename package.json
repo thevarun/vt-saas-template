@@ -19,7 +19,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "dotenv -c production -- drizzle-kit migrate",
     "db:migrate:ci": "drizzle-kit migrate",
-    "db:gen-types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema \"$DB_SCHEMA\" > src/libs/supabase/types.ts",
+    "db:gen-types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema \"$DB_SCHEMA\" > src/libs/supabase/types.ts.tmp && mv src/libs/supabase/types.ts.tmp src/libs/supabase/types.ts",
     "db:studio": "dotenv -c production -- drizzle-kit studio",
     "email:dev": "email dev --dir src/libs/email/templates --port 3001",
 
