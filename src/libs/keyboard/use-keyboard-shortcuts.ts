@@ -159,7 +159,7 @@ function isShortcutActiveOnPath(activePaths: string[] | undefined, cleanPath: st
   if (!activePaths) {
     return true;
   }
-  return activePaths.some(p => cleanPath === p || cleanPath.startsWith(`${p}/`) || cleanPath.startsWith(p));
+  return activePaths.some(p => cleanPath === p || cleanPath.startsWith(`${p}/`));
 }
 
 function executeAction(

@@ -31,7 +31,10 @@ export const Env = createEnv({
     PERPLEXITY_API_KEY: z.string().optional(),
     // Token encryption (AES-256-GCM) for secrets at rest, e.g. OAuth tokens.
     // 32-byte key as 64 hex chars: `openssl rand -hex 32`.
-    TOKEN_ENCRYPTION_KEY: z.string().optional(),
+    TOKEN_ENCRYPTION_KEY: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/i, 'TOKEN_ENCRYPTION_KEY must be 64 hex chars (32 bytes): openssl rand -hex 32')
+      .optional(),
     // Mem0 (Memory Integration) - Optional to allow graceful degradation
     ENABLE_MEM0: z.enum(['true', 'false']).default('false'),
     MEM0_API_KEY: z.string().optional(),

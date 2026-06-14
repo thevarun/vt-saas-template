@@ -6,15 +6,6 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }));
 
-vi.mock('@/libs/supabase/client', () => ({
-  createClient: () => ({
-    auth: {
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-    },
-  }),
-}));
-
 // eslint-disable-next-line import/first -- mocks must be hoisted above imports under test
 import DevSignInPage from './page';
 

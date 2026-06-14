@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
-import { createClient } from '@/libs/supabase/client';
 
 const formSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email'),
@@ -54,34 +53,31 @@ export default function DevSignInPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-
-      if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
+      // Submit through the dev-login route so its guards (ALLOW_DEV_LOGIN flag,
+      // production-URL denylist, per-IP rate limit) apply — calling the Supabase
+      // SDK directly from the client would bypass all of them.
+      const response = await fetch('/api/auth/dev-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           email: data.email,
           password: data.password,
-        });
+          action: mode,
+        }),
+      });
 
-        if (error) {
-          setServerError(error.message);
-          setLoading(false);
-          return;
-        }
+      const result = await response.json().catch(() => null);
 
-        setSuccessMessage(
-          `Account created for ${data.email}. Check email to verify, or sign in directly if email confirmation is disabled.`,
-        );
+      if (!response.ok) {
+        setServerError(result?.error ?? 'Something went wrong');
         setLoading(false);
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (error) {
-        setServerError(error.message);
+      if (mode === 'signup') {
+        setSuccessMessage(
+          `Account created for ${data.email}. Check email to verify, or sign in directly if email confirmation is disabled.`,
+        );
         setLoading(false);
         return;
       }
