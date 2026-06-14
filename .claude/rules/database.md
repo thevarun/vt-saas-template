@@ -1,6 +1,7 @@
 ---
 paths:
   - "src/models/Schema.ts"
+  - "src/models/schema/**"
   - "migrations/**"
 ---
 
