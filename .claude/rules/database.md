@@ -13,6 +13,7 @@ The must-not-break rules for schema changes and migrations. Self-contained — n
 - **`db:migrate` is journal-driven, not file-driven.** It applies only the `.sql` files listed in `migrations/meta/_journal.json`. A hand-written `migrations/0099_foo.sql` not in the journal is silently skipped — don't `git mv` files in and expect them to run.
 - **Never commit migration files on a feature branch.** The pre-commit hook (`.husky/pre-commit`) blocks `migrations/` writes on non-`main` branches.
 - **Generate migrations on `main` only** (`db:generate`), inspect the SQL (`DROP POLICY` / `DROP CONSTRAINT fk_*_auth_users` = drift → abort), then commit `.sql` + `_journal.json` + `NNNN_snapshot.json` together. Production applies them at build time via `db:migrate:ci`.
+- **Enable RLS on EVERY table — deny by default.** The schema is exposed over the Supabase REST API (`supabase/config.toml`) and `supabase/prod-setup.sql` grants `anon` SELECT + `authenticated` full CRUD on all tables. RLS is the only barrier: a table with RLS **ON and no policy** denies all non-service-role access (fails closed); a granted, REST-exposed table with RLS **OFF** leaks every user's rows to anyone holding the public anon key. When you add a table, add its `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` (plus owner policies for client-readable tables) to `prod-setup.sql` in the same change. Service-role/server code (Drizzle over `DATABASE_URL`, admin clients) bypasses RLS, so server-only tables can have RLS on with no policy.
 
 ## Destructive-change checklist (DROP / RENAME column or table)
 

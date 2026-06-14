@@ -61,6 +61,10 @@
 - [CI/CD Pipeline](./ci-cd-pipeline.md) - Pipeline details
 - [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) - Common CI issues
 
+### Database
+- [Database Workflow](./database-workflow.md) - Three-home model, dev→prod flow, gotchas
+- [Legacy Columns](./legacy-columns.md) - Column-deprecation pattern and rollback recipe
+
 ### Analytics
 - [Analytics Setup](./analytics-setup.md) - PostHog configuration
 - [Analytics Funnels](./analytics-funnels.md) - Conversion tracking
