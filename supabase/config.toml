@@ -1,0 +1,61 @@
+# Supabase Configuration
+# This file configures local Supabase CLI behavior.
+
+# TODO: Replace with your actual Supabase project reference ID from:
+# Supabase Dashboard > Settings > General > Reference ID
+# This placeholder must be updated before running `supabase` CLI commands.
+project_id = "your-supabase-project-ref"
+
+[api]
+enabled = true
+port = 54321
+# Include the project schema (DB_SCHEMA default `vt_saas`) so it's reachable via the REST API
+schemas = [
+  "public",
+  "graphql_public",
+  "vt_saas",
+]
+extra_search_path = [
+  "public",
+  "vt_saas",
+]
+max_rows = 1000
+
+[auth]
+enabled = true
+# Must match the Next.js dev server port (PORT in .env, default 3000)
+site_url = "http://localhost:3000"
+additional_redirect_urls = [ "http://localhost:3000/**" ]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+# Require email confirmation before allowing login
+enable_confirmations = true
+double_confirm_changes = true
+# Magic link is built into the email provider — triggered by supabase.auth.signInWithOtp({ email })
+# No separate configuration needed.
+
+# =============================================================================
+# MANUAL DASHBOARD CONFIGURATION (not automated via config.toml)
+# =============================================================================
+# The following settings must be configured manually in the Supabase dashboard:
+#
+# 1. Authentication > Providers > Email:
+#    - Email provider: ENABLED (default)
+#    - Confirm email: ENABLED
+#    - Secure email change: ENABLED
+#
+# 2. Authentication > URL Configuration:
+#    - Site URL: http://localhost:3000
+#    - Redirect URLs: http://localhost:3000/**
+#
+# 3. Authentication > Providers > Phone:
+#    - DISABLED (not needed by default)
+#
+# 4. Magic link:
+#    - Built-in feature of email provider, triggered by signInWithOtp({ email })
+#    - No separate dashboard toggle needed
+# =============================================================================

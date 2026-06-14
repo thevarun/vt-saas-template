@@ -19,7 +19,8 @@ export type AuditLogEntryProps = {
   adminEmail?: string;
   action: string;
   targetType: string;
-  targetId: string;
+  // Null once the targeted user is deleted (ON DELETE SET NULL FK) — render defensively.
+  targetId: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: Date | string;
 };
@@ -74,10 +75,16 @@ export function AuditLogTable({ logs }: AuditLogTableProps) {
               {log.adminEmail || log.adminId}
             </TableCell>
             <TableCell>
-              <code className="text-xs" title={log.targetId}>
-                {log.targetId.slice(0, 8)}
-                ...
-              </code>
+              {log.targetId
+                ? (
+                    <code className="text-xs" title={log.targetId}>
+                      {log.targetId.slice(0, 8)}
+                      ...
+                    </code>
+                  )
+                : (
+                    <span className="text-muted-foreground">--</span>
+                  )}
             </TableCell>
             <TableCell>
               <span

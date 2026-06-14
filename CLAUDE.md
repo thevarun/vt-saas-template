@@ -16,6 +16,8 @@ The project includes:
 | Topic | Full Docs |
 |-------|-----------|
 | API Errors | [docs/api-error-handling.md](docs/api-error-handling.md) |
+| Database Workflow | [docs/database-workflow.md](docs/database-workflow.md) |
+| Legacy Columns | [docs/legacy-columns.md](docs/legacy-columns.md) |
 | Error Boundaries | [docs/error-handling-guide.md](docs/error-handling-guide.md) |
 | CI/CD | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) |
 | Development | [docs/development-guide.md](docs/development-guide.md) |
@@ -248,9 +250,11 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 
 ### Modifying Database Schema
 1. Edit `src/models/Schema.ts`
-2. Run `npm run db:generate` to create migration
-3. Migration auto-applies on next DB interaction (no restart needed)
-4. For Edge runtime: disable auto-migration in `src/libs/DB.ts` and run manually
+2. Run `npm run db:generate` **on `main`** to create the migration (commit the `.sql` + `_journal.json` + `NNNN_snapshot.json` together)
+3. How it applies differs by environment:
+   - **Dev:** `src/libs/DB.ts` auto-runs `migratePg`/`migratePglite` on the next server start — no manual step.
+   - **Prod:** Vercel runs `npm run db:migrate:ci` during the build phase (see the `build` script in `package.json`) *before* `next build`, so schema lands atomically with the deploy. There is **no** "auto-apply on next interaction" in prod — if you skip the build-time migration you ship a stale schema.
+4. Migrations are **journal-driven**: only `.sql` files listed in `migrations/meta/_journal.json` run. Full reference: [`docs/database-workflow.md`](docs/database-workflow.md); must-not-break rules: [`.claude/rules/database.md`](.claude/rules/database.md).
 
 ### Adding Translations
 1. Add keys to `src/locales/{locale}/` JSON files

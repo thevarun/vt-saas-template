@@ -1,0 +1,16 @@
+-- Seed data
+-- Runs after `db:migrate` on a fresh environment, or via `supabase db reset`.
+--
+-- This file is intentionally empty in the template. Add dev fixtures or lookup
+-- rows (reference tables, default plans, etc.) here. Keep every insert idempotent
+-- with `ON CONFLICT ... DO NOTHING` so the file is safe to re-run.
+--
+-- See docs/database-workflow.md for the fresh-environment application order and
+-- where each kind of change belongs (the "three-home" model).
+
+-- Example (uncomment + adapt to a real table):
+--
+-- INSERT INTO "vt_saas"."<lookup_table>" (id, name)
+-- VALUES
+--   (gen_random_uuid(), 'example')
+-- ON CONFLICT (name) DO NOTHING;
