@@ -31,6 +31,10 @@ export const Env = createEnv({
     CRON_SECRET: z.string().optional(),
     // Inbound webhook authentication (timing-safe X-Webhook-Secret guard)
     WEBHOOK_SECRET: z.string().min(16).optional(),
+    // Inngest (background jobs / scheduled crons) — optional in local dev
+    // (the Inngest Dev Server works without these keys).
+    INNGEST_EVENT_KEY: z.string().min(1).optional(),
+    INNGEST_SIGNING_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -63,6 +67,8 @@ export const Env = createEnv({
     MEM0_API_KEY: process.env.MEM0_API_KEY,
     CRON_SECRET: process.env.CRON_SECRET,
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
