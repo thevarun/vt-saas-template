@@ -24,6 +24,14 @@ export const Env = createEnv({
     LANGFUSE_PUBLIC_KEY: z.string().optional(),
     LANGFUSE_SECRET_KEY: z.string().optional(),
     LANGFUSE_HOST: z.string().url().default('https://cloud.langfuse.com'),
+    LANGFUSE_TRACING_ENVIRONMENT: z.string().optional(),
+    // Web search (provider-agnostic via src/libs/search) - Optional, graceful degradation
+    SEARCH_PROVIDER: z.enum(['tavily', 'perplexity']).default('tavily'),
+    TAVILY_API_KEY: z.string().optional(),
+    PERPLEXITY_API_KEY: z.string().optional(),
+    // Token encryption (AES-256-GCM) for secrets at rest, e.g. OAuth tokens.
+    // 32-byte key as 64 hex chars: `openssl rand -hex 32`.
+    TOKEN_ENCRYPTION_KEY: z.string().optional(),
     // Mem0 (Memory Integration) - Optional to allow graceful degradation
     ENABLE_MEM0: z.enum(['true', 'false']).default('false'),
     MEM0_API_KEY: z.string().optional(),
@@ -63,6 +71,11 @@ export const Env = createEnv({
     LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY,
     LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY,
     LANGFUSE_HOST: process.env.LANGFUSE_HOST,
+    LANGFUSE_TRACING_ENVIRONMENT: process.env.LANGFUSE_TRACING_ENVIRONMENT,
+    SEARCH_PROVIDER: process.env.SEARCH_PROVIDER,
+    TAVILY_API_KEY: process.env.TAVILY_API_KEY,
+    PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
+    TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
     ENABLE_MEM0: process.env.ENABLE_MEM0,
     MEM0_API_KEY: process.env.MEM0_API_KEY,
     CRON_SECRET: process.env.CRON_SECRET,

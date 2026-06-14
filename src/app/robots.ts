@@ -17,6 +17,7 @@ import { getSiteUrl } from '@/libs/seo/config';
  * - /chat - Chat interface (auth-only)
  * - /sign-out - Sign out utility page (no content value)
  * - /design-system - Internal design reference
+ * - /dev-sign-in - Dev-only auth page (no content value)
  *
  * Note: Disallow directives apply to the path and all sub-paths
  * (e.g., /dashboard also blocks /dashboard/settings)
@@ -36,6 +37,7 @@ export default function robots(): MetadataRoute.Robots {
         '/chat',
         '/sign-out',
         '/design-system',
+        '/dev-sign-in',
       ],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
