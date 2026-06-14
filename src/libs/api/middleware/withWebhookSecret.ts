@@ -1,7 +1,6 @@
 /** @module withWebhookSecret HOF -- wraps API route handlers with webhook secret authentication. */
 
-import { Buffer } from 'node:buffer';
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 import type { NextRequest } from 'next/server';
 
@@ -40,11 +39,12 @@ export function withWebhookSecret<P = Record<string, string>>(handler: WebhookHa
       return unauthorizedError('Webhook secret required');
     }
 
-    // Timing-safe comparison to prevent timing attacks
-    const expected = Buffer.from(secret, 'utf8');
-    const received = Buffer.from(headerSecret, 'utf8');
+    // Hash both to a fixed 32-byte digest before comparing, so the equal-length
+    // requirement of timingSafeEqual can't leak the secret's length via timing.
+    const expected = createHash('sha256').update(secret).digest();
+    const received = createHash('sha256').update(headerSecret).digest();
 
-    if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
+    if (!timingSafeEqual(expected, received)) {
       logAuthError('Invalid webhook secret', {
         endpoint: request.nextUrl?.pathname ?? 'unknown',
         method: request.method ?? 'unknown',
