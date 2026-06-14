@@ -29,7 +29,15 @@ import { useToast } from '@/hooks/use-toast';
 import { parseApiError } from '@/libs/api/client';
 
 const emailFormSchema = z.object({
-  template: z.enum(['welcome', 'password-reset', 'verify-email']),
+  template: z.enum([
+    'welcome',
+    'signup-confirmation',
+    'magic-link',
+    'password-reset',
+    'email-change',
+    'reauthentication',
+    'invite-user',
+  ]),
   email: z.string().email(),
   data: z.string().optional(),
 });
@@ -114,8 +122,12 @@ export function EmailTestForm() {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="welcome">{t('templates.welcome')}</SelectItem>
+                  <SelectItem value="signup-confirmation">{t('templates.signupConfirmation')}</SelectItem>
+                  <SelectItem value="magic-link">{t('templates.magicLink')}</SelectItem>
                   <SelectItem value="password-reset">{t('templates.passwordReset')}</SelectItem>
-                  <SelectItem value="verify-email">{t('templates.verifyEmail')}</SelectItem>
+                  <SelectItem value="email-change">{t('templates.emailChange')}</SelectItem>
+                  <SelectItem value="reauthentication">{t('templates.reauthentication')}</SelectItem>
+                  <SelectItem value="invite-user">{t('templates.inviteUser')}</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>

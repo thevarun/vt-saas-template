@@ -24,6 +24,9 @@ storybook-static
 /.next
 /out
 
+# rendered Supabase auth email HTML (scripts/render-supabase-templates.ts)
+/email-templates
+
 # cache
 .swc/
 

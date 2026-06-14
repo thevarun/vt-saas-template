@@ -19,6 +19,7 @@ export const Env = createEnv({
     RESEND_API_KEY: z.string().optional(), // Optional for dev mode (console logging)
     EMAIL_FROM_ADDRESS: z.string().email().default('noreply@example.com'),
     EMAIL_FROM_NAME: z.string().default('VT SaaS Template'),
+    EMAIL_LIFECYCLE_FROM_NAME: z.string().default('Team at VT SaaS Template'),
     EMAIL_REPLY_TO: z.string().email().optional(),
     // LangFuse (LLM observability) - Optional to allow graceful degradation
     LANGFUSE_PUBLIC_KEY: z.string().optional(),
@@ -70,6 +71,7 @@ export const Env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
     EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+    EMAIL_LIFECYCLE_FROM_NAME: process.env.EMAIL_LIFECYCLE_FROM_NAME,
     EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO,
     LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY,
     LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY,

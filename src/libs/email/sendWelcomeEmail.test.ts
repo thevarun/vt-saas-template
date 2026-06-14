@@ -6,6 +6,12 @@ vi.mock('./sendEmail', () => ({
   sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
 
+// Mock config so the lifecycle FROM is deterministic and Env is not read
+// (this runs in a jsdom/client environment where server vars are inaccessible)
+vi.mock('./config', () => ({
+  getLifecycleFromAddress: () => 'Team at Test App <noreply@example.com>',
+}));
+
 // Mock environment variables
 vi.stubEnv('EMAIL_FROM_NAME', 'Test App');
 vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://testapp.com');
@@ -29,6 +35,7 @@ describe('sendWelcomeEmail', () => {
       expect.stringContaining('Welcome to'),
       expect.anything(), // React component
       expect.objectContaining({
+        from: 'Team at Test App <noreply@example.com>',
         tags: expect.arrayContaining([
           expect.objectContaining({ name: 'type', value: 'welcome' }),
         ]),

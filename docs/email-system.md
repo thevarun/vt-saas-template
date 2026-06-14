@@ -2,8 +2,10 @@
 
 This document covers the transactional email system built with [Resend](https://resend.com) and [React Email](https://react.email).
 
-> **Note:** Email verification and password reset emails are handled by Supabase Auth.
-> Customize those via Supabase Dashboard → Authentication → Email Templates.
+> **Note:** Email verification and password reset emails are sent by Supabase Auth.
+> This template ships on-brand React Email templates for those flows — render them
+> to HTML and paste into Supabase Dashboard → Authentication → Email Templates.
+> See [Supabase Auth emails](#supabase-auth-emails) below.
 
 ## Quick Start
 
@@ -73,9 +75,23 @@ For production sends, verify your domain in Resend:
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `RESEND_API_KEY` | Production only | None | Resend API key |
-| `EMAIL_FROM_ADDRESS` | No | `noreply@example.com` | Sender email address |
-| `EMAIL_FROM_NAME` | No | `VT SaaS Template` | Sender display name |
+| `EMAIL_FROM_ADDRESS` | No | `noreply@example.com` | Sender email address (shared by both personas) |
+| `EMAIL_FROM_NAME` | No | `VT SaaS Template` | System-sender display name |
+| `EMAIL_LIFECYCLE_FROM_NAME` | No | `Team at VT SaaS Template` | Lifecycle-sender display name (welcome/nurture) |
 | `EMAIL_REPLY_TO` | No | None | Reply-to address |
+
+## Sender personas
+
+Every outbound email uses a single FROM **address** (`EMAIL_FROM_ADDRESS`); only the display **name** varies by voice. This avoids verifying multiple addresses in Resend while still letting transactional and lifecycle email read differently in the inbox.
+
+| Persona       | Display-name env var        | Helper                      | Used for                   |
+| ------------- | --------------------------- | --------------------------- | -------------------------- |
+| **System**    | `EMAIL_FROM_NAME`           | `getFromAddress()`          | Auth, transactional alerts |
+| **Lifecycle** | `EMAIL_LIFECYCLE_FROM_NAME` | `getLifecycleFromAddress()` | Welcome / nurture emails   |
+
+Both helpers live in `src/libs/email/config.ts`. `EMAIL_CONFIG` is a lazy `Proxy` — it defers reading `Env` until a field is accessed, so client/RSC modules that transitively import the email barrel don't trip env validation at import time.
+
+A per-send override flows through `EmailPayload.from` (and the `from` option on `sendEmail`). `client.ts` uses `payload.from || getFromAddress()`, so passing `from: getLifecycleFromAddress()` switches the persona for a single send (this is exactly what `sendWelcomeEmail` does).
 
 ## Testing Emails
 
@@ -92,23 +108,82 @@ curl -X POST http://localhost:3000/api/email/welcome \
 - **Sign up:** Complete email verification → Welcome email sent
 - **OAuth:** First Google/GitHub sign-in → Welcome email sent
 
+### Admin test-send catalog (`/api/admin/email/test`)
+
+`POST /api/admin/email/test` (admin-only, via `withAdminAuth`) sends any template through the real pipeline using its `PreviewProps`, so a real inbox renders identically to `npm run email:dev`. The admin UI (`EmailTestForm`) exposes the same catalog as a dropdown.
+
+| `template` value      | Sender              | Helper              |
+| --------------------- | ------------------- | ------------------- |
+| `welcome`             | Lifecycle persona   | `sendWelcomeEmail`  |
+| `signup-confirmation` | System persona      | `sendEmail`         |
+| `magic-link`          | System persona      | `sendEmail`         |
+| `password-reset`      | System persona      | `sendEmail`         |
+| `email-change`        | System persona      | `sendEmail`         |
+| `reauthentication`    | System persona      | `sendEmail`         |
+| `invite-user`         | System persona      | `sendEmail`         |
+
+## Supabase Auth emails
+
+Supabase Auth (not this app) sends the confirmation / magic-link / password-reset / email-change / reauthentication / invite emails. To make them on-brand, this template ships React Email templates in `src/libs/email/templates/` and a render script that turns them into static HTML for the Supabase Dashboard.
+
+```bash
+npm run email:render
+# or: npx tsx scripts/render-supabase-templates.ts
+```
+
+This writes `email-templates/*.html` (git-ignored). Paste each into Supabase Dashboard → Authentication → Email Templates. Supabase placeholders (`{{ .ConfirmationURL }}`, `{{ .TokenHash }}`, `{{ .Token }}`, `{{ .NewEmail }}`) pass through React Email unescaped and are substituted by Supabase at send time.
+
+**Re-paste whenever** a template, `EmailLayout.tsx`, `styles.ts`, or the brand/app name changes.
+
+See [`src/libs/email/README.md`](../src/libs/email/README.md) for the paste-target table and dormant-template notes.
+
+## Email layout & primitives
+
+Branded templates compose via `src/libs/email/templates/EmailLayout.tsx`, which provides:
+
+- `EmailLayout` — card chrome, header (centered `apple-touch-icon.png` logo by default, or a full-bleed `headerImageUrl`), and a prop-driven footer. `brandName` renders into the footer; `includePreferencesLink` + `preferencesUrl` add an opt-out link for lifecycle emails.
+- Typed primitives: `EmailHeading`, `EmailText`, `EmailMutedText`, `EmailSignoff`, `EmailButton`, `EmailSteps` / `EmailStepItem`, `EmailFallbackLink`, `EmailOtpCode`.
+- Inline, email-safe styles in `templates/styles.ts` (palette, type scale, button, OTP).
+- `safeGreeting(name)` in `templates/helpers.ts` — falls back to "Hi there," when the name is blank or looks like an email address.
+
+### PreviewProps pattern
+
+Every template exports `PreviewProps` (typed via `satisfies`). This powers two things at once:
+
+1. `npm run email:dev` renders realistic data without crashing on `undefined`.
+2. The admin test-send route spreads `PreviewProps` into the template, so test inboxes match the preview.
+
+When adding a template, export `PreviewProps` and use the `EmailLayout` primitives.
+
 ## Architecture
 
 ### File Structure
 
 ```
 src/libs/email/
-├── index.ts              # Barrel exports
-├── types.ts              # TypeScript types
-├── config.ts             # Environment configuration
-├── client.ts             # EmailClient class (provider abstraction)
-├── sendEmail.ts          # Main send helper
-├── sendEmailAsync.ts     # Fire-and-forget wrapper
-├── retry.ts              # Retry with exponential backoff
-├── emailLogger.ts        # Structured logging
-├── sendWelcomeEmail.tsx  # Welcome email helper
+├── index.ts                # Barrel exports
+├── types.ts                # TypeScript types (incl. EmailPayload.from override)
+├── config.ts               # Sender config + persona helpers (lazy Proxy)
+├── client.ts               # EmailClient class (provider abstraction)
+├── sendEmail.ts            # Main send helper
+├── sendEmailAsync.ts       # Fire-and-forget wrapper
+├── retry.ts                # Retry with exponential backoff
+├── emailLogger.ts          # Structured logging
+├── sendWelcomeEmail.tsx    # Welcome email helper (lifecycle persona)
+├── README.md               # Subsystem quick reference
 └── templates/
-    └── WelcomeEmail.tsx  # React Email template
+    ├── EmailLayout.tsx     # Shared chrome + typed primitives
+    ├── styles.ts           # Email-safe inline styles
+    ├── helpers.ts          # safeGreeting()
+    ├── WelcomeEmail.tsx    # Welcome template
+    ├── SignupConfirmationEmail.tsx
+    ├── MagicLinkEmail.tsx
+    ├── PasswordResetEmail.tsx
+    ├── EmailChangeEmail.tsx
+    ├── ReauthenticationEmail.tsx
+    └── InviteUserEmail.tsx
+
+scripts/render-supabase-templates.ts  # Renders auth templates → HTML for Supabase
 ```
 
 ### Key Components
