@@ -19,46 +19,67 @@ concurrency:
 
 jobs:
   # ============================================
-  # Detect Changes (denylist approach)
+  # Detect Changes (fail-safe positive "code" signal)
   # ============================================
   changes:
     name: Detect Changes
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      docs_only: ${{ steps.filter.outputs.docs_only }}
-      deps_only: ${{ steps.filter.outputs.deps_only }}
+      # dorny/paths-filter is OR-across-files (a filter is true if ANY changed
+      # file matches); it has no "every changed file matches" mode. So instead of
+      # a docs_only denylist (which flips true off a SINGLE doc file and skips CI
+      # on PRs that mix docs + code), we detect the fail-safe POSITIVE signal
+      # `code` ("at least one non-docs file changed") and derive the rest from it.
+      # Anything matching NEITHER denylist (incl. brand-new paths) → code=true → CI runs.
+      docs_only: ${{ steps.filter.outputs.code != 'true' }}
+      deps_only: ${{ steps.filter.outputs.code == 'true' && steps.filter.outputs.non_deps_code != 'true' }}
       is_dependabot: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v6
 
-      # Denylist approach: Define what counts as "docs only" or "deps only".
-      # The flag is true ONLY when ALL changed files match the pattern (not just
-      # "any"), so any file outside these patterns triggers full CI — safer,
-      # since new files trigger CI by default.
-      #
-      # Each filter is a SINGLE brace-glob alternation matched with the `every`
-      # quantifier ("every changed file matches this one pattern"). A *multi-entry*
-      # list under `every` is an AND across patterns — no single file can match
-      # `*.md` AND `docs/**` AND `LICENSE` at once — so docs_only/deps_only were
-      # always false and full CI (E2E + Vercel preview) ran on every docs-only PR.
-      # Keep this as a job-level skip (downstream `if:`), never a trigger-level
+      # WHY THE INVERSION: `predicate-quantifier: every` is a PER-FILE pattern
+      # combinator (one file must match every pattern), NOT a cross-file "all
+      # files match" quantifier — dorny always ORs across files (output = true if
+      # >=1 file matches). A denylist `docs_only` therefore went true off one doc
+      # file and skipped Lint/Types/Unit/Build on code PRs. So we ask the inverse:
+      #   code           = "a non-docs file changed"          (** minus the doc globs)
+      #   non_deps_code  = "a non-docs, non-deps file changed" (also minus manifests)
+      # Here `every` IS meaningful: each file must match `**` AND none of the
+      # negations. Job-level skip (downstream `if:`), never a trigger-level
       # `paths-ignore`: a skipped job reports success to branch protection,
       # whereas an un-triggered required check stays Pending and blocks the PR.
-      #
-      # deps_only: lockfile/manifest-only PRs (e.g. Dependabot bumps).
-      # Build + Lint + Types + Unit still run (catch typing/runtime fallout).
-      # E2E is skipped — runtime fallout in deps shows up in unit tests
-      # or build, and Vercel Preview deploys provide a smoke gate too.
+      # (deps_only still skips only E2E; build/lint/types/unit run on dep bumps.)
       - uses: dorny/paths-filter@v4
         id: filter
         with:
           predicate-quantifier: every
           filters: |
-            docs_only:
-              - '{*.md,docs/**,_bmad-output/**,.github/*.md,.github/ISSUE_TEMPLATE/**,.github/PULL_REQUEST_TEMPLATE/**,.vscode/**,LICENSE,.editorconfig}'
-            deps_only:
-              - '{package.json,package-lock.json,.github/dependabot.yml}'
+            code:
+              - '**'
+              - '!*.md'
+              - '!docs/**'
+              - '!_bmad-output/**'
+              - '!.github/*.md'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE/**'
+              - '!.vscode/**'
+              - '!LICENSE'
+              - '!.editorconfig'
+            non_deps_code:
+              - '**'
+              - '!*.md'
+              - '!docs/**'
+              - '!_bmad-output/**'
+              - '!.github/*.md'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE/**'
+              - '!.vscode/**'
+              - '!LICENSE'
+              - '!.editorconfig'
+              - '!package.json'
+              - '!package-lock.json'
+              - '!.github/dependabot.yml'
 
   # ============================================
   # Install & Build (shared by downstream jobs)
