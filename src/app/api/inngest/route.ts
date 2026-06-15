@@ -1,6 +1,10 @@
 import { serve } from 'inngest/next';
 
 import { inngest } from '@/libs/inngest/client';
+import {
+  processSingleTask,
+  scheduledTasksCron,
+} from '@/libs/inngest/functions/scheduled-tasks';
 
 // Register functions in production (real cloud env) and local dev (Inngest Dev
 // Server CLI on port 8288). Preview/branch deploys on Vercel have
@@ -12,5 +16,7 @@ const shouldRegister
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: shouldRegister ? [] : [],
+  functions: shouldRegister
+    ? [scheduledTasksCron, processSingleTask]
+    : [],
 });

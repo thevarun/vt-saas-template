@@ -6,6 +6,8 @@ export { adminAuditLog } from './audit';
 export { feedback, feedbackStatusEnum, feedbackTypeEnum } from './feedback';
 export { platformConnections } from './platform-connections';
 export { userPreferences } from './preferences';
+export type { InsertScheduledTask, ScheduledTaskRow } from './scheduled-tasks';
+export { scheduledTasks, scheduledTaskStatusEnum } from './scheduled-tasks';
 export { shareableLinks } from './share-links';
 export { threads } from './threads';
 export {

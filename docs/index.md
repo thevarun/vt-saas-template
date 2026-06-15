@@ -79,6 +79,7 @@
 ### Patterns
 - [SSE Streaming](./patterns/sse-streaming.md) - Server-Sent Events patterns
 - [API Proxy](./patterns/api-proxy.md) - API proxy pattern
+- [Background Jobs](./patterns/background-jobs.md) - Inngest cron scaffolding, fan-out, at-most-once guard, crash recovery
 
 ### Customization
 - [Remove All Chat](./customization/removing-all-chat.md)
