@@ -191,6 +191,19 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- scheduled_tasks: server-only background-job queue. CASCADE so a deleted
+-- user's pending/finished tasks don't linger.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'fk_scheduled_tasks_auth_users'
+  ) THEN
+    ALTER TABLE "vt_saas"."scheduled_tasks"
+      ADD CONSTRAINT fk_scheduled_tasks_auth_users
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
 -- ============================================================
 -- 4. ROW-LEVEL SECURITY
 -- ============================================================
@@ -326,6 +339,13 @@ ALTER TABLE "vt_saas"."vercel_messages" ENABLE ROW LEVEL SECURITY;
 -- ---- memory_extraction_jobs ----
 -- Server-only async job queue. No client access; same rationale as vercel_messages.
 ALTER TABLE "vt_saas"."memory_extraction_jobs" ENABLE ROW LEVEL SECURITY;
+-- (intentionally no CREATE POLICY — server-only)
+
+-- ---- scheduled_tasks ----
+-- Server-only background-job queue: written only by the cron + admin client.
+-- RLS ON + no policy denies all anon/authenticated REST access (service role
+-- bypasses RLS); same rationale as memory_extraction_jobs / vercel_messages.
+ALTER TABLE "vt_saas"."scheduled_tasks" ENABLE ROW LEVEL SECURITY;
 -- (intentionally no CREATE POLICY — server-only)
 
 -- Variant — authenticated read-only lookup table (uncomment + adapt for a
