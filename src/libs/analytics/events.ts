@@ -34,6 +34,7 @@ export type EventName
     | 'profile_updated'
     | 'feature_first_use'
     | 'user_activated'
+    | 'platform_connected'
   // Error events
     | 'error_occurred'
   // Page events
@@ -156,6 +157,14 @@ export type ReferredSignupProperties = {
 };
 
 /**
+ * Properties for platform_connected event
+ * Tracks a successful third-party OAuth connection.
+ */
+export type PlatformConnectedProperties = {
+  provider: string;
+};
+
+/**
  * Type mapping from event names to their property types
  * This enables type-safe event tracking with TypeScript generics
  */
@@ -173,6 +182,7 @@ export type EventPropertiesMap = {
   profile_updated: ProfileUpdatedProperties;
   feature_first_use: FeatureFirstUseProperties;
   user_activated: UserActivatedProperties;
+  platform_connected: PlatformConnectedProperties;
   error_occurred: ErrorOccurredProperties;
   page_viewed: PageViewedProperties;
   landing_viewed: LandingViewedProperties;
@@ -197,6 +207,7 @@ export const EVENT_CATEGORIES: Record<EventName, EventCategory> = {
   profile_updated: EventCategory.Feature,
   feature_first_use: EventCategory.Feature,
   user_activated: EventCategory.Feature,
+  platform_connected: EventCategory.Feature,
   error_occurred: EventCategory.Error,
   page_viewed: EventCategory.Page,
   landing_viewed: EventCategory.Page,

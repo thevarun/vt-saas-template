@@ -177,6 +177,20 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- platform_connections: user-owned third-party OAuth credentials (encrypted
+-- tokens). CASCADE so deleting a user erases their stored credentials, same
+-- rationale as mem0_memories.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'fk_platform_connections_auth_users'
+  ) THEN
+    ALTER TABLE "vt_saas"."platform_connections"
+      ADD CONSTRAINT fk_platform_connections_auth_users
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
 -- ============================================================
 -- 4. ROW-LEVEL SECURITY
 -- ============================================================
@@ -281,6 +295,24 @@ CREATE POLICY "mem0_memories_update_own" ON "vt_saas"."mem0_memories"
   FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "mem0_memories_delete_own" ON "vt_saas"."mem0_memories";
 CREATE POLICY "mem0_memories_delete_own" ON "vt_saas"."mem0_memories"
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- ---- platform_connections ----
+-- User-owned third-party OAuth credentials. Direct user_id → scope to the owner.
+-- DB-layer RLS here is defense in depth alongside the app-layer safe fetcher
+-- (get-platform-connections.ts) that excludes the encrypted token columns.
+ALTER TABLE "vt_saas"."platform_connections" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "platform_connections_select_own" ON "vt_saas"."platform_connections";
+CREATE POLICY "platform_connections_select_own" ON "vt_saas"."platform_connections"
+  FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "platform_connections_insert_own" ON "vt_saas"."platform_connections";
+CREATE POLICY "platform_connections_insert_own" ON "vt_saas"."platform_connections"
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "platform_connections_update_own" ON "vt_saas"."platform_connections";
+CREATE POLICY "platform_connections_update_own" ON "vt_saas"."platform_connections"
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "platform_connections_delete_own" ON "vt_saas"."platform_connections";
+CREATE POLICY "platform_connections_delete_own" ON "vt_saas"."platform_connections"
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ---- vercel_messages ----
