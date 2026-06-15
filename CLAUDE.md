@@ -412,6 +412,15 @@ After implementing front-end changes, use Playwright MCP tools to navigate to af
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
 - **No lazy-`require()` of local ESM modules**: Never use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this has caused a provider module to silently lose its named export in production). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
 
+## Deployment & QA Skills
+
+Two first-party Claude Code skills live under `.claude/skills/` for go-live work:
+
+- **`/production-deploy`** — provider-agnostic 8-phase first-deploy orchestrator (Plan → Readiness → Env Strategy → Core Infra → Integrations → Smoke Test → Document → Backport). Resume-safe via `_bmad-output/deployment-checklist.md`. Phase 7 extends `docs/deployment-guide.md` and adds a `## Deployment` section to this file with the actual production specifics once a real deploy runs.
+- **`/qa`** — on-demand manual-QA runner for flows unit/E2E tests can't cover (real browser via Playwright MCP, real email via Gmail MCP, real env plumbing). Two targets (`--dev` / `--prod`); ships generic auth runbooks (magic signup/signin, password reset, admin-route gating, cookie flags). Reads `QA_EMAIL` / `QA_PASSWORD` from `.env.local`.
+
+These compose with the read-only `/launch-checklist` audit: **audit (launch-checklist) → execute (production-deploy) → verify (qa)** — sequential and complementary, not duplicative.
+
 ## Research
 
 - During planning, use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
