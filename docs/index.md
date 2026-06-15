@@ -57,6 +57,7 @@
 - [Error Handling Guide](./error-handling-guide.md) - Error boundaries and patterns
 - [API Error Handling](./api-error-handling.md) - Error codes and responses
 - [Email System](./email-system.md) - Resend integration and templates
+- [Subscriptions & Billing](./subscriptions.md) - Tiers, quota framework, Stripe webhook, reverse-trial, lifecycle emails
 - [Admin Setup](./admin-setup.md) - Admin panel configuration
 - [CI/CD Pipeline](./ci-cd-pipeline.md) - Pipeline details
 - [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) - Common CI issues

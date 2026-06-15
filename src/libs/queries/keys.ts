@@ -23,4 +23,8 @@ export const queryKeys = {
     /** Single record. See `useItem`. */
     detail: (id: string) => ['item', id] as const,
   },
+  subscription: {
+    /** Current user's subscription + tier + quota + usage. See `useSubscriptionUsage`. */
+    usage: ['subscription', 'usage'] as const,
+  },
 } as const;

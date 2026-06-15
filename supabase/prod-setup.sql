@@ -3,7 +3,11 @@
 --
 -- Execution order for a fresh environment:
 --   1. npm run db:migrate            (creates the schema + tables)
---   2. psql -f supabase/seed.sql     (optional dev/lookup seed data)
+--   2. psql -f supabase/seed.sql     (lookup seed data — REQUIRED before step 3
+--                                     if you enable the reverse-trial trigger:
+--                                     it RAISEs without the seeded subscription
+--                                     tiers; the quota framework also needs the
+--                                     'free' tier + its quota row)
 --   3. psql -f supabase/prod-setup.sql  (this file — grants, trigger, FKs, RLS, CHECKs, updated_at)
 --
 -- This file contains Supabase-specific constructs that Drizzle ORM cannot manage:
@@ -68,6 +72,72 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ---- subscription enrollment (one row per user) ----
+-- Auto-create a user_subscriptions row on signup so the quota framework always
+-- finds one. REQUIRES supabase/seed.sql to have inserted the subscription tiers
+-- first (this function RAISEs otherwise). Two coexisting AFTER INSERT triggers on
+-- auth.users (this + on_auth_user_created above) is fine.
+--
+-- DEFAULT (safe-by-default): enroll every new user on the FREE tier — no trial,
+-- no card. This is what ships uncommented.
+CREATE OR REPLACE FUNCTION public.handle_new_user_subscription()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+  free_tier_id uuid;
+BEGIN
+  SELECT id INTO free_tier_id FROM "vt_saas"."subscription_tiers" WHERE name = 'free';
+  IF free_tier_id IS NULL THEN
+    RAISE EXCEPTION 'handle_new_user_subscription: free tier not seeded (run supabase/seed.sql first)';
+  END IF;
+
+  INSERT INTO "vt_saas"."user_subscriptions" (user_id, tier_id, status, started_at, current_period_anchor_at, created_at, updated_at)
+  VALUES (NEW.id, free_tier_id, 'active', NOW(), NOW(), NOW(), NOW())
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created_subscription ON auth.users;
+CREATE TRIGGER on_auth_user_created_subscription
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_subscription();
+
+-- ---- OPT-IN reverse-trial variant ----
+-- To enroll every new user in an N-day trial on the PRO tier (no card),
+-- REPLACE the function body above with the version below, then re-run this file.
+-- This changes product behaviour (every signup gets Pro for free), so it is
+-- opt-in and ships commented out.
+--
+-- ⚠️ DUAL-SOURCE CAVEAT: the trial length lives in TWO places — the
+-- `INTERVAL '14 days'` literal below AND the TS `TRIAL_DAYS` env var (which gates
+-- the expiry crons). Keep them in sync. Also flip `ENABLE_REVERSE_TRIAL=true` so
+-- the force-expire + expiry-warning crons run. See docs/subscriptions.md.
+--
+-- CREATE OR REPLACE FUNCTION public.handle_new_user_subscription()
+-- RETURNS TRIGGER
+-- LANGUAGE plpgsql
+-- SECURITY DEFINER SET search_path = ''
+-- AS $$
+-- DECLARE
+--   pro_tier_id uuid;
+-- BEGIN
+--   SELECT id INTO pro_tier_id FROM "vt_saas"."subscription_tiers" WHERE name = 'pro';
+--   IF pro_tier_id IS NULL THEN
+--     RAISE EXCEPTION 'handle_new_user_subscription: pro tier not seeded (run supabase/seed.sql first)';
+--   END IF;
+--
+--   INSERT INTO "vt_saas"."user_subscriptions"
+--     (user_id, tier_id, status, has_trialed, trial_expires_at, started_at, current_period_anchor_at, created_at, updated_at)
+--   VALUES
+--     (NEW.id, pro_tier_id, 'trial', true, NOW() + INTERVAL '14 days', NOW(), NOW(), NOW(), NOW())  -- set 14 to TRIAL_DAYS
+--   ON CONFLICT (user_id) DO NOTHING;
+--   RETURN NEW;
+-- END;
+-- $$;
 
 -- ============================================================
 -- 3. CROSS-SCHEMA FOREIGN KEYS
@@ -200,6 +270,33 @@ DO $$ BEGIN
   ) THEN
     ALTER TABLE "vt_saas"."scheduled_tasks"
       ADD CONSTRAINT fk_scheduled_tasks_auth_users
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+-- user_subscriptions: one row per user. CASCADE so a deleted user's subscription
+-- row is removed. (tier_id -> subscription_tiers is an intra-schema FK Drizzle
+-- already created in the migration.)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'fk_user_subscriptions_auth_users'
+  ) THEN
+    ALTER TABLE "vt_saas"."user_subscriptions"
+      ADD CONSTRAINT fk_user_subscriptions_auth_users
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+-- resource_usage: per-user usage ledger. CASCADE so a deleted user's usage rows
+-- don't linger.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'fk_resource_usage_auth_users'
+  ) THEN
+    ALTER TABLE "vt_saas"."resource_usage"
+      ADD CONSTRAINT fk_resource_usage_auth_users
       FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
   END IF;
 END $$;
@@ -348,8 +445,46 @@ ALTER TABLE "vt_saas"."memory_extraction_jobs" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "vt_saas"."scheduled_tasks" ENABLE ROW LEVEL SECURITY;
 -- (intentionally no CREATE POLICY — server-only)
 
+-- ---- subscription_tiers ----
+-- Lookup/catalogue table every signed-in user may read but not write (the
+-- pricing grid + quota resolver read it). Writes are server-only.
+ALTER TABLE "vt_saas"."subscription_tiers" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "subscription_tiers_select_authenticated" ON "vt_saas"."subscription_tiers";
+CREATE POLICY "subscription_tiers_select_authenticated" ON "vt_saas"."subscription_tiers"
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- ---- tier_quotas ----
+-- Lookup table (per-tier quota config). Same read-only-for-authenticated rule.
+ALTER TABLE "vt_saas"."tier_quotas" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "tier_quotas_select_authenticated" ON "vt_saas"."tier_quotas";
+CREATE POLICY "tier_quotas_select_authenticated" ON "vt_saas"."tier_quotas"
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- ---- user_subscriptions ----
+-- Users read their own row. No INSERT/UPDATE policy: rows are created by the
+-- signup trigger above and only ever mutated by server code (the Stripe webhook,
+-- the expiry crons, the lazy-expiry path) via the service role.
+ALTER TABLE "vt_saas"."user_subscriptions" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_subscriptions_select_own" ON "vt_saas"."user_subscriptions";
+CREATE POLICY "user_subscriptions_select_own" ON "vt_saas"."user_subscriptions"
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- ---- resource_usage ----
+-- Server-only usage ledger: recorded by trusted server code only. RLS ON + no
+-- policy denies all anon/authenticated REST access (service role bypasses RLS).
+ALTER TABLE "vt_saas"."resource_usage" ENABLE ROW LEVEL SECURITY;
+-- (intentionally no CREATE POLICY — server-only)
+
+-- ---- stripe_webhook_events ----
+-- Server-only Stripe webhook idempotency ledger: written only by the webhook
+-- handler. RLS ON + no policy denies all anon/authenticated REST access (service
+-- role bypasses RLS).
+ALTER TABLE "vt_saas"."stripe_webhook_events" ENABLE ROW LEVEL SECURITY;
+-- (intentionally no CREATE POLICY — server-only)
+
 -- Variant — authenticated read-only lookup table (uncomment + adapt for a
--- reference table every signed-in user may read but not write):
+-- reference table every signed-in user may read but not write — see the
+-- subscription_tiers / tier_quotas blocks above for a live example):
 -- ALTER TABLE "vt_saas"."<lookup_table>" ENABLE ROW LEVEL SECURITY;
 -- DROP POLICY IF EXISTS "<lookup_table>_select_authenticated" ON "vt_saas"."<lookup_table>";
 -- CREATE POLICY "<lookup_table>_select_authenticated" ON "vt_saas"."<lookup_table>"
@@ -379,6 +514,32 @@ ALTER TABLE "vt_saas"."scheduled_tasks" ENABLE ROW LEVEL SECURITY;
 --       CHECK (my_status IN ('pending', 'reviewed', 'archived'));
 --   END IF;
 -- END $$;
+
+-- LIVE EXAMPLE: user_subscriptions.status and .billing_interval are text columns
+-- with TS-side $type<> unions only (NOT pg enums — see
+-- src/models/schema/user-subscriptions.ts), so the DB needs CHECKs to enforce them.
+-- Keep the value lists in sync with userSubscriptionStatusEnum / billingIntervalEnum.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'user_subscriptions_status_check'
+  ) THEN
+    ALTER TABLE "vt_saas"."user_subscriptions"
+      ADD CONSTRAINT user_subscriptions_status_check
+      CHECK (status IN ('active', 'trial', 'expired', 'cancelled'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = 'vt_saas' AND constraint_name = 'user_subscriptions_billing_interval_check'
+  ) THEN
+    ALTER TABLE "vt_saas"."user_subscriptions"
+      ADD CONSTRAINT user_subscriptions_billing_interval_check
+      CHECK (billing_interval IS NULL OR billing_interval IN ('monthly', 'yearly'));
+  END IF;
+END $$;
 
 -- ============================================================
 -- 6. UPDATED_AT TRIGGER

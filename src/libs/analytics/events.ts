@@ -10,6 +10,7 @@ export enum EventCategory {
   Auth = 'auth',
   Onboarding = 'onboarding',
   Feature = 'feature',
+  Subscription = 'subscription',
   Error = 'error',
   Page = 'page',
 }
@@ -35,6 +36,11 @@ export type EventName
     | 'feature_first_use'
     | 'user_activated'
     | 'platform_connected'
+  // Subscription events
+    | 'subscription_converted'
+    | 'subscription_cancelled'
+    | 'trial_expired'
+    | 'quota_limit_reached'
   // Error events
     | 'error_occurred'
   // Page events
@@ -92,6 +98,43 @@ export type ProfileUpdatedProperties = {
  */
 export type FeatureFirstUseProperties = {
   feature_name: string;
+};
+
+/**
+ * Properties for subscription_converted event
+ * Fired when a user starts a paid subscription (direct checkout or trial upgrade).
+ */
+export type SubscriptionConvertedProperties = {
+  billing_interval: 'monthly' | 'yearly';
+  tier_name: string;
+  conversion_source: 'checkout' | 'trial_upgrade';
+};
+
+/**
+ * Properties for subscription_cancelled event
+ * Fired when a paid subscription ends and the user is downgraded.
+ */
+export type SubscriptionCancelledProperties = {
+  tier_name: string;
+  billing_interval?: 'monthly' | 'yearly';
+};
+
+/**
+ * Properties for trial_expired event
+ * Fired when a reverse-trial is demoted to free — by the daily cron or lazily
+ * on the next quota read.
+ */
+export type TrialExpiredProperties = {
+  trigger_source: 'cron' | 'lazy_quota_check';
+};
+
+/**
+ * Properties for quota_limit_reached event
+ * Fired when a user exhausts every pool for a resource type in the current period.
+ */
+export type QuotaLimitReachedProperties = {
+  resource_type: string;
+  tier_name: string;
 };
 
 /**
@@ -183,6 +226,10 @@ export type EventPropertiesMap = {
   feature_first_use: FeatureFirstUseProperties;
   user_activated: UserActivatedProperties;
   platform_connected: PlatformConnectedProperties;
+  subscription_converted: SubscriptionConvertedProperties;
+  subscription_cancelled: SubscriptionCancelledProperties;
+  trial_expired: TrialExpiredProperties;
+  quota_limit_reached: QuotaLimitReachedProperties;
   error_occurred: ErrorOccurredProperties;
   page_viewed: PageViewedProperties;
   landing_viewed: LandingViewedProperties;
@@ -208,6 +255,10 @@ export const EVENT_CATEGORIES: Record<EventName, EventCategory> = {
   feature_first_use: EventCategory.Feature,
   user_activated: EventCategory.Feature,
   platform_connected: EventCategory.Feature,
+  subscription_converted: EventCategory.Subscription,
+  subscription_cancelled: EventCategory.Subscription,
+  trial_expired: EventCategory.Subscription,
+  quota_limit_reached: EventCategory.Subscription,
   error_occurred: EventCategory.Error,
   page_viewed: EventCategory.Page,
   landing_viewed: EventCategory.Page,

@@ -51,11 +51,25 @@ export const Env = createEnv({
     // (the Inngest Dev Server works without these keys).
     INNGEST_EVENT_KEY: z.string().min(1).optional(),
     INNGEST_SIGNING_KEY: z.string().min(1).optional(),
+    // Stripe (billing) — optional; billing is disabled if unset. The Stripe
+    // client is lazy (see src/libs/stripe/client.ts) so an unconfigured fork
+    // builds and runs unaffected.
+    STRIPE_SECRET_KEY: z.string().min(1).optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+    // Reverse-trial policy (opt-in). ENABLE_REVERSE_TRIAL gates ONLY the TS layer
+    // (the expiry crons no-op when off, and UI banners). Actual signup enrollment
+    // is the prod-setup signup trigger, which is independently opt-in — keep
+    // TRIAL_DAYS here in sync with the literal in that trigger (the dual-source
+    // caveat is documented in docs/subscriptions.md).
+    TRIAL_DAYS: z.coerce.number().int().positive().default(14),
+    ENABLE_REVERSE_TRIAL: z.enum(['true', 'false']).default('false'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_URL: z.string().min(1),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    // Stripe publishable key — optional (billing disabled if unset).
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   },
   shared: {
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
@@ -93,9 +107,14 @@ export const Env = createEnv({
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    TRIAL_DAYS: process.env.TRIAL_DAYS,
+    ENABLE_REVERSE_TRIAL: process.env.ENABLE_REVERSE_TRIAL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NODE_ENV: process.env.NODE_ENV,
   },
 });

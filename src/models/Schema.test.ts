@@ -615,4 +615,156 @@ describe('Database Schema Tests', () => {
       expect(job1Index).toBeLessThan(job2Index);
     });
   });
+
+  describe('subscription tables', () => {
+    // Helper: seed a tier and return its id.
+    async function createTier(
+      name: string,
+      overrides: Partial<typeof schema.subscriptionTiers.$inferInsert> = {},
+    ): Promise<string> {
+      const [tier] = await testDb
+        .insert(schema.subscriptionTiers)
+        .values({ name, displayName: name.toUpperCase(), ...overrides })
+        .returning();
+      return tier!.id;
+    }
+
+    it('creates a subscription_tiers row with the documented column shape', async () => {
+      const [tier] = await testDb
+        .insert(schema.subscriptionTiers)
+        .values({
+          name: 'free-shape',
+          displayName: 'Free',
+          description: 'Starter plan',
+          priceCents: null,
+          stripePriceIdMonthly: null,
+          stripePriceIdYearly: null,
+        })
+        .returning();
+
+      expect(tier).toBeDefined();
+      expect(tier!.name).toBe('free-shape');
+      expect(tier!.isActive).toBe(true);
+      expect(tier!.sortOrder).toBe(0);
+      expect(tier!.priceCents).toBeNull();
+      expect(tier!.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('enforces the unique tier name constraint', async () => {
+      await createTier('dup-tier');
+
+      await expect(createTier('dup-tier')).rejects.toThrow();
+    });
+
+    it('stores the user_subscriptions status + billing_interval text unions', async () => {
+      const tierId = await createTier('pro-subs');
+      const userId = '550e8400-e29b-41d4-a716-446655440100';
+
+      const [sub] = await testDb
+        .insert(schema.userSubscriptions)
+        .values({
+          userId,
+          tierId,
+          status: 'trial',
+          billingInterval: 'monthly',
+          hasTrialed: true,
+        })
+        .returning();
+
+      expect(sub).toBeDefined();
+      expect(sub!.status).toBe('trial');
+      expect(sub!.billingInterval).toBe('monthly');
+      expect(sub!.hasTrialed).toBe(true);
+      // The union values are exported for the CHECK guard in prod-setup.sql.
+      expect(schema.userSubscriptionStatusEnum).toContain('trial');
+      expect(schema.billingIntervalEnum).toContain('yearly');
+    });
+
+    it('enforces the unique user_id constraint on user_subscriptions', async () => {
+      const tierId = await createTier('uniq-user-tier');
+      const userId = '550e8400-e29b-41d4-a716-446655440101';
+
+      await testDb.insert(schema.userSubscriptions).values({ userId, tierId });
+
+      await expect(
+        testDb.insert(schema.userSubscriptions).values({ userId, tierId }),
+      ).rejects.toThrow();
+    });
+
+    it('stores tier_quotas as a two-pool config with generic unit keys', async () => {
+      const tierId = await createTier('quota-tier');
+
+      const [quota] = await testDb
+        .insert(schema.tierQuotas)
+        .values({
+          tierId,
+          resourceType: 'generation',
+          premiumUnitKey: 'premium-pool',
+          premiumPeriodLimit: 1000,
+          fallbackUnitKey: 'fallback-pool',
+          fallbackPeriodLimit: 500,
+        })
+        .returning();
+
+      expect(quota).toBeDefined();
+      expect(quota!.premiumUnitKey).toBe('premium-pool');
+      expect(quota!.fallbackUnitKey).toBe('fallback-pool');
+      expect(quota!.warningThresholdPct).toBe(90);
+    });
+
+    it('cascade-deletes tier_quotas when the tier is removed', async () => {
+      const tierId = await createTier('cascade-tier');
+      await testDb.insert(schema.tierQuotas).values({
+        tierId,
+        resourceType: 'generation',
+        fallbackUnitKey: 'fallback-pool',
+        fallbackPeriodLimit: 100,
+      });
+
+      await testDb.delete(schema.subscriptionTiers).where(eq(schema.subscriptionTiers.id, tierId));
+
+      const remaining = await testDb
+        .select()
+        .from(schema.tierQuotas)
+        .where(eq(schema.tierQuotas.tierId, tierId));
+
+      expect(remaining).toHaveLength(0);
+    });
+
+    it('tracks resource_usage units per (user, resource, period)', async () => {
+      const userId = '550e8400-e29b-41d4-a716-446655440102';
+
+      const [usage] = await testDb
+        .insert(schema.resourceUsage)
+        .values({
+          userId,
+          resourceType: 'generation',
+          periodStart: '2026-06-01',
+          periodEnd: '2026-06-08',
+          premiumUnitsUsed: 10,
+          fallbackUnitsUsed: 5,
+        })
+        .returning();
+
+      expect(usage).toBeDefined();
+      expect(usage!.premiumUnitsUsed).toBe(10);
+      expect(usage!.fallbackUnitsUsed).toBe(5);
+    });
+
+    it('enforces the unique (user, resource, period_start) constraint on resource_usage', async () => {
+      const userId = '550e8400-e29b-41d4-a716-446655440103';
+      const row = {
+        userId,
+        resourceType: 'generation',
+        periodStart: '2026-06-01',
+        periodEnd: '2026-06-08',
+      };
+
+      await testDb.insert(schema.resourceUsage).values(row);
+
+      await expect(
+        testDb.insert(schema.resourceUsage).values(row),
+      ).rejects.toThrow();
+    });
+  });
 });
