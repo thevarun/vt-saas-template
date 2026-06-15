@@ -36,6 +36,10 @@ export const Env = createEnv({
       .string()
       .regex(/^[0-9a-f]{64}$/i, 'TOKEN_ENCRYPTION_KEY must be 64 hex chars (32 bytes): openssl rand -hex 32')
       .optional(),
+    // Generic single-provider OAuth credentials (src/libs/platforms) - Optional,
+    // graceful degradation. The connect/callback flow is inert until both are set.
+    OAUTH_PROVIDER_CLIENT_ID: z.string().optional(),
+    OAUTH_PROVIDER_CLIENT_SECRET: z.string().optional(),
     // Mem0 (Memory Integration) - Optional to allow graceful degradation
     ENABLE_MEM0: z.enum(['true', 'false']).default('false'),
     MEM0_API_KEY: z.string().optional(),
@@ -81,6 +85,8 @@ export const Env = createEnv({
     TAVILY_API_KEY: process.env.TAVILY_API_KEY,
     PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
     TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
+    OAUTH_PROVIDER_CLIENT_ID: process.env.OAUTH_PROVIDER_CLIENT_ID,
+    OAUTH_PROVIDER_CLIENT_SECRET: process.env.OAUTH_PROVIDER_CLIENT_SECRET,
     ENABLE_MEM0: process.env.ENABLE_MEM0,
     MEM0_API_KEY: process.env.MEM0_API_KEY,
     CRON_SECRET: process.env.CRON_SECRET,
