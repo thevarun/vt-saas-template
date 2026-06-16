@@ -342,7 +342,8 @@
     "blog": "Blog",
     "changelog": "পরিবর্তন লগ",
     "community": "Community",
-    "company": "Company"
+    "company": "Company",
+    "about": "About"
   },
   "Hero": {
     "title": "Build your next <important>SaaS product</important> faster.",

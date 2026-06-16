@@ -9,10 +9,11 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
  *
  * PUBLIC ROUTES (included in sitemap):
  * - / (landing page)
+ * - /about (founder page)
  * - /blog (pSEO index)
  * - /blog/[category] (pSEO category pages)
  * - /blog/[category]/[slug] (pSEO article pages)
- * - Future: /about, /pricing, /blog/[slug], /docs/[...path]
+ * - Future: /pricing, /blog/[slug], /docs/[...path]
  *
  * PRIVATE ROUTES (excluded from sitemap, disallowed in robots.txt):
  * - /dashboard (auth required)
@@ -75,7 +76,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority?: number;
   }> = [
     { path: '/', changeFrequency: 'daily', priority: 1.0 },
-    // Future: Add /about, /pricing, /blog, etc.
+    { path: '/about', changeFrequency: 'monthly', priority: 0.6 },
+    // Future: Add /pricing, etc.
   ];
 
   // Generate localized entries for all public routes
