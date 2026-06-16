@@ -830,7 +830,11 @@
     "title": "Changelog",
     "description": "Product updates and release notes",
     "noReleases": "No releases yet",
-    "noReleasesDescription": "Releases will appear here once the first version is published to main."
+    "noReleasesDescription": "Releases will appear here once the first version is published to main.",
+    "tagNew": "New",
+    "tagImproved": "Improved",
+    "tagFixed": "Fixed",
+    "underTheHood": "Under the hood"
   },
   "ShareLinks": {
     "title": "Share Links",
