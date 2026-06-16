@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { trackEventServer } from '@/libs/analytics/server';
+import { getPostAuthDestination } from '@/libs/auth/post-auth-destination';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
@@ -73,8 +74,18 @@ export async function GET(request: Request) {
         }
       }
 
-      // Build locale-aware redirect path
-      const redirectPath = getLocalePath(locale, next);
+      // Build locale-aware redirect path. Route the user through the
+      // onboarding gate so a user who hasn't completed onboarding lands on
+      // /onboarding instead of their naive `next` destination.
+      const preferredPath = getLocalePath(locale, next);
+      const redirectPath = user
+        ? await getPostAuthDestination({
+            supabase,
+            userId: user.id,
+            locale,
+            preferredPath,
+          })
+        : preferredPath;
 
       // If user just verified email, add success query param
       if (user?.email_confirmed_at) {
