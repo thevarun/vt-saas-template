@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { parseApiError } from '@/libs/api/client';
+
 export type UserPreferences = {
   emailNotifications: boolean;
   language: string;
@@ -12,10 +14,10 @@ type UpdatePayload = Partial<Omit<UserPreferences, 'username'>>;
 
 const QUERY_KEY = ['user-preferences'] as const;
 
-// Integration seam: this route does NOT exist in the template yet. A fork
-// implements `GET`/`PATCH /api/profile/preferences` reading & writing the
-// `user_preferences` table (the server half's columns). Kept as a constant so
-// the client hook reads as native and the seam is obvious.
+// Read+write endpoint for the user's preferences, backed by the
+// `user_preferences` table. `GET` returns current prefs (or schema defaults for
+// a brand-new user) and `PATCH` upserts. Kept as a constant so the client hook
+// reads as native and the seam is obvious.
 const ENDPOINT = '/api/profile/preferences';
 
 const DEFAULTS: UserPreferences = {
@@ -52,8 +54,8 @@ async function patchPreferences(
   });
 
   if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(message || `Failed to save preferences (${response.status})`);
+    const parsed = await parseApiError(response);
+    throw new Error(parsed.message);
   }
 
   const json = (await response.json()) as Partial<UserPreferences>;

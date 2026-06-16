@@ -861,5 +861,18 @@
     "topics": {
       "title": "বিষয়"
     }
+  },
+  "Settings": {
+    "page_title": "সেটিংস",
+    "page_subtitle": "আপনার অ্যাকাউন্ট পছন্দ পরিচালনা করুন",
+    "notifications_title": "বিজ্ঞপ্তি",
+    "notifications_description": "আপনি কীভাবে আমাদের কাছ থেকে শুনতে চান তা চয়ন করুন।",
+    "email_notifications": "ইমেল বিজ্ঞপ্তি",
+    "notifications_saved_title": "পছন্দ সংরক্ষিত হয়েছে",
+    "notifications_saved_toast": "আপনার বিজ্ঞপ্তি পছন্দ আপডেট করা হয়েছে।",
+    "notifications_error_title": "পছন্দ সংরক্ষণ করা যায়নি",
+    "notifications_error_generic": "কিছু একটা ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    "saving": "সংরক্ষণ করা হচ্ছে...",
+    "save_notifications": "পরিবর্তন সংরক্ষণ করুন"
   }
 }
