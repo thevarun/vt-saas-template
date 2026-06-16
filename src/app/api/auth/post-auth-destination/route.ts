@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { buildSignInUrl } from '@/libs/auth/auth-redirects';
 import { getPostAuthDestination } from '@/libs/auth/post-auth-destination';
+import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
@@ -28,9 +29,7 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    const fallbackRedirect = preferredPath && preferredPath.startsWith('/')
-      ? preferredPath
-      : `/${locale}/dashboard`;
+    const fallbackRedirect = toSafeInternalPath(preferredPath, `/${locale}/dashboard`);
     return NextResponse.json(
       { destination: buildSignInUrl({ locale, redirect: fallbackRedirect }) },
       { status: 401 },

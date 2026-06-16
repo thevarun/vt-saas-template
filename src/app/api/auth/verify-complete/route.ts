@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { sendWelcomeEmail } from '@/libs/email';
 import { logger } from '@/libs/Logger';
 
@@ -65,12 +66,12 @@ export async function GET(request: NextRequest) {
       ).catch(err => logger.error({ error: err }, 'Failed to send welcome email'));
     }
 
-    const safePath = next.startsWith('/') ? next : '/';
+    const safePath = toSafeInternalPath(next, '/');
     return NextResponse.redirect(new URL(safePath, request.url));
   }
 
   // Extract locale from next path or default to 'en'
-  const safeNext = next.startsWith('/') ? next : '/';
+  const safeNext = toSafeInternalPath(next, '/');
   const localeMatch = safeNext.match(/^\/([^/]+)\//);
   const locale = localeMatch?.[1] ?? 'en';
   return NextResponse.redirect(new URL(`/${locale}/auth-code-error`, request.url));

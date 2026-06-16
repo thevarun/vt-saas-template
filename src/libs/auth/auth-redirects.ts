@@ -6,6 +6,12 @@ import { getLocale } from 'next-intl/server';
 import { getCachedUser } from '@/libs/supabase/cached-user';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
+// Re-export the pure open-redirect guards so server callers that already import
+// from this module don't have to reach into `safe-path.ts` directly. The
+// sanitizer itself lives in `safe-path.ts` (no `next/headers` / server-only
+// imports) so it stays importable from client components.
+export { isSafeInternalPath, toSafeInternalPath } from './safe-path';
+
 /**
  * Build a locale-aware URL to the sign-in page.
  *
