@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { logger } from '@/libs/Logger';
 
+import { toSafeInternalPath } from './safe-path';
+
 // The generated `src/libs/supabase/types.ts` is a placeholder stub with no real
 // tables, so the server client is not schema-typed and `.from(...)` rows surface
 // as `never`. We accept a loosely-typed client here (same pragmatic approach as
@@ -20,8 +22,10 @@ type LooseSupabaseClient = SupabaseClient<any, any, any>;
  * they were headed; everyone else lands on a validated `preferredPath` or
  * `/dashboard`.
  *
- * Open-redirect safe: `preferredPath` is only honoured when it is a same-origin
- * relative path (starts with a single `/`).
+ * Open-redirect safe: `preferredPath` is only honoured when it passes
+ * {@link toSafeInternalPath} — a same-origin internal path with no protocol-relative
+ * `//`, no backslash, no whitespace and no control chars (so it can never
+ * normalize to an external origin).
  *
  * Fails open to `/onboarding`-or-`/dashboard` logic even if the preferences
  * lookup errors — auth must never be blocked by a transient DB hiccup.
@@ -63,13 +67,6 @@ export async function getPostAuthDestination(options: {
     return `${localePrefix}/onboarding`;
   }
 
-  // Onboarded users: honour preferredPath if it's a safe relative path.
-  if (
-    preferredPath
-    && preferredPath.startsWith('/')
-    && !preferredPath.startsWith('//')
-  ) {
-    return preferredPath;
-  }
-  return `${localePrefix}/dashboard`;
+  // Onboarded users: honour preferredPath only when it's a safe internal path.
+  return toSafeInternalPath(preferredPath, `${localePrefix}/dashboard`);
 }

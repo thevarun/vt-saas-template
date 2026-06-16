@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { sendWelcomeEmail } from '@/libs/email';
 import { logger } from '@/libs/Logger';
 
@@ -41,9 +42,9 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null;
   const nextParam = searchParams.get('next') ?? '/';
 
-  // Open-redirect guard — only allow same-origin relative paths.
-  const safeNext
-    = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/';
+  // Open-redirect guard — only allow same-origin internal paths (rejects `//`,
+  // `/\evil.com`, absolute and whitespace/control-char targets).
+  const safeNext = toSafeInternalPath(nextParam, '/');
 
   // Best-effort locale prefix for error redirects, taken from `next`.
   const localeMatch = safeNext.match(/^\/([^/]+)\//);

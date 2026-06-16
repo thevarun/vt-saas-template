@@ -13,6 +13,7 @@ import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useOAuth } from '@/hooks/useOAuth';
+import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { createClient } from '@/libs/supabase/client';
 
 const createSignInSchema = (t: ReturnType<typeof useTranslations<'SignIn'>>) =>
@@ -99,7 +100,8 @@ export default function SignInFormClient() {
       // Get redirect destination from URL params
       const redirectParam = searchParams.get('redirect');
       // Validate redirect URL to prevent open redirect vulnerability
-      const redirectTo = redirectParam?.startsWith('/') ? redirectParam : `/${locale}/dashboard`;
+      // (blocks `//`, `/\evil.com`, absolute, whitespace/control-char targets).
+      const redirectTo = toSafeInternalPath(redirectParam, `/${locale}/dashboard`);
 
       // Redirect to intended destination or dashboard
       router.push(redirectTo);

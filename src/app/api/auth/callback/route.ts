@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { getPostAuthDestination } from '@/libs/auth/post-auth-destination';
+import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { sendWelcomeEmail } from '@/libs/email';
 import { logger } from '@/libs/Logger';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       // Successfully exchanged code for session. Route through the onboarding
       // gate: a user who hasn't completed onboarding lands on /onboarding,
       // everyone else honours their requested `next` path.
-      const safePath = next.startsWith('/') ? next : '/';
+      const safePath = toSafeInternalPath(next, '/');
       const localeMatch = LOCALE_PREFIX_RE.exec(safePath);
       const locale = localeMatch?.[1] && AllLocales.includes(localeMatch[1] as (typeof AllLocales)[number])
         ? localeMatch[1]
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
 
   // Return the user to an error page with instructions
   // Extract locale from the 'next' parameter or default to 'en'
-  const safeNext = next.startsWith('/') ? next : '/';
+  const safeNext = toSafeInternalPath(next, '/');
   const localeMatch = safeNext.match(/^\/([^/]+)\//);
   const locale = localeMatch?.[1] ?? 'en';
   return NextResponse.redirect(new URL(`/${locale}/auth-code-error`, request.url));

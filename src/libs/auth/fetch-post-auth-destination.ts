@@ -1,3 +1,5 @@
+import { isSafeInternalPath } from './safe-path';
+
 /**
  * Client-side helper to ask the server where to land the user after sign-in.
  * Honours the onboarding gate — a user who hasn't completed onboarding is sent
@@ -22,8 +24,8 @@ export async function fetchPostAuthDestination(options: {
     );
     if (res.ok) {
       const data = (await res.json()) as { destination?: string };
-      if (typeof data.destination === 'string' && data.destination.startsWith('/')) {
-        return data.destination;
+      if (isSafeInternalPath(data.destination)) {
+        return data.destination as string;
       }
     }
   } catch {

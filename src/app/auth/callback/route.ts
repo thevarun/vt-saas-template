@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { trackEventServer } from '@/libs/analytics/server';
 import { getPostAuthDestination } from '@/libs/auth/post-auth-destination';
+import { isSafeInternalPath } from '@/libs/auth/safe-path';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
@@ -22,7 +23,10 @@ function getLocalePath(locale: string, path: string): string {
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  // Open-redirect guard: only honour a same-origin internal `next`; anything
+  // user-controlled that could escape the origin collapses to /dashboard.
+  const nextParam = searchParams.get('next') ?? '/dashboard';
+  const next = isSafeInternalPath(nextParam) ? nextParam : '/dashboard';
   const error_code = searchParams.get('error_code');
   const error_description = searchParams.get('error_description');
 
