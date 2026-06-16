@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/libs/Env', () => ({
   Env: {
     LANGFUSE_TRACING_ENVIRONMENT: undefined as string | undefined,
+    LANGFUSE_PUBLIC_KEY: 'pk-test' as string | undefined,
   },
 }));
 
@@ -10,19 +11,23 @@ vi.mock('@/libs/Logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-type MockEnv = { LANGFUSE_TRACING_ENVIRONMENT: string | undefined };
+type MockEnv = {
+  LANGFUSE_TRACING_ENVIRONMENT: string | undefined;
+  LANGFUSE_PUBLIC_KEY: string | undefined;
+};
 
 describe('buildTelemetry', () => {
   beforeEach(async () => {
     const { Env } = await import('@/libs/Env');
     (Env as unknown as MockEnv).LANGFUSE_TRACING_ENVIRONMENT = undefined;
+    (Env as unknown as MockEnv).LANGFUSE_PUBLIC_KEY = 'pk-test';
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('returns isEnabled + functionId + metadata.userId', async () => {
+  it('returns isEnabled + functionId + metadata.userId when Langfuse is configured', async () => {
     const { buildTelemetry } = await import('./telemetry');
 
     const telemetry = buildTelemetry('generate-draft', 'user-1');
@@ -30,6 +35,15 @@ describe('buildTelemetry', () => {
     expect(telemetry.isEnabled).toBe(true);
     expect(telemetry.functionId).toBe('generate-draft');
     expect(telemetry.metadata?.userId).toBe('user-1');
+  });
+
+  it('disables telemetry when no Langfuse public key is configured', async () => {
+    const { Env } = await import('@/libs/Env');
+    (Env as unknown as MockEnv).LANGFUSE_PUBLIC_KEY = undefined;
+
+    const { buildTelemetry } = await import('./telemetry');
+
+    expect(buildTelemetry('fn', 'user-1').isEnabled).toBe(false);
   });
 
   it('includes sessionId only when passed', async () => {
