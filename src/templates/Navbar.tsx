@@ -72,7 +72,7 @@ export const Navbar = () => {
         </li>
 
         <li>
-          <Link href="/sign-up">{t('company')}</Link>
+          <Link href="/about">{t('about')}</Link>
         </li>
       </CenteredMenu>
     </Section>
