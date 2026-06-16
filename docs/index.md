@@ -92,6 +92,7 @@
 - [CLAUDE.md](../CLAUDE.md) - AI development instructions
 - [AGENTS.md](../AGENTS.md) - Agent documentation
 - [CHANGELOG.md](../CHANGELOG.md) - Version history
+- [Changelog rendering & automation](./changelog/README.md) - The `/changelog` page, `changelog.json` schema, and the AI humanizer pipeline
 
 ---
 
