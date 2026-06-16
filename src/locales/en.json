@@ -865,5 +865,18 @@
     "topics": {
       "title": "Topics"
     }
+  },
+  "Settings": {
+    "page_title": "Settings",
+    "page_subtitle": "Manage your account preferences",
+    "notifications_title": "Notifications",
+    "notifications_description": "Choose how you want to hear from us.",
+    "email_notifications": "Email notifications",
+    "notifications_saved_title": "Preferences saved",
+    "notifications_saved_toast": "Your notification preferences have been updated.",
+    "notifications_error_title": "Couldn't save preferences",
+    "notifications_error_generic": "Something went wrong. Please try again.",
+    "saving": "Saving...",
+    "save_notifications": "Save changes"
   }
 }
