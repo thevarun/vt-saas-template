@@ -2,7 +2,7 @@
  * Tests for pSEO data loading utilities
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   getAllPageParams,
@@ -15,6 +15,15 @@ import {
 } from '../data';
 
 describe('pSEO Data Utilities', () => {
+  afterEach(() => {
+    // The cache tests dynamically re-import the module with a stubbed
+    // NODE_ENV. Reset the env stub and the module registry afterwards so the
+    // prod cache state and env don't leak into the other tests, which use the
+    // statically-imported (test-env) functions.
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
   describe('loadCategories', () => {
     it('should load all categories', async () => {
       const categories = await loadCategories();
@@ -34,11 +43,34 @@ describe('pSEO Data Utilities', () => {
       expect(category).toHaveProperty('slug');
     });
 
-    it('should cache categories on subsequent calls', async () => {
-      const first = await loadCategories();
-      const second = await loadCategories();
+    it('should cache categories in production (same reference on repeat calls)', async () => {
+      // Re-import with a fresh module registry so the module-level cache
+      // starts empty under the stubbed production env.
+      vi.resetModules();
+      vi.stubEnv('NODE_ENV', 'production');
+      const mod = await import('../data');
 
-      expect(first).toBe(second); // Same reference = cached
+      const first = await mod.loadCategories();
+      const second = await mod.loadCategories();
+
+      // Second call is served from cache: identical reference, not re-read.
+      expect(first).toBe(second);
+    });
+
+    it('should bypass the cache outside production (fresh data each call)', async () => {
+      // In dev/test the cache is intentionally bypassed so edits to
+      // data/pseo/categories.json surface on the next request without a
+      // dev-server restart. Each call re-reads + re-parses the file, yielding
+      // an equal-but-distinct array instance.
+      vi.resetModules();
+      vi.stubEnv('NODE_ENV', 'development');
+      const mod = await import('../data');
+
+      const first = await mod.loadCategories();
+      const second = await mod.loadCategories();
+
+      expect(first).toEqual(second); // Equal content...
+      expect(first).not.toBe(second); // ...but freshly read each time (no cache)
     });
   });
 
@@ -65,11 +97,28 @@ describe('pSEO Data Utilities', () => {
       expect(page).toHaveProperty('lastModified');
     });
 
-    it('should cache pages on subsequent calls', async () => {
-      const first = await loadPages();
-      const second = await loadPages();
+    it('should cache pages in production (same reference on repeat calls)', async () => {
+      vi.resetModules();
+      vi.stubEnv('NODE_ENV', 'production');
+      const mod = await import('../data');
 
-      expect(first).toBe(second); // Same reference = cached
+      const first = await mod.loadPages();
+      const second = await mod.loadPages();
+
+      // Second call is served from cache: identical reference, not re-read.
+      expect(first).toBe(second);
+    });
+
+    it('should bypass the cache outside production (fresh data each call)', async () => {
+      vi.resetModules();
+      vi.stubEnv('NODE_ENV', 'development');
+      const mod = await import('../data');
+
+      const first = await mod.loadPages();
+      const second = await mod.loadPages();
+
+      expect(first).toEqual(second); // Equal content...
+      expect(first).not.toBe(second); // ...but freshly read each time (no cache)
     });
   });
 

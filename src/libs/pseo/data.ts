@@ -40,10 +40,22 @@ export type PseoPage = {
 };
 
 // Cache for loaded data (populated on first load in production).
-// Disabled in dev so file changes under data/pseo/ surface without restart.
-const SHOULD_CACHE = process.env.NODE_ENV === 'production';
+// Disabled outside production so file changes under data/pseo/ surface
+// without restart.
 let categoriesCache: PseoCategory[] | null = null;
 let pagesCache: PseoPage[] | null = null;
+
+/**
+ * Whether loaded data should be cached in module-level state.
+ *
+ * Evaluated per call (not as a module-load const) so the prod-gate stays
+ * trivially testable and the behavior is unchanged: cache in production,
+ * bypass everywhere else so dev edits to data/pseo/*.json surface on the
+ * next request without a dev-server restart.
+ */
+function shouldCache(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
 
 /**
  * Load categories from JSON file
@@ -52,7 +64,7 @@ let pagesCache: PseoPage[] | null = null;
  * without a dev-server restart.
  */
 export async function loadCategories(): Promise<PseoCategory[]> {
-  if (SHOULD_CACHE && categoriesCache) {
+  if (shouldCache() && categoriesCache) {
     return categoriesCache;
   }
 
@@ -60,7 +72,7 @@ export async function loadCategories(): Promise<PseoCategory[]> {
   const content = await readFile(dataPath, 'utf-8');
   const categories = JSON.parse(content) as PseoCategory[];
 
-  if (SHOULD_CACHE) {
+  if (shouldCache()) {
     categoriesCache = categories;
   }
 
@@ -74,7 +86,7 @@ export async function loadCategories(): Promise<PseoCategory[]> {
  * without a dev-server restart.
  */
 export async function loadPages(): Promise<PseoPage[]> {
-  if (SHOULD_CACHE && pagesCache) {
+  if (shouldCache() && pagesCache) {
     return pagesCache;
   }
 
@@ -82,7 +94,7 @@ export async function loadPages(): Promise<PseoPage[]> {
   const content = await readFile(dataPath, 'utf-8');
   const pages = JSON.parse(content) as PseoPage[];
 
-  if (SHOULD_CACHE) {
+  if (shouldCache()) {
     pagesCache = pages;
   }
 
