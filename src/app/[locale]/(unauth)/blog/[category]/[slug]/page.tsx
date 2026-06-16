@@ -8,6 +8,7 @@ import {
   getPageBySlug,
   getRelatedPages,
 } from '@/libs/pseo/data';
+import { SITE_NAME } from '@/libs/seo/constants';
 import { getBaseUrl } from '@/utils/Helpers';
 
 type PseoPageProps = {
@@ -47,7 +48,7 @@ export async function generateMetadata(props: PseoPageProps): Promise<Metadata> 
       title: page.title,
       description: page.description,
       url: pageUrl,
-      siteName: 'VT SaaS Template',
+      siteName: SITE_NAME,
       locale,
       type: 'article',
       publishedTime: page.lastModified,
