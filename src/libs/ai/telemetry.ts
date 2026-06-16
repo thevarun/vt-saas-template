@@ -9,6 +9,11 @@ import { logger } from '@/libs/Logger';
  * Builds the `experimental_telemetry` config for AI SDK calls.
  * Attaches userId and an optional sessionId so Langfuse can attribute traces
  * to users and group related calls (e.g. a multi-step conversation).
+ *
+ * `isEnabled` is gated on a configured Langfuse public key: telemetry is
+ * off-by-default until a tracing backend is wired up, so a fork doesn't ship
+ * always-on AI SDK tracing (and userId metadata) it never reads. Set
+ * LANGFUSE_PUBLIC_KEY to enable.
  */
 export function buildTelemetry(
   functionId: string,
@@ -16,7 +21,7 @@ export function buildTelemetry(
   sessionId?: string,
 ): TelemetrySettings {
   return {
-    isEnabled: true,
+    isEnabled: !!Env.LANGFUSE_PUBLIC_KEY,
     functionId,
     metadata: {
       userId,
