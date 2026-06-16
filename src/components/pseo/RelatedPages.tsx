@@ -26,24 +26,26 @@ export function RelatedPages({ pages, categorySlug, locale }: RelatedPagesProps)
   }
 
   return (
-    <section className="mt-12 border-t border-border pt-8">
-      <h2 className="mb-6 text-2xl font-bold text-foreground">Related Posts</h2>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <section className="mt-16 border-t border-border pt-10">
+      <h2 className="mb-8 text-2xl font-bold tracking-tight text-foreground">Related Posts</h2>
+      <div className="grid gap-6 sm:grid-cols-2">
         {pages.map(page => (
           <Link
             key={page.id}
             href={`/${locale}/blog/${categorySlug}/${page.slug}`}
-            className="group block"
+            className="group block focus-visible:outline-none"
           >
-            <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">
-              <h3 className="mb-2 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
+            <article className="flex h-full flex-col rounded-xl border border-border bg-card p-6 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/15 group-hover:shadow-lg group-focus-visible:ring-2 group-focus-visible:ring-ring">
+              <h3 className="mb-2 text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
                 {page.title}
               </h3>
               <p className="line-clamp-3 text-sm text-muted-foreground">
                 {page.description}
               </p>
-              <div className="mt-4 text-sm font-medium text-primary">
-                Read more →
+              <div className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                Read more
+                {' '}
+                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
               </div>
             </article>
           </Link>

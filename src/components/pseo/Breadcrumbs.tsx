@@ -14,6 +14,7 @@ import Link from 'next/link';
 
 import type { PseoCategory } from '@/libs/pseo/data';
 import { getSiteUrl } from '@/libs/seo/config';
+import { serializeJsonLd } from '@/libs/seo/json-ld';
 
 type BreadcrumbsProps = {
   category: PseoCategory;
@@ -47,8 +48,8 @@ export function Breadcrumbs({ category, pageTitle, locale, rootLabel = 'Blog' }:
       {/* JSON-LD structured data for search engines */}
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- JSON-LD structured data from trusted schema object
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
 
       {/* Visual breadcrumbs */}
