@@ -251,6 +251,8 @@ When you have multiple products **and** a shared piece that must never drift (se
 
 The template is the **source of truth for shared code** — anything generic enough to help the *next* product belongs here, not just in one fork. Keeping a single lineage (rather than divergent copies across forks) is the whole point of the template.
 
+**Use the `/upstream-contribute` skill** to do this as a repeatable, verified loop (Identify → Plan → Produce → Verify → Merge → Harvest): it audits the product↔template delta, opens dependency-ordered PRs, gates each merge on independent byte-level verification, and files harvest issues for product-source bugs found along the way. The manual flow below is the same process by hand.
+
 ### Principle: template-first
 
 - **Build it in the template first** when you already know a change is generic — tooling, CI, build config, infra, auth, DB workflow, shared UI/primitives, error/API conventions. It lands once and every fork inherits it on the next sync. Per-fork edits multiply the work N times.
