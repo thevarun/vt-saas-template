@@ -421,6 +421,13 @@ Two first-party Claude Code skills live under `.claude/skills/` for go-live work
 
 These compose with the read-only `/launch-checklist` audit: **audit (launch-checklist) → execute (production-deploy) → verify (qa)** — sequential and complementary, not duplicative.
 
+## Contributing back to the template
+
+**This template is the source of truth for shared/infra code.** When a product accumulates a generic, reusable improvement, contribute it **up** here — it then reaches every product (and every future fork) via `upstream-sync`. Never keep divergent copies of shared code.
+
+- **`/upstream-contribute`** — the repeatable harvest loop: Identify → Plan → Produce → Verify → Merge → Harvest. A produce-only fan-out (`workflows/port-to-template.js`) opens dependency-ordered PRs; the merge is human-supervised and gated on **independent byte-level verification** — trust the pushed bytes, never an agent's "I fixed it" report. It auto-detects whether you're in the template or a product and nudges; re-run it whenever a product accrues new candidates.
+- **What to contribute:** does it make the *next* product faster to build, or improve the *whole fleet*? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
+
 ## Research
 
 - During planning, use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
