@@ -5,7 +5,7 @@
     "dev:spotlight": "spotlight-sidecar",
     "dev:next": "next dev",
     "dev": "run-p dev:*",
-    "build": "if [ \"$VERCEL_ENV\" = 'production' ]; then echo '▶ Running production migrations...' && npm run db:migrate:ci; fi && next build",
+    "build": "if [ \"$VERCEL_ENV\" = 'production' ]; then if [ \"$RUN_PROD_MIGRATIONS\" = 'true' ]; then echo '▶ Running production migrations...' && npm run db:migrate:ci; else echo '⚠️  Skipping build-time migrations (RUN_PROD_MIGRATIONS != true) — set it to enable; see .claude/rules/database.md.'; fi; fi && next build",
     "postbuild": "if [ \"$VERCEL_ENV\" = 'production' ]; then sentry-cli releases deploys \"$VERCEL_GIT_COMMIT_SHA\" new -e production || true; fi",
     "start": "next start",
     "build-stats": "cross-env ANALYZE=true npm run build",
