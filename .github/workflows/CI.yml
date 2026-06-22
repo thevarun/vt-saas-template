@@ -36,7 +36,7 @@ jobs:
       deps_only: ${{ steps.filter.outputs.code == 'true' && steps.filter.outputs.non_deps_code != 'true' }}
       is_dependabot: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # WHY THE INVERSION: `predicate-quantifier: every` is a PER-FILE pattern
       # combinator (one file must match every pattern), NOT a cross-file "all
@@ -92,7 +92,7 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -132,7 +132,7 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -165,7 +165,7 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
@@ -207,7 +207,7 @@ jobs:
       && needs.changes.outputs.is_dependabot != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
