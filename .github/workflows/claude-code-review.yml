@@ -1,0 +1,89 @@
+name: Claude Code Review
+
+# The code-review plugin ends its session on a TodoWrite tool call, which
+# orphans the captured `result` (empty string) so the action posts nothing in
+# default mode (upstream bug, still open: anthropics/claude-code-action#1087).
+# Workaround: the `--comment` flag below makes the plugin post findings as
+# inline PR comments DURING the session via `gh`, so it no longer depends on
+# the orphaned final result.
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+    # Optional: Only run on specific file changes
+    # paths:
+    #   - "src/**/*.ts"
+    #   - "src/**/*.tsx"
+    #   - "src/**/*.js"
+    #   - "src/**/*.jsx"
+  workflow_dispatch:
+
+jobs:
+  claude-review:
+    # Only run for real PR events — a manual `workflow_dispatch` would leave
+    # `github.event.pull_request.number` unset and the prompt would interpolate
+    # an empty PR target, reviewing nothing.
+    if: github.event_name == 'pull_request'
+    # Optional: Filter by PR author
+    # if: |
+    #   github.event.pull_request.user.login == 'external-contributor' ||
+    #   github.event.pull_request.user.login == 'new-developer' ||
+    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+
+    runs-on: ubuntu-latest
+    # `pull-requests: write` + `issues: write` so the plugin's inline `gh`
+    # comments can actually be posted (PR review comments ride the issues API
+    # under the hood). No `contents: write` — this job never pushes.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read # Required for Claude to read CI results on PRs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Required for Claude to read CI results on PRs (correlate failing
+          # checks with the code under review).
+          additional_permissions: |
+            actions: read
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: code-review@claude-code-plugins
+          # `--comment` posts line-level findings live during the session. The
+          # plugin's final *summary* rides the session's last result, which the
+          # action intermittently drops when the session ends on a TodoWrite tool
+          # call — so a clean diff can post NOTHING (upstream, still open:
+          # anthropics/claude-code-action#1087 / #1054). The "Ensure review is
+          # never silent" step below backstops that so a result always appears.
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
+          # or https://code.claude.com/docs/en/cli-reference for available options
+
+      # Backstop for the dropped-summary bug above: if the review completed but no
+      # Claude comment landed on the PR (clean diff + orphaned summary), post a
+      # deterministic fallback so the review is never silently empty. Real issues
+      # still post inline live, so this only ever shows on a clean diff.
+      - name: Ensure review is never silent
+        if: steps.claude-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          posted=$(gh pr view "$PR" --repo "$REPO" --json comments,reviews \
+            --jq '[(.comments[]?, .reviews[]?) | select((((.author // {}).login) // "") | test("claude"; "i"))] | length')
+          if [ "${posted:-0}" -eq 0 ]; then
+            echo "No Claude review comment detected — posting fallback."
+            gh pr comment "$PR" --repo "$REPO" \
+              --body "🤖 **Claude review complete** — no blocking issues surfaced. _(Detailed summary dropped by upstream [claude-code-action#1087](https://github.com/anthropics/claude-code-action/issues/1087); any line-level findings appear inline.)_"
+          else
+            echo "Claude review comment present ($posted) — no fallback needed."
+          fi

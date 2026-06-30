@@ -4,3 +4,5 @@ export type { AdminHandler } from './withAdminAuth';
 export { withAdminAuth } from './withAdminAuth';
 export type { AuthenticatedHandler } from './withAuth';
 export { withAuth } from './withAuth';
+export type { WebhookHandler } from './withWebhookSecret';
+export { withWebhookSecret } from './withWebhookSecret';

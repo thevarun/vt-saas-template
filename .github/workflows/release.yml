@@ -8,6 +8,14 @@ on:
     branches:
       - main
 
+# Serialize releases: if two CI runs finish close together, queue the second
+# run instead of racing on the tag/changelog push. Never cancel an in-flight
+# release — let it finish, then the queued run sees the new tag and only
+# processes newer commits.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     # Only run if CI workflow succeeded
@@ -21,7 +29,7 @@ jobs:
       pull-requests: write # to be able to comment on released pull requests
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Use Node.js

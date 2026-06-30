@@ -1,0 +1,19 @@
+{
+  "versions": [
+    {
+      "version": "1.0.0",
+      "date": "2026-01-01",
+      "summary": "The first release of your product.",
+      "highlights": [
+        {
+          "tag": "new",
+          "title": "Welcome aboard",
+          "body": "This is a sample changelog entry. Replace it with your own release notes, or let the changelog automation humanize them for you."
+        }
+      ],
+      "underTheHood": [
+        "Set up the project from the template."
+      ]
+    }
+  ]
+}

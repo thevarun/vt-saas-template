@@ -8,9 +8,10 @@ import { isAdmin } from '@/libs/auth/isAdmin';
 
 import { withAuth } from './withAuth';
 
-export type AdminHandler = (
+// Parameterise `params` to mirror `withAuth`.
+export type AdminHandler<P = Record<string, string>> = (
   request: NextRequest,
-  context: { user: User; params?: any },
+  context: { user: User; params?: P },
 ) => Promise<Response>;
 
 /**
@@ -21,15 +22,15 @@ export type AdminHandler = (
  *
  * @example
  * ```typescript
- * export const DELETE = withAdminAuth(async (request, { user, params }) => {
- *   const { userId } = params
+ * export const DELETE = withAdminAuth<{ userId: string }>(async (request, { user, params }) => {
+ *   const { userId } = params ?? {}
  *   // `user` is guaranteed to be an admin
  *   return NextResponse.json({ success: true })
  * })
  * ```
  */
-export function withAdminAuth(handler: AdminHandler) {
-  return withAuth(async (request, context) => {
+export function withAdminAuth<P = Record<string, string>>(handler: AdminHandler<P>) {
+  return withAuth<P>(async (request, context) => {
     if (!isAdmin(context.user)) {
       logAuthzError('Admin access required', {
         endpoint: request.nextUrl?.pathname ?? 'unknown',

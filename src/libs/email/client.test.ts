@@ -170,6 +170,25 @@ describe('EmailClient', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('CC:       cc@example.com'));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('BCC:      bcc1@example.com, bcc2@example.com'));
     });
+
+    it('dev mode shows the payload.from override in the From line', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      mockApiKey = undefined;
+      mockIsEnabled = false;
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+      await client.send({
+        to: 'recipient@example.com',
+        subject: 'Test',
+        text: 'Body',
+        from: 'Lifecycle Sender <hello@example.com>',
+      });
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('From:     Lifecycle Sender <hello@example.com>'),
+      );
+    });
   });
 
   describe('send - with API key', () => {
@@ -255,6 +274,49 @@ describe('EmailClient', () => {
         expect(result.error).toBe('Network error');
         expect(result.code).toBe('SEND_EXCEPTION');
       }
+    });
+
+    it('uses payload.from over the default system FROM address', async () => {
+      mockSend.mockResolvedValue({
+        data: { id: 'msg_123' },
+        error: null,
+      });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+      await client.send({
+        to: 'recipient@example.com',
+        subject: 'Test',
+        text: 'Body',
+        from: 'Lifecycle Sender <hello@example.com>',
+      });
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: 'Lifecycle Sender <hello@example.com>',
+        }),
+      );
+    });
+
+    it('falls back to getFromAddress when no payload.from is given', async () => {
+      mockSend.mockResolvedValue({
+        data: { id: 'msg_123' },
+        error: null,
+      });
+
+      const { EmailClient } = await import('./client');
+      const client = new EmailClient();
+      await client.send({
+        to: 'recipient@example.com',
+        subject: 'Test',
+        text: 'Body',
+      });
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: 'Test App <test@example.com>',
+        }),
+      );
     });
 
     it('uses payload replyTo over config replyTo', async () => {

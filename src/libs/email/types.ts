@@ -19,6 +19,8 @@ export type EmailTag = {
 export type EmailPayload = {
   to: string | string[];
   subject: string;
+  /** Overrides the default system FROM address. Used for lifecycle emails. */
+  from?: string;
   react?: ReactElement;
   html?: string;
   text?: string;
@@ -74,4 +76,49 @@ export type BaseTemplateData = {
 export type WelcomeEmailData = BaseTemplateData & {
   appUrl: string;
   appName: string;
+};
+
+/**
+ * Subscription-lifecycle email template data. All product copy lives in props
+ * (`appName`, `tierName`, `billingInterval`, …) so these templates carry no
+ * brand or feature copy — a fork passes its own.
+ */
+
+/**
+ * 3  = T-3 reminder (3 days remaining)
+ * 0  = day-of expiry (last day of access)
+ * -1 = T+1 follow-up (the day after expiry)
+ */
+export type ExpiryDaysRemaining = 3 | 0 | -1;
+
+export type ExpiryReminderKind = 'trial' | 'promotion';
+
+export type ExpiryReminderEmailData = BaseTemplateData & {
+  appUrl: string;
+  appName: string;
+  /** Paid tier the user can upgrade to (e.g. 'Pro'). */
+  tierName: string;
+  kind: ExpiryReminderKind;
+  daysRemaining: ExpiryDaysRemaining;
+};
+
+export type SubscriptionStartedEmailData = BaseTemplateData & {
+  appUrl: string;
+  appName: string;
+  tierName: string;
+  billingInterval: 'monthly' | 'yearly';
+};
+
+export type SubscriptionEndedEmailData = BaseTemplateData & {
+  appUrl: string;
+  appName: string;
+  tierName: string;
+};
+
+export type PromotionGrantedEmailData = BaseTemplateData & {
+  appUrl: string;
+  appName: string;
+  tierName: string;
+  /** ISO date string for when the promotional access ends. */
+  expiresAt: string;
 };

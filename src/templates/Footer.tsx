@@ -94,7 +94,7 @@ export const Footer = () => {
         </li>
 
         <li>
-          <Link href="/articles">{t('blog')}</Link>
+          <Link href="/blog">{t('blog')}</Link>
         </li>
 
         <li>
