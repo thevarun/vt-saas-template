@@ -22,16 +22,16 @@ export const FeedbackTrigger = ({ ref, collapsed = false, className }: FeedbackT
       onClick={() => setIsFeedbackOpen(true)}
       className={cn(
         'group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
-        'text-slate-600 dark:text-slate-400',
+        'text-muted-foreground',
         'transition-colors duration-200',
-        'hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+        'hover:bg-muted hover:text-foreground',
         'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
         collapsed && 'justify-center px-2',
         className,
       )}
       aria-label="Send feedback"
     >
-      <MessageSquare className="size-4 shrink-0 transition-colors group-hover:text-slate-900 dark:group-hover:text-slate-100" />
+      <MessageSquare className="size-4 shrink-0 transition-colors group-hover:text-foreground" />
       {!collapsed && <span>Feedback</span>}
     </button>
   );

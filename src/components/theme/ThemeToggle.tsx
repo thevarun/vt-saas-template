@@ -11,19 +11,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/utils/Helpers';
 
 type ThemeToggleProps = {
   /** Show label text next to icon */
   showLabel?: boolean;
   /** Compact mode - icon only button without dropdown */
   compact?: boolean;
+  /** Extra classes for the trigger button (e.g. to override the ghost hover) */
+  className?: string;
 };
 
 /**
  * Theme Toggle Component
  * Provides UI for switching between light, dark, and system themes
  */
-export function ThemeToggle({ showLabel = false, compact = false }: ThemeToggleProps) {
+export function ThemeToggle({ showLabel = false, compact = false, className }: ThemeToggleProps) {
   const { setTheme, theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -35,7 +38,7 @@ export function ThemeToggle({ showLabel = false, compact = false }: ThemeToggleP
   if (!mounted) {
     // Return placeholder with same dimensions to avoid layout shift
     return (
-      <Button variant="ghost" size={compact ? 'icon' : 'sm'} disabled className="opacity-0">
+      <Button variant="ghost" size={compact ? 'icon' : 'sm'} disabled className={cn('opacity-0', className)}>
         <Sun className="size-4" />
         {showLabel && <span className="ml-2">Theme</span>}
       </Button>
@@ -50,6 +53,7 @@ export function ThemeToggle({ showLabel = false, compact = false }: ThemeToggleP
         size="icon"
         onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+        className={className}
       >
         {resolvedTheme === 'dark'
           ? (
@@ -69,7 +73,7 @@ export function ThemeToggle({ showLabel = false, compact = false }: ThemeToggleP
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start"
+          className={cn('w-full justify-start', className)}
           aria-label="Toggle theme"
         >
           {resolvedTheme === 'dark'
