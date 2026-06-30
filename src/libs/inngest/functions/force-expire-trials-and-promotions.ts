@@ -1,15 +1,22 @@
-import { and, eq, isNotNull, lt } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, lt } from 'drizzle-orm';
 
 import { trackEventServer } from '@/libs/analytics/server';
 import { db } from '@/libs/DB';
 import { Env } from '@/libs/Env';
 import { blockScheduledTasksForUser } from '@/libs/jobs/blocking';
 import { invalidateQuotaCache } from '@/libs/subscriptions/quota';
-import { subscriptionTiers, tierQuotas, userSubscriptions } from '@/models/Schema';
+import {
+  subscriptionTiers,
+  tierQuotas,
+  userSubscriptions,
+} from '@/models/Schema';
 
 import { inngest } from '../client';
 
-type Logger = { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void };
+type Logger = {
+  info: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+};
 
 /**
  * Invalidates every cached quota state for a user — iterates the resource types
@@ -80,6 +87,12 @@ export async function forceExpireTrialsAndPromotions(logger: Logger): Promise<{
         eq(userSubscriptions.status, 'trial'),
         isNotNull(userSubscriptions.trialExpiresAt),
         lt(userSubscriptions.trialExpiresAt, now),
+        // Skip users who converted to a paid Stripe subscription during their
+        // trial (trial_end deferral). Stripe owns their lifecycle from here —
+        // it charges at trial_end, or fires subscription.deleted if the card
+        // fails. Without this guard we'd race Stripe and wrongly drop them to
+        // free at the moment of first charge.
+        isNull(userSubscriptions.stripeSubscriptionId),
       ),
     );
 
@@ -93,9 +106,17 @@ export async function forceExpireTrialsAndPromotions(logger: Logger): Promise<{
         'trial_expired',
         { trigger_source: 'cron' },
         row.userId,
-      ).catch(err => logger.error('trial_expired tracking failed', { userId: row.userId, err }));
+      ).catch(err =>
+        logger.error('trial_expired tracking failed', {
+          userId: row.userId,
+          err,
+        }),
+      );
     } catch (err) {
-      logger.error('force-expire: trial transition failed', { userId: row.userId, err });
+      logger.error('force-expire: trial transition failed', {
+        userId: row.userId,
+        err,
+      });
     }
   }
 
@@ -110,6 +131,10 @@ export async function forceExpireTrialsAndPromotions(logger: Logger): Promise<{
           eq(userSubscriptions.tierId, promotionTierId),
           isNotNull(userSubscriptions.expiresAt),
           lt(userSubscriptions.expiresAt, now),
+          // Defensive: a promotion user who subscribes is moved off the
+          // promotion tier (so this branch won't match anyway), but never
+          // force-expire anyone Stripe is actively managing.
+          isNull(userSubscriptions.stripeSubscriptionId),
         ),
       );
 
@@ -118,7 +143,10 @@ export async function forceExpireTrialsAndPromotions(logger: Logger): Promise<{
         await transitionToFree(row.userId, freeTierId, 'promotion_expired');
         expiredPromotions++;
       } catch (err) {
-        logger.error('force-expire: promotion transition failed', { userId: row.userId, err });
+        logger.error('force-expire: promotion transition failed', {
+          userId: row.userId,
+          err,
+        });
       }
     }
   }
