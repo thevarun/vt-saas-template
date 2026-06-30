@@ -169,7 +169,7 @@
     "react-email": "^5.2.10",
     "rimraf": "^6.0.1",
     "semantic-release": "^25.0.5",
-    "shadcn": "^3.8.5",
+    "shadcn": "^4.7.0",
     "start-server-and-test": "^2.1.5",
     "storybook": "^10.3.5",
     "tailwindcss": "^4.1.18",
@@ -207,17 +207,50 @@
           "preset": "conventionalcommits",
           "presetConfig": {
             "types": [
-              { "type": "feat", "section": "Features" },
-              { "type": "fix", "section": "Bug Fixes" },
-              { "type": "perf", "section": "Performance" },
-              { "type": "revert", "section": "Reverts" },
-              { "type": "chore", "hidden": true },
-              { "type": "docs", "hidden": true },
-              { "type": "style", "hidden": true },
-              { "type": "refactor", "hidden": true },
-              { "type": "test", "hidden": true },
-              { "type": "ci", "hidden": true },
-              { "type": "build", "hidden": true }
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "perf",
+                "section": "Performance"
+              },
+              {
+                "type": "revert",
+                "section": "Reverts"
+              },
+              {
+                "type": "chore",
+                "hidden": true
+              },
+              {
+                "type": "docs",
+                "hidden": true
+              },
+              {
+                "type": "style",
+                "hidden": true
+              },
+              {
+                "type": "refactor",
+                "hidden": true
+              },
+              {
+                "type": "test",
+                "hidden": true
+              },
+              {
+                "type": "ci",
+                "hidden": true
+              },
+              {
+                "type": "build",
+                "hidden": true
+              }
             ]
           }
         }
