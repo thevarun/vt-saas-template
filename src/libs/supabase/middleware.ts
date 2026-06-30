@@ -8,6 +8,7 @@ export function createClient(request: NextRequest, response: NextResponse) {
     Env.NEXT_PUBLIC_SUPABASE_URL,
     Env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      db: { schema: Env.NEXT_PUBLIC_DB_SCHEMA },
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value;
@@ -51,6 +52,8 @@ export async function updateSession(
   response: NextResponse,
 ): Promise<UpdateSessionResult> {
   const supabase = createClient(request, response);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return { response, user };
 }

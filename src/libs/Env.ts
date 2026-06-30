@@ -34,7 +34,10 @@ export const Env = createEnv({
     // 32-byte key as 64 hex chars: `openssl rand -hex 32`.
     TOKEN_ENCRYPTION_KEY: z
       .string()
-      .regex(/^[0-9a-f]{64}$/i, 'TOKEN_ENCRYPTION_KEY must be 64 hex chars (32 bytes): openssl rand -hex 32')
+      .regex(
+        /^[0-9a-f]{64}$/i,
+        'TOKEN_ENCRYPTION_KEY must be 64 hex chars (32 bytes): openssl rand -hex 32',
+      )
       .optional(),
     // Generic single-provider OAuth credentials (src/libs/platforms) - Optional,
     // graceful degradation. The connect/callback flow is inert until both are set.
@@ -68,6 +71,9 @@ export const Env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_URL: z.string().min(1),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    // Browser-visible copy of DB_SCHEMA so the Supabase JS clients route reads
+    // to the same schema Drizzle uses. Keep in sync with DB_SCHEMA (server).
+    NEXT_PUBLIC_DB_SCHEMA: z.string().min(1),
     // Stripe publishable key — optional (billing disabled if unset).
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   },
@@ -114,7 +120,9 @@ export const Env = createEnv({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_DB_SCHEMA: process.env.NEXT_PUBLIC_DB_SCHEMA,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NODE_ENV: process.env.NODE_ENV,
   },
 });
