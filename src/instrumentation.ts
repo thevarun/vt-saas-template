@@ -62,6 +62,15 @@ export async function register() {
 }
 
 /**
+ * Forward unhandled errors from Route Handlers, Server Components, and Server
+ * Actions to Sentry. Without this hook those server-side errors never reach the
+ * SDK — Next.js just returns an opaque 500 with no Sentry issue.
+ *
+ * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#capture-react-render-errors
+ */
+export const onRequestError = Sentry.captureRequestError;
+
+/**
  * Initialize LangFuse OpenTelemetry tracing
  *
  * Uses @vercel/otel with LangfuseExporter for simplified setup.
