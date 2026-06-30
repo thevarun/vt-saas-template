@@ -52,6 +52,8 @@ VT SaaS Template is a modern web application template that provides a solid foun
    cd vt-saas-template
    ```
 
+   > **Forked or used "Use this template"?** After installing dependencies, run the `/init-downstream` Claude Code command to rename the DB schema, configure merge strategies, and clean up template artifacts. See [Building a Product on This Template](#building-a-product-on-this-template) for the full workflow.
+
 2. **Install dependencies**
    ```bash
    npm install
@@ -94,6 +96,10 @@ npm run lint:fix         # Fix auto-fixable issues
 npm run check-types      # TypeScript type checking
 npm run db:studio        # Open Drizzle Studio
 npm run db:generate      # Generate migration from schema
+
+# Claude Code commands (run inside Claude Code):
+/init-downstream          # Post-fork project initialization
+/upstream-sync            # Pull upstream template updates
 ```
 
 ### Optional: Claude-Powered Docs Sync
@@ -196,6 +202,25 @@ src/
 | SEO infrastructure | OG image & SEO defaults | |
 | Error handling | Email templates | |
 
+### First Steps After Forking
+
+Run the `/init-downstream` Claude Code command to set up your project as an independent downstream repo:
+
+```bash
+# Using Claude Code (recommended):
+/init-downstream
+```
+
+This interactive command handles:
+1. **Database schema rename** -- regenerates a clean migration under your project's schema name (replaces `vt_saas`)
+2. **Merge strategy config** -- sets up `.gitattributes` with `merge=ours` for files you customize, so upstream syncs don't overwrite your branding
+3. **gh CLI targeting** -- runs `gh repo set-default` so PRs and issues target your repo, not the template
+4. **Template artifact cleanup** -- removes template-only files (planning docs, archived workflows) listed in `.template-cleanup`
+
+If you're not using Claude Code, see the [manual equivalent](docs/upstream-sync-guide.md#manual-equivalent-without-claude-code) in the Upstream Sync Guide.
+
+> **Suggested workflow:** `/init-downstream` (5 min) → branding pass (20 min) → stub cleanup (30 min) → start building your first feature.
+
 ### Syncing Upstream Updates
 
 When new features or fixes are released in the template, pull them into your project:
@@ -212,6 +237,8 @@ npm run lint && npm run check-types && npm test && npm run build
 ```
 
 See [Upstream Sync Guide](docs/upstream-sync-guide.md) for detailed instructions and conflict resolution strategies.
+
+> **Prerequisite:** Run `/init-downstream` first if you haven't already -- it configures the merge strategies that make upstream syncs clean.
 
 ### Should You Build a POC Separately?
 
@@ -260,7 +287,7 @@ Set it in `.env.local`:
 DB_SCHEMA=vt_saas
 ```
 
-When forking this template, pick a unique schema name for your project (e.g. `my_app`) and run `npm run db:generate` to create a migration for the new schema.
+When forking this template, run `/init-downstream` (Claude Code) to rename the schema and regenerate migrations automatically. Without Claude Code: update `DB_SCHEMA` in `.env.example` and `.env.local`, delete existing migrations, and run `npm run db:generate`.
 
 ### Making Schema Changes
 
@@ -294,6 +321,8 @@ The application is compatible with any platform that supports Next.js 16:
 - Self-hosted with Node.js
 
 ## Launch Checklists
+
+> **Automated audit:** Run `/launch-checklist` in Claude Code to scan 35 checks across auth, security, SEO, email, legal, performance, and more — outputs a scored report with fix guidance.
 
 ### Alpha Launch
 
@@ -424,6 +453,7 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ### Maintenance
 - **[Upstream Sync Guide](docs/upstream-sync-guide.md)** - Pull new features and fixes from the template
+- **Claude Code commands** - `/init-downstream` (post-fork setup) and `/upstream-sync` (pull template updates) -- see [Building a Product](#building-a-product-on-this-template)
 
 ## License
 

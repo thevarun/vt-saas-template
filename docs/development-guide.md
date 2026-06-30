@@ -133,6 +133,9 @@ npx playwright test --ui    # Interactive UI
 ### Visual Development
 After frontend changes, use Playwright MCP to navigate to affected pages and capture screenshots. Save to `_bmad-output/implementation-artifacts/screenshots`.
 
+### Launch Readiness
+Before deploying, run `/launch-checklist` to audit 35 production-readiness checks and get a prioritized scorecard.
+
 ---
 
 ## Code Style

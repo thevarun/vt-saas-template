@@ -105,3 +105,9 @@ Configured in `next.config.mjs`:
 - **Logging:** Pino + Logtail (optional)
 - **LLM Observability:** LangFuse (optional)
 - **Analytics:** PostHog (optional)
+
+---
+
+## Pre-Launch Audit
+
+Run `/launch-checklist` in Claude Code before your first deployment. It scans 35 checks (auth, security, SEO, email, legal, performance) and generates a scorecard with prioritized next steps.
