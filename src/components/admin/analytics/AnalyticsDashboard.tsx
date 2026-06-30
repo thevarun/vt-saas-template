@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-import type { AnalyticsMetrics } from '@/libs/api/admin/analytics';
+import { useAdminAnalytics } from '@/libs/hooks/use-admin-analytics';
 
 import { AnalyticsMetricCard } from './AnalyticsMetricCard';
 import { AnalyticsSkeleton } from './AnalyticsSkeleton';
@@ -10,38 +8,16 @@ import { CompletionRatesCard } from './CompletionRatesCard';
 import { SignupsChart } from './SignupsChart';
 
 export function AnalyticsDashboard() {
-  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: metrics, isPending, isError } = useAdminAnalytics();
 
-  useEffect(() => {
-    async function fetchMetrics() {
-      try {
-        const response = await fetch('/api/admin/analytics');
-        if (!response.ok) {
-          throw new Error('Failed to fetch analytics');
-        }
-        const data = await response.json();
-        setMetrics(data);
-      } catch (err) {
-        console.error('Failed to load analytics:', err);
-        setError('Failed to load analytics data');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchMetrics();
-  }, []);
-
-  if (isLoading) {
+  if (isPending) {
     return <AnalyticsSkeleton />;
   }
 
-  if (error || !metrics) {
+  if (isError || !metrics) {
     return (
       <div className="py-12 text-center">
-        <p className="text-red-600 dark:text-red-400">{error ?? 'Failed to load analytics data'}</p>
+        <p className="text-red-600 dark:text-red-400">Failed to load analytics data</p>
       </div>
     );
   }
