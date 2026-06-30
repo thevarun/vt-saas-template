@@ -186,6 +186,90 @@ describe('createCheckoutSession', () => {
     expect(createCall.customer).toBeUndefined();
   });
 
+  it('returns CONFLICT when user already has a live stripe subscription', async () => {
+    mockAuth();
+
+    const selectCallCount = { count: 0 };
+    const conflictChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockImplementation(() => {
+        selectCallCount.count++;
+        if (selectCallCount.count === 1) {
+          return [{ id: 'tier-pro', name: 'pro', stripePriceIdMonthly: 'price_test_pro', stripePriceIdYearly: null }];
+        }
+        return [{
+          stripeCustomerId: 'cus_existing_123',
+          stripeSubscriptionId: 'sub_live_123',
+          status: 'active',
+        }];
+      }),
+    };
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockReturnValue(conflictChain);
+
+    const { createCheckoutSession } = await import('./billing');
+    const result = await createCheckoutSession('pro');
+
+    expect(result.error?.code).toBe('CONFLICT');
+    expect(result.error?.message).toBe('You already have an active subscription. Manage it from the billing portal.');
+    // Must NOT create a second Stripe subscription.
+    expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it('returns INTERNAL_ERROR when the subscription lookup fails (fail-closed)', async () => {
+    mockAuth();
+
+    const selectCallCount = { count: 0 };
+    const failChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockImplementation(() => {
+        selectCallCount.count++;
+        if (selectCallCount.count === 1) {
+          return [{ id: 'tier-pro', name: 'pro', stripePriceIdMonthly: 'price_test_pro', stripePriceIdYearly: null }];
+        }
+        throw new Error('db unavailable');
+      }),
+    };
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockReturnValue(failChain);
+
+    const { createCheckoutSession } = await import('./billing');
+    const result = await createCheckoutSession('pro');
+
+    expect(result.error?.code).toBe('INTERNAL_ERROR');
+    // Fail-closed: never reach Stripe when we can't dedupe.
+    expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it('proceeds to checkout when the user has no existing subscription', async () => {
+    mockAuth();
+
+    const selectCallCount = { count: 0 };
+    const noSubChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockImplementation(() => {
+        selectCallCount.count++;
+        if (selectCallCount.count === 1) {
+          return [{ id: 'tier-pro', name: 'pro', stripePriceIdMonthly: 'price_test_pro', stripePriceIdYearly: null }];
+        }
+        return [{ stripeCustomerId: null, stripeSubscriptionId: null, status: 'expired' }];
+      }),
+    };
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockReturnValue(noSubChain);
+
+    (mockStripe.checkout.sessions.create as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      url: 'https://checkout.stripe.com/test3',
+    });
+
+    const { createCheckoutSession } = await import('./billing');
+    const result = await createCheckoutSession('pro');
+
+    expect(result.data?.checkoutUrl).toBe('https://checkout.stripe.com/test3');
+    expect(result.error).toBeNull();
+    expect(mockStripe.checkout.sessions.create).toHaveBeenCalledTimes(1);
+  });
+
   it('returns SERVICE_UNAVAILABLE when checkout session has no URL', async () => {
     mockAuth();
 
