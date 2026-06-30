@@ -81,6 +81,6 @@ test.describe('User Profile', () => {
     await authenticatedPage.getByRole('button', { name: /cancel/i }).click();
 
     // THEN: Dialog is closed (cancel button no longer visible in dialog)
-    await expect(authenticatedPage.locator('.fixed.inset-0')).toBeHidden();
+    await expect(authenticatedPage.getByRole('alertdialog')).toBeHidden();
   });
 });

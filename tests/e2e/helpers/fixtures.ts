@@ -29,8 +29,8 @@ export const test = base.extend<AuthenticatedFixtures>({
     await page.goto('/sign-in');
 
     // Fill in the sign-in form
-    await page.fill('input[name="email"], input[type="email"]', testEmail);
-    await page.fill('input[name="password"], input[type="password"]', testPassword);
+    await page.fill('#email', testEmail);
+    await page.fill('#password', testPassword);
 
     // Submit the form
     await page.click('button[type="submit"]');
