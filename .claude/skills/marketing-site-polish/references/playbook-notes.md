@@ -122,7 +122,7 @@ The default `GITHUB_TOKEN` in the release workflow cannot bypass branch protecti
 
 When renaming a route (e.g., `/articles` → `/blog`), the page templates and components get updated by editor edits, but **in-content links inside MDX files don't**. Codex review reliably flags broken `[link](/articles/foo)` references inside content files.
 
-**Fix during the rename:** `find content/blog -name "*.mdx" -exec sed -i '' 's|](/articles/|](/blog/|g' {} +`
+**Fix during the rename:** `find content/blog -name "*.mdx" -exec perl -i -pe 's{\]\(/articles/}{](/blog/}g' {} +` (use `perl -i` instead of `sed -i ''` — the BSD `sed -i ''` form fails on GNU sed in Linux CI/dev containers, silently leaving stale `](/articles/...)` links; `perl -i` is portable across macOS and Linux).
 
 ### Formatter race in PostToolUse hooks
 
