@@ -216,6 +216,42 @@ describe('createCheckoutSession', () => {
     expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
   });
 
+  it('proceeds to checkout when a lingering subscription id is no longer live (mid-cancellation)', async () => {
+    mockAuth();
+
+    // A user mid-cancellation: status is no longer live ('cancelled') but the
+    // deletion webhook hasn't cleared stripeSubscriptionId yet. They must be able
+    // to resubscribe — the guard gates on status, not bare id presence.
+    const selectCallCount = { count: 0 };
+    const staleSubChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockImplementation(() => {
+        selectCallCount.count++;
+        if (selectCallCount.count === 1) {
+          return [{ id: 'tier-pro', name: 'pro', stripePriceIdMonthly: 'price_test_pro', stripePriceIdYearly: null }];
+        }
+        return [{
+          stripeCustomerId: 'cus_existing_123',
+          stripeSubscriptionId: 'sub_stale_123',
+          status: 'cancelled',
+        }];
+      }),
+    };
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockReturnValue(staleSubChain);
+
+    (mockStripe.checkout.sessions.create as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      url: 'https://checkout.stripe.com/resub',
+    });
+
+    const { createCheckoutSession } = await import('./billing');
+    const result = await createCheckoutSession('pro');
+
+    expect(result.data?.checkoutUrl).toBe('https://checkout.stripe.com/resub');
+    expect(result.error).toBeNull();
+    expect(mockStripe.checkout.sessions.create).toHaveBeenCalledTimes(1);
+  });
+
   it('returns INTERNAL_ERROR when the subscription lookup fails (fail-closed)', async () => {
     mockAuth();
 

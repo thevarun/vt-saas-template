@@ -19,6 +19,13 @@ import type { ActionResult } from './types';
 // coupling in this file).
 const BILLING_RETURN_PATH = '/subscriptions';
 
+// Local subscription statuses that represent a genuinely LIVE subscription —
+// the user still has billing access, so a fresh checkout would orphan a second
+// paid subscription. Stripe's `trialing` maps to 'trial' and `past_due` maps to
+// 'active' (see the webhook's statusMap), so both are live; 'expired' and
+// 'cancelled' are not (the deletion webhook downgrades them to free).
+const LIVE_SUBSCRIPTION_STATUSES = new Set<string>(['active', 'trial']);
+
 type CheckoutOptions = {
   /** Default 'monthly'. Determines which Stripe price ID is used. */
   interval?: BillingInterval;
@@ -72,14 +79,18 @@ const createCheckoutSessionInner = withActionAuth(async (
       .where(eq(userSubscriptions.userId, user.id))
       .limit(1);
 
-    // Block double-subscribe. Anyone who already has a live Stripe subscription
+    // Block double-subscribe. Anyone who already has a LIVE Stripe subscription
     // must change plans via the billing portal, not by creating a second
     // subscription on the same customer. The UI routes them there, but this
     // Server Action is directly callable and a stale tab / double-submit /
     // back-nav would otherwise orphan a second paid subscription that keeps
-    // billing. Expired/cancelled users have a null id (the deletion webhook
-    // clears it) and fall through to checkout normally.
-    if (sub?.stripeSubscriptionId) {
+    // billing. We gate on status, not mere id presence: a user mid-cancellation
+    // (status 'expired'/'cancelled' but a lingering stripeSubscriptionId the
+    // deletion webhook hasn't cleared yet) must still be able to resubscribe.
+    if (
+      sub?.stripeSubscriptionId
+      && LIVE_SUBSCRIPTION_STATUSES.has(sub.status)
+    ) {
       return {
         data: null,
         error: {

@@ -126,3 +126,16 @@ export const Env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
   },
 });
+
+// Guard against schema drift: the browser client reads NEXT_PUBLIC_DB_SCHEMA while
+// Drizzle + server clients read DB_SCHEMA — they must name the SAME schema or reads
+// silently hit the wrong one. Server-only (DB_SCHEMA is undefined in the browser bundle).
+if (
+  typeof window === 'undefined'
+  && Env.DB_SCHEMA
+  && Env.NEXT_PUBLIC_DB_SCHEMA !== Env.DB_SCHEMA
+) {
+  throw new Error(
+    `Schema mismatch: NEXT_PUBLIC_DB_SCHEMA ("${Env.NEXT_PUBLIC_DB_SCHEMA}") must equal DB_SCHEMA ("${Env.DB_SCHEMA}").`,
+  );
+}
