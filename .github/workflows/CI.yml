@@ -36,7 +36,7 @@ jobs:
       deps_only: ${{ steps.filter.outputs.code == 'true' && steps.filter.outputs.non_deps_code != 'true' }}
       is_dependabot: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # WHY THE INVERSION: `predicate-quantifier: every` is a PER-FILE pattern
       # combinator (one file must match every pattern), NOT a cross-file "all
@@ -92,7 +92,7 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -114,7 +114,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
 
       # Cache node_modules and build output for downstream jobs
-      - uses: actions/cache/save@v5
+      - uses: actions/cache/save@v6
         with:
           path: |
             node_modules
@@ -132,7 +132,7 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -140,7 +140,7 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: |
             node_modules
@@ -165,13 +165,13 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: |
             node_modules
@@ -207,13 +207,13 @@ jobs:
       && needs.changes.outputs.is_dependabot != 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: |
             node_modules
@@ -221,7 +221,7 @@ jobs:
           key: build-${{ github.sha }}
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: playwright-cache
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
