@@ -31,9 +31,18 @@ describe('generateOpenGraphMetadata', () => {
     expect(og).toMatchObject({
       type: 'website',
       siteName: 'VT SaaS Template',
-      title: 'Test Page',
+      title: 'Test Page — VT SaaS Template',
       description: 'Test description',
     });
+  });
+
+  it('does not double-brand a title that already includes the site name', () => {
+    const og = generateOpenGraphMetadata({
+      title: 'Pricing | VT SaaS Template',
+      description: 'Test description',
+    });
+
+    expect(og?.title).toBe('Pricing | VT SaaS Template');
   });
 
   it('sets og:type to website', () => {
@@ -209,7 +218,7 @@ describe('generateTwitterMetadata', () => {
     });
 
     expect(twitter).toMatchObject({
-      title: 'Test Page',
+      title: 'Test Page — VT SaaS Template',
       description: 'Test description',
     });
   });
@@ -278,8 +287,8 @@ describe('generateSocialMetadata', () => {
       description: 'Test description',
     });
 
-    expect(metadata.openGraph?.title).toBe('Test Page');
-    expect(metadata.twitter?.title).toBe('Test Page');
+    expect(metadata.openGraph?.title).toBe('Test Page — VT SaaS Template');
+    expect(metadata.twitter?.title).toBe('Test Page — VT SaaS Template');
     expect(metadata.openGraph?.description).toBe('Test description');
     expect(metadata.twitter?.description).toBe('Test description');
   });

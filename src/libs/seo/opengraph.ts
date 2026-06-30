@@ -29,6 +29,19 @@ export type SocialMetadataParams = {
 };
 
 /**
+ * Append the brand to a social-card title unless it already contains it.
+ *
+ * Em-dash (`—`) is the modern brand separator (Apple, Stripe, Linear). Pages
+ * that already set their own brand — e.g. `Foo | VT SaaS Template` — are left
+ * untouched via the `includes(SITE_NAME)` escape hatch, so this never
+ * double-brands. Only `og:title` / `twitter:title` get this; the document
+ * `<title>` stays each page's own concern.
+ */
+function withBrand(title: string): string {
+  return title.includes(SITE_NAME) ? title : `${title} — ${SITE_NAME}`;
+}
+
+/**
  * Generate Open Graph metadata for social sharing
  *
  * @param params - Social metadata parameters
@@ -61,7 +74,7 @@ export function generateOpenGraphMetadata(
 
   const base = {
     siteName: SITE_NAME,
-    title,
+    title: withBrand(title),
     description,
     url: `${siteUrl}${path}`,
     images: [
@@ -119,7 +132,7 @@ export function generateTwitterMetadata(
 
   return {
     card: 'summary_large_image',
-    title,
+    title: withBrand(title),
     description,
     images: [imageUrl],
   };
