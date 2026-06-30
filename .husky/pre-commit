@@ -1,3 +1,20 @@
 #!/bin/sh
-# Disable concurent to run `check-types` after ESLint in lint-staged
-cd "$(dirname "$0")/.." && npx --no lint-staged --concurrent false
+# Block migration file commits on non-main branches
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "main" ]; then
+  MIGRATION_FILES=$(git diff --cached --name-only -- 'migrations/')
+  if [ -n "$MIGRATION_FILES" ]; then
+    echo "ERROR: Migration files should only be committed on the main branch."
+    echo "Generate migrations on main with 'npm run db:generate'; never run 'db:push'."
+    echo ""
+    echo "Blocked files:"
+    echo "$MIGRATION_FILES"
+    exit 1
+  fi
+fi
+
+# Disable concurent to run `check-types` after ESLint in lint-staged.
+# `git rev-parse --show-toplevel` returns the active worktree's working tree,
+# so this cd is correct for both the main repo and any linked worktree —
+# avoids tsc resolving types from two `node_modules` trees at once.
+cd "$(git rev-parse --show-toplevel)" && npx --no lint-staged --concurrent false

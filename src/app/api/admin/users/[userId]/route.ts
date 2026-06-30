@@ -18,9 +18,9 @@ import { isValidUuid } from '@/utils/validation';
  * Requires admin authentication.
  * Cannot delete own account (self-preservation).
  */
-export const DELETE = withAdminAuth(async (_request, { user, params }) => {
+export const DELETE = withAdminAuth<{ userId: string }>(async (_request, { user, params }) => {
   try {
-    const { userId } = params;
+    const { userId } = params ?? { userId: '' };
 
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');

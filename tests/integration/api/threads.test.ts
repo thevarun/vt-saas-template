@@ -40,6 +40,7 @@ vi.mock('next/headers', () => ({
 vi.mock('@sentry/nextjs', () => ({
   addBreadcrumb: vi.fn(),
   captureException: vi.fn(),
+  setUser: vi.fn(),
 }));
 
 describe('/api/threads endpoints', () => {

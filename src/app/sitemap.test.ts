@@ -25,8 +25,20 @@ describe('sitemap', () => {
   it('generates entries for all locales', async () => {
     const entries = await sitemap();
 
-    // 1 public route × 3 locales + 1 articles index × 3 locales = 6 entries
-    expect(entries).toHaveLength(6);
+    // 2 public routes (/ , /about) × 3 locales + 1 articles index × 3 locales = 9 entries
+    expect(entries).toHaveLength(9);
+  });
+
+  it('includes the /about page for all locales', async () => {
+    const entries = await sitemap();
+    const aboutEntries = entries.filter(e => e.url.endsWith('/about'));
+
+    expect(aboutEntries).toHaveLength(3);
+
+    aboutEntries.forEach((entry) => {
+      expect(entry.priority).toBe(0.6);
+      expect(entry.changeFrequency).toBe('monthly');
+    });
   });
 
   it('uses absolute URLs', async () => {
@@ -50,8 +62,12 @@ describe('sitemap', () => {
   it('sets correct priority for homepage', async () => {
     const entries = await sitemap();
 
-    // Homepage entries should have priority 1.0
-    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    // Homepage entries (the bare locale roots) should have priority 1.0
+    const homepageUrls = ['https://example.com', 'https://example.com/hi', 'https://example.com/bn'];
+    const homepageEntries = entries.filter(e => homepageUrls.includes(e.url));
+
+    expect(homepageEntries).toHaveLength(3);
+
     homepageEntries.forEach((entry) => {
       expect(entry.priority).toBe(1.0);
     });
@@ -60,7 +76,11 @@ describe('sitemap', () => {
   it('sets correct changeFrequency for homepage', async () => {
     const entries = await sitemap();
 
-    const homepageEntries = entries.filter(e => !e.url.includes('/articles'));
+    const homepageUrls = ['https://example.com', 'https://example.com/hi', 'https://example.com/bn'];
+    const homepageEntries = entries.filter(e => homepageUrls.includes(e.url));
+
+    expect(homepageEntries).toHaveLength(3);
+
     homepageEntries.forEach((entry) => {
       expect(entry.changeFrequency).toBe('daily');
     });

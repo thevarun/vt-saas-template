@@ -17,9 +17,9 @@ type FeedbackActionConfig = {
 };
 
 export function createFeedbackAction(config: FeedbackActionConfig) {
-  return withAdminAuth(async (_request, { user, params }) => {
+  return withAdminAuth<{ id: string }>(async (_request, { user, params }) => {
     try {
-      const { id } = params;
+      const { id } = params ?? { id: '' };
 
       if (!isValidUuid(id)) {
         return invalidRequestError('Invalid feedback ID format');

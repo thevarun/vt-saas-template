@@ -57,9 +57,14 @@
 - [Error Handling Guide](./error-handling-guide.md) - Error boundaries and patterns
 - [API Error Handling](./api-error-handling.md) - Error codes and responses
 - [Email System](./email-system.md) - Resend integration and templates
+- [Subscriptions & Billing](./subscriptions.md) - Tiers, quota framework, Stripe webhook, reverse-trial, lifecycle emails
 - [Admin Setup](./admin-setup.md) - Admin panel configuration
 - [CI/CD Pipeline](./ci-cd-pipeline.md) - Pipeline details
 - [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) - Common CI issues
+
+### Database
+- [Database Workflow](./database-workflow.md) - Three-home model, dev→prod flow, gotchas
+- [Legacy Columns](./legacy-columns.md) - Column-deprecation pattern and rollback recipe
 
 ### Analytics
 - [Analytics Setup](./analytics-setup.md) - PostHog configuration
@@ -75,6 +80,7 @@
 ### Patterns
 - [SSE Streaming](./patterns/sse-streaming.md) - Server-Sent Events patterns
 - [API Proxy](./patterns/api-proxy.md) - API proxy pattern
+- [Background Jobs](./patterns/background-jobs.md) - Inngest cron scaffolding, fan-out, at-most-once guard, crash recovery
 
 ### Customization
 - [Remove All Chat](./customization/removing-all-chat.md)
@@ -86,6 +92,7 @@
 - [CLAUDE.md](../CLAUDE.md) - AI development instructions
 - [AGENTS.md](../AGENTS.md) - Agent documentation
 - [CHANGELOG.md](../CHANGELOG.md) - Version history
+- [Changelog rendering & automation](./changelog/README.md) - The `/changelog` page, `changelog.json` schema, and the AI humanizer pipeline
 
 ---
 

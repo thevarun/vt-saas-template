@@ -19,6 +19,13 @@ export const badgeVariants = cva(
           'border-transparent bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
         pending:
           'border-transparent bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+        // Changelog highlight tags
+        new:
+          'border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+        improved:
+          'border-transparent bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400',
+        fixed:
+          'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
       },
     },
     defaultVariants: {

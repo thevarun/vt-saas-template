@@ -10,42 +10,48 @@
 /**
  * Standard API error codes used across all API endpoints
  *
- * - AUTH_REQUIRED: User is not authenticated
- * - FORBIDDEN: User is authenticated but lacks permission
- * - INVALID_REQUEST: Request is malformed or missing required fields
- * - VALIDATION_ERROR: Request validation failed (includes field-level details)
- * - NOT_FOUND: Requested resource does not exist
+ * - AUTH_REQUIRED: User is not authenticated (HTTP middleware layer)
  * - CONFLICT: Resource conflict (e.g., duplicate unique field)
  * - DB_ERROR: Database operation failed
- * - INTERNAL_ERROR: Unexpected server error
  * - DIFY_ERROR: External Dify API error
- * - MESSAGE_TOO_LONG: Message exceeds maximum length
- * - INVALID_CONVERSATION_ID: Conversation ID is invalid or malformed
  * - DUPLICATE_CONVERSATION_ID: Conversation ID already exists
- * - SERVICE_UNAVAILABLE: Required service is not configured or unavailable
- * - TIMEOUT: Request exceeded time limit
+ * - FORBIDDEN: User is authenticated but lacks permission
+ * - GONE: Resource permanently removed or expired (HTTP 410)
+ * - INTERNAL_ERROR: Unexpected server error
+ * - INVALID_CONVERSATION_ID: Conversation ID is invalid or malformed
+ * - INVALID_REQUEST: Request is malformed or missing required fields
+ * - MESSAGE_TOO_LONG: Message exceeds maximum length
+ * - NOT_FOUND: Requested resource does not exist
+ * - QUOTA_EXHAUSTED: User's usage quota is exhausted for the current period
  * - RATE_LIMIT: Too many requests
  * - SAVE_FAILED: Failed to persist data
+ * - SERVICE_UNAVAILABLE: Required service is not configured or unavailable
+ * - TIMEOUT: Request exceeded time limit
+ * - UNAUTHORIZED: Auth failure raised from Server Actions (Server-Action equivalent of AUTH_REQUIRED)
  * - USERNAME_TAKEN: Username already in use by another user
+ * - VALIDATION_ERROR: Request validation failed (includes field-level details)
  */
 export type ApiErrorCode
   = | 'AUTH_REQUIRED'
-    | 'FORBIDDEN'
-    | 'INVALID_REQUEST'
-    | 'VALIDATION_ERROR'
-    | 'NOT_FOUND'
     | 'CONFLICT'
     | 'DB_ERROR'
-    | 'INTERNAL_ERROR'
     | 'DIFY_ERROR'
-    | 'MESSAGE_TOO_LONG'
-    | 'INVALID_CONVERSATION_ID'
     | 'DUPLICATE_CONVERSATION_ID'
-    | 'SERVICE_UNAVAILABLE'
-    | 'TIMEOUT'
+    | 'FORBIDDEN'
+    | 'GONE'
+    | 'INTERNAL_ERROR'
+    | 'INVALID_CONVERSATION_ID'
+    | 'INVALID_REQUEST'
+    | 'MESSAGE_TOO_LONG'
+    | 'NOT_FOUND'
+    | 'QUOTA_EXHAUSTED'
     | 'RATE_LIMIT'
     | 'SAVE_FAILED'
-    | 'USERNAME_TAKEN';
+    | 'SERVICE_UNAVAILABLE'
+    | 'TIMEOUT'
+    | 'UNAUTHORIZED'
+    | 'USERNAME_TAKEN'
+    | 'VALIDATION_ERROR';
 
 /** Field-level validation error details: maps field names to arrays of error messages. */
 export type ValidationDetails = Record<string, string[]>;
@@ -73,6 +79,25 @@ export type ApiErrorResponse = {
   error: string;
   code: ApiErrorCode;
   details?: ValidationDetails | Record<string, unknown>;
+};
+
+/**
+ * Standard API success response format
+ *
+ * All successful responses from API endpoints wrap data in this structure:
+ * - data: The response payload
+ *
+ * @example
+ * ```typescript
+ * {
+ *   data: {
+ *     thread: { id: "123", title: "My Thread" }
+ *   }
+ * }
+ * ```
+ */
+export type ApiSuccessResponse<T> = {
+  data: T;
 };
 
 /**
