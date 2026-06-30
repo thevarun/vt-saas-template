@@ -175,10 +175,10 @@
     "tailwindcss": "^4.1.18",
     "tsx": "^4.19.1",
     "typescript": "^6.0.3",
+    "vite": "^8.0.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4",
-    "vitest-fail-on-console": "^0.10.1",
-    "vite": "^8.0.0"
+    "vitest-fail-on-console": "^0.10.1"
   },
   "overrides": {
     "axios": ">=1.13.5",
