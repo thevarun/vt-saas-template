@@ -37,10 +37,32 @@ vi.mock('@/libs/api/errors/logger', () => ({
   logValidationError: vi.fn(),
 }));
 
-// Mock sendTestEmail
-const mockSendTestEmail = vi.fn();
-vi.mock('@/libs/email/mockEmailService', () => ({
-  sendTestEmail: (...args: unknown[]) => mockSendTestEmail(...args),
+// Mock the email send helpers
+const mockSendEmail = vi.fn();
+const mockSendWelcomeEmail = vi.fn();
+vi.mock('@/libs/email/sendEmail', () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+vi.mock('@/libs/email/sendWelcomeEmail', () => ({
+  sendWelcomeEmail: (...args: unknown[]) => mockSendWelcomeEmail(...args),
+}));
+
+// Mock config so getFromAddress is deterministic
+vi.mock('@/libs/email/config', () => ({
+  getFromAddress: () => 'My App <noreply@example.com>',
+}));
+
+// Mock Env — the route reads EMAIL_FROM_NAME at module load; t3-env blocks
+// server-var access in the jsdom (client) test environment.
+vi.mock('@/libs/Env', () => ({
+  Env: {
+    EMAIL_FROM_NAME: 'My App',
+  },
+}));
+
+// Mock the React Email plain-text renderer
+vi.mock('@react-email/render', () => ({
+  render: vi.fn(async () => 'plain-text body'),
 }));
 
 // Import route handler after mocks
@@ -75,9 +97,13 @@ describe('POST /api/admin/email/test', () => {
       error: null,
     });
     mockIsAdmin.mockReturnValue(true);
-    mockSendTestEmail.mockResolvedValue({
+    mockSendEmail.mockResolvedValue({
       success: true,
-      messageId: 'mock-123-welcome',
+      messageId: 'sys-123',
+    });
+    mockSendWelcomeEmail.mockResolvedValue({
+      success: true,
+      messageId: 'welcome-123',
     });
   });
 
@@ -142,27 +168,68 @@ describe('POST /api/admin/email/test', () => {
     expect(data.code).toBe('VALIDATION_ERROR');
   });
 
-  it('returns 200 with valid input', async () => {
+  it('sends the welcome email via sendWelcomeEmail (lifecycle sender)', async () => {
     const response = await POST(createMockRequest({
       template: 'welcome',
+      email: 'test@example.com',
+      data: { name: 'Alex' },
+    }));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(data.messageId).toBe('welcome-123');
+    expect(mockSendWelcomeEmail).toHaveBeenCalledWith('test@example.com', 'Alex');
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('sends an auth template via sendEmail with the system FROM address', async () => {
+    const response = await POST(createMockRequest({
+      template: 'password-reset',
       email: 'test@example.com',
     }));
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.messageId).toBe('mock-123-welcome');
-    expect(data.message).toBe('Test email would be sent to test@example.com in production');
+    expect(data.messageId).toBe('sys-123');
+    expect(mockSendWelcomeEmail).not.toHaveBeenCalled();
+    expect(mockSendEmail).toHaveBeenCalledWith(
+      'test@example.com',
+      expect.any(String),
+      expect.anything(),
+      expect.objectContaining({
+        from: 'My App <noreply@example.com>',
+        text: 'plain-text body',
+        emailType: 'password-reset',
+      }),
+    );
   });
 
-  it('returns 500 when email service fails', async () => {
-    mockSendTestEmail.mockResolvedValue({
+  it('returns 500 when the welcome send fails', async () => {
+    mockSendWelcomeEmail.mockResolvedValue({
       success: false,
       error: 'Service unavailable',
     });
 
     const response = await POST(createMockRequest({
       template: 'welcome',
+      email: 'test@example.com',
+    }));
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('Failed to send test email');
+  });
+
+  it('returns 500 when an auth-template send fails', async () => {
+    mockSendEmail.mockResolvedValue({
+      success: false,
+      error: 'Service unavailable',
+    });
+
+    const response = await POST(createMockRequest({
+      template: 'magic-link',
       email: 'test@example.com',
     }));
     const data = await response.json();

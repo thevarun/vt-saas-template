@@ -1,0 +1,14 @@
+{
+  "allowlist": [
+    "docs/**/*.md",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "denylist": [
+    "docs/CHANGELOG.md",
+    "docs/changelog/**",
+    "CHANGELOG.md"
+  ],
+  "rangeDays": 7
+}

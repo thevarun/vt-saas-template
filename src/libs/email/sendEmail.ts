@@ -11,7 +11,9 @@ import type { EmailSendResult, EmailTag } from './types';
  * @param subject - Email subject line
  * @param template - React Email component
  * @param options - Optional settings
+ * @param options.from - Override the default FROM address (e.g., lifecycle sender)
  * @param options.replyTo - Reply-to email address
+ * @param options.text - Plain-text alternative for deliverability
  * @param options.cc - CC recipient(s)
  * @param options.bcc - BCC recipient(s)
  * @param options.tags - Email tags for analytics
@@ -34,7 +36,9 @@ export async function sendEmail(
   subject: string,
   template: ReactElement,
   options?: {
+    from?: string;
     replyTo?: string;
+    text?: string;
     cc?: string | string[];
     bcc?: string | string[];
     tags?: EmailTag[];

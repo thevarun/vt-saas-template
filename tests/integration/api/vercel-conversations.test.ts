@@ -32,6 +32,7 @@ vi.mock('next/headers', () => ({
 vi.mock('@sentry/nextjs', () => ({
   addBreadcrumb: vi.fn(),
   captureException: vi.fn(),
+  setUser: vi.fn(),
 }));
 
 const mockUserId = 'user-abc';

@@ -5,10 +5,12 @@ Implemented a programmatic SEO (pSEO) system for generating data-driven pages at
 
 ## What Was Built
 
-### 1. Data Structure (`data/pseo/`)
-- `categories.json` - 3 example categories (Productivity, Health, Technology)
-- `pages.json` - 6 example pages with full markdown content
-- JSON format allows easy content management and version control
+### 1. Content Structure (`content/blog/`)
+- Disk-based MDX: one folder per category under `content/blog/{category-slug}/`, one `.mdx` file per article (`content/blog/{category}/{slug}.mdx`)
+- 3 example categories (Productivity, Health, Technology) with 6 example articles
+- Optional `_category.md` per folder supplies category display metadata (`name`, `description`); files prefixed with `_` are skipped
+- Frontmatter (`title`, `description`, `lastModified`; optional `keywords`) is parsed with gray-matter and validated with Zod at load
+- Override the content root with `PSEO_CONTENT_ROOT` (defaults to `<cwd>/content/blog`)
 
 ### 2. Core Library (`src/libs/pseo/data.ts`)
 - **Type Definitions**: `PseoCategory`, `PseoPage`
@@ -24,7 +26,8 @@ Implemented a programmatic SEO (pSEO) system for generating data-driven pages at
 ### 3. Components (`src/components/pseo/`)
 - **Breadcrumbs** - Hierarchical navigation with schema.org structured data
 - **RelatedPages** - Internal linking to related content
-- **PseoTemplate** - Main page template with markdown rendering
+- **PseoTemplate** - Main page template; renders MDX via `next-mdx-remote/rsc` and emits Article JSON-LD
+- **mdx-components** - Registry of custom components (`Cta`, `Callout`, `ComparisonTable`) usable inside article MDX
 - All components use semantic Tailwind classes and are fully responsive
 
 ### 4. Route (`src/app/[locale]/[category]/[slug]/page.tsx`)
@@ -77,7 +80,7 @@ Total: 18 static pages (6 pages × 3 locales)
 - Breadcrumb navigation
 - Related articles section
 - Responsive design
-- Markdown content rendering with react-markdown
+- MDX content rendering with next-mdx-remote/rsc (remark-gfm + rehype-slug) and custom components
 - Topic tags display
 
 ### Developer Experience
@@ -103,29 +106,32 @@ Total: 18 static pages (6 pages × 3 locales)
 
 ## How to Add New Pages
 
-1. **Add page data** to `data/pseo/pages.json`:
-   ```json
-   {
-     "id": "unique-id",
-     "categoryId": "category-id",
-     "slug": "url-slug",
-     "title": "Page Title",
-     "description": "Meta description",
-     "content": "# Markdown content here...",
-     "keywords": ["keyword1", "keyword2"],
-     "lastModified": "2024-02-11"
-   }
-   ```
+1. **Add an MDX file** at `content/blog/{category-slug}/{url-slug}.mdx`:
+   ```mdx
+   ---
+   title: "Page Title"
+   description: "Meta description"
+   keywords: ["keyword1", "keyword2"]
+   lastModified: "2024-02-11"
+   ---
 
-2. **Add category** (if new) to `data/pseo/categories.json`:
-   ```json
-   {
-     "id": "category-id",
-     "name": "Category Name",
-     "description": "Category description",
-     "slug": "category-slug"
-   }
+   # Markdown / MDX content here...
+
+   <Callout variant="tip">Use registered components by tag.</Callout>
    ```
+   The filename (without `.mdx`) becomes the slug. `next-mdx-remote` does not
+   support `import`/`export` inside MDX — register custom components in
+   `src/components/pseo/mdx-components.tsx`.
+
+2. **Add a category** (if new) by creating the folder `content/blog/{category-slug}/`.
+   Optionally add `content/blog/{category-slug}/_category.md`:
+   ```md
+   ---
+   name: Category Name
+   description: Category description
+   ---
+   ```
+   Without it, the loader title-cases the folder slug and uses an empty description.
 
 3. **Rebuild** the project: `npm run build`
 4. Pages are automatically generated and added to sitemap
@@ -148,9 +154,10 @@ Analytics integration points added:
 ## Files Changed
 
 ### New Files (16)
-- `data/pseo/categories.json`
-- `data/pseo/pages.json`
+- `content/blog/{category}/_category.md` (category metadata)
+- `content/blog/{category}/{slug}.mdx` (article content)
 - `src/libs/pseo/data.ts`
+- `src/components/pseo/mdx-components.tsx`
 - `src/libs/pseo/__tests__/data.test.ts`
 - `src/components/pseo/Breadcrumbs.tsx`
 - `src/components/pseo/RelatedPages.tsx`

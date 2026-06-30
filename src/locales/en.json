@@ -86,8 +86,12 @@
       "templateDescription": "Choose which email template to test.",
       "templates": {
         "welcome": "Welcome Email",
+        "signupConfirmation": "Signup Confirmation",
+        "magicLink": "Magic Link",
         "passwordReset": "Password Reset",
-        "verifyEmail": "Email Verification"
+        "emailChange": "Email Change",
+        "reauthentication": "Reauthentication",
+        "inviteUser": "Invite User"
       },
       "emailLabel": "Recipient Email",
       "emailPlaceholder": "recipient@example.com",
@@ -338,7 +342,8 @@
     "blog": "Blog",
     "changelog": "Changelog",
     "community": "Community",
-    "company": "Company"
+    "company": "Company",
+    "about": "About"
   },
   "Hero": {
     "title": "Build your next <important>SaaS product</important> faster.",
@@ -826,7 +831,11 @@
     "title": "Changelog",
     "description": "Product updates and release notes",
     "noReleases": "No releases yet",
-    "noReleasesDescription": "Releases will appear here once the first version is published to main."
+    "noReleasesDescription": "Releases will appear here once the first version is published to main.",
+    "tagNew": "New",
+    "tagImproved": "Improved",
+    "tagFixed": "Fixed",
+    "underTheHood": "Under the hood"
   },
   "ShareLinks": {
     "title": "Share Links",
@@ -857,5 +866,18 @@
     "topics": {
       "title": "Topics"
     }
+  },
+  "Settings": {
+    "page_title": "Settings",
+    "page_subtitle": "Manage your account preferences",
+    "notifications_title": "Notifications",
+    "notifications_description": "Choose how you want to hear from us.",
+    "email_notifications": "Email notifications",
+    "notifications_saved_title": "Preferences saved",
+    "notifications_saved_toast": "Your notification preferences have been updated.",
+    "notifications_error_title": "Couldn't save preferences",
+    "notifications_error_generic": "Something went wrong. Please try again.",
+    "saving": "Saving...",
+    "save_notifications": "Save changes"
   }
 }

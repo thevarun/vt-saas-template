@@ -22,6 +22,10 @@ export type SocialMetadataParams = {
   image?: string;
   /** Optional page path for og:url (defaults to '') */
   path?: string;
+  /** og:type — defaults to 'website'. Use 'article' for editorial/blog pages. */
+  type?: 'website' | 'article';
+  /** ISO date string for og:article:published_time. Only emitted when type === 'article'. */
+  publishedTime?: string;
 };
 
 /**
@@ -42,7 +46,7 @@ export type SocialMetadataParams = {
 export function generateOpenGraphMetadata(
   params: SocialMetadataParams,
 ): Metadata['openGraph'] {
-  const { title, description, image, path = '' } = params;
+  const { title, description, image, path = '', type = 'website', publishedTime } = params;
   const siteUrl = getSiteUrl();
 
   // Use provided image, or generate dynamic OG image, or fallback to static
@@ -55,8 +59,7 @@ export function generateOpenGraphMetadata(
     imageUrl = buildOgImageUrl({ title, description });
   }
 
-  return {
-    type: 'website',
+  const base = {
     siteName: SITE_NAME,
     title,
     description,
@@ -70,6 +73,18 @@ export function generateOpenGraphMetadata(
       },
     ],
   };
+
+  // Article pages emit og:type=article and an optional published_time.
+  // Default behavior is unchanged: og:type=website with no publishedTime.
+  if (type === 'article') {
+    return {
+      ...base,
+      type: 'article',
+      ...(publishedTime ? { publishedTime } : {}),
+    };
+  }
+
+  return { ...base, type: 'website' };
 }
 
 /**

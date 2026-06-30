@@ -69,7 +69,7 @@ export function MainAppShell({ children }: MainAppShellProps) {
     { icon: Inbox, label: 'DS - Empty States', href: '/design-system/empty-states' },
     { icon: Loader2, label: 'DS - Loading', href: '/design-system/loading' },
     { icon: CreditCard, label: 'Pricing', href: '/pricing', disabled: true },
-    { icon: Settings, label: 'Settings', href: '/settings', disabled: true },
+    { icon: Settings, label: 'Settings', href: '/settings' },
     { icon: User, label: 'Profile', href: '/dashboard/user-profile' },
     { icon: UserPlus, label: 'Onboarding', href: '/onboarding' },
   ];
