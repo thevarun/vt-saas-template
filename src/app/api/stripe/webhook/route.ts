@@ -1,35 +1,35 @@
-import { Buffer } from "node:buffer";
+import { Buffer } from 'node:buffer';
 
-import * as Sentry from "@sentry/nextjs";
-import { eq, or } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import type Stripe from "stripe";
+import * as Sentry from '@sentry/nextjs';
+import { eq, or } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import type Stripe from 'stripe';
 
-import { trackEventServer } from "@/libs/analytics/server";
-import { db } from "@/libs/DB";
+import { trackEventServer } from '@/libs/analytics/server';
+import { db } from '@/libs/DB';
 import {
   sendSubscriptionEndedEmail,
   sendSubscriptionStartedEmail,
-} from "@/libs/email/sendSubscriptionEmails";
-import { Env } from "@/libs/Env";
-import { blockScheduledTasksForUser } from "@/libs/jobs/blocking";
-import { logger } from "@/libs/Logger";
-import { getStripe } from "@/libs/stripe/client";
-import { invalidateQuotaCache } from "@/libs/subscriptions/quota";
-import { createAdminClient } from "@/libs/supabase/admin";
-import type { BillingInterval } from "@/models/Schema";
+} from '@/libs/email/sendSubscriptionEmails';
+import { Env } from '@/libs/Env';
+import { blockScheduledTasksForUser } from '@/libs/jobs/blocking';
+import { logger } from '@/libs/Logger';
+import { getStripe } from '@/libs/stripe/client';
+import { invalidateQuotaCache } from '@/libs/subscriptions/quota';
+import { createAdminClient } from '@/libs/supabase/admin';
+import type { BillingInterval } from '@/models/Schema';
 import {
   stripeWebhookEvents,
   subscriptionTiers,
   tierQuotas,
   userSubscriptions,
-} from "@/models/Schema";
+} from '@/models/Schema';
 
 // Stripe verifies the request with its OWN signature scheme (constructEvent
 // below), so this route is intentionally NOT routed through withWebhookSecret
 // (that guards X-Webhook-Secret inbound hooks — a different mechanism).
-export const runtime = "nodejs"; // Required for Buffer and crypto
+export const runtime = 'nodejs'; // Required for Buffer and crypto
 
 // ---------------------------------------------------------------------------
 // POST handler — Stripe webhook
@@ -38,17 +38,17 @@ export const runtime = "nodejs"; // Required for Buffer and crypto
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const webhookSecret = Env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    logger.error("STRIPE_WEBHOOK_SECRET not configured");
+    logger.error('STRIPE_WEBHOOK_SECRET not configured');
     return NextResponse.json(
-      { error: "Webhook not configured" },
+      { error: 'Webhook not configured' },
       { status: 500 },
     );
   }
 
-  const signature = request.headers.get("stripe-signature");
+  const signature = request.headers.get('stripe-signature');
   if (!signature) {
     return NextResponse.json(
-      { error: "Missing stripe-signature header" },
+      { error: 'Missing stripe-signature header' },
       { status: 400 },
     );
   }
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (err) {
     Sentry.captureException(err, {
-      contexts: { stripe: { action: "webhook/signatureVerification" } },
+      contexts: { stripe: { action: 'webhook/signatureVerification' } },
     });
-    logger.error({ err }, "Stripe webhook signature verification failed");
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    logger.error({ err }, 'Stripe webhook signature verification failed');
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   // Idempotency: claim this event.id before dispatch, then mark it processed only
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       if (existing?.processedAt) {
         logger.info(
           { eventId: event.id, eventType: event.type },
-          "Stripe webhook: duplicate event — skipping",
+          'Stripe webhook: duplicate event — skipping',
         );
         return NextResponse.json(
           { received: true, duplicate: true },
@@ -109,15 +109,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // retries rather than dispatching without a dedupe guard.
     Sentry.captureException(err, {
       contexts: {
-        stripe: { eventType: event.type, action: "webhook/claimEvent" },
+        stripe: { eventType: event.type, action: 'webhook/claimEvent' },
       },
     });
     logger.error(
       { err, eventType: event.type },
-      "Stripe webhook: failed to claim event",
+      'Stripe webhook: failed to claim event',
     );
     return NextResponse.json(
-      { error: "Webhook ledger error" },
+      { error: 'Webhook ledger error' },
       { status: 500 },
     );
   }
@@ -130,16 +130,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // permanently orphan the row).
     Sentry.captureException(err, {
       contexts: {
-        stripe: { eventType: event.type, action: "webhook/handleEvent" },
+        stripe: { eventType: event.type, action: 'webhook/handleEvent' },
       },
     });
     logger.error(
       { err, eventType: event.type },
-      "Stripe webhook handler error",
+      'Stripe webhook handler error',
     );
     // Return 500 for transient errors so Stripe retries.
     return NextResponse.json(
-      { error: "Webhook handler error" },
+      { error: 'Webhook handler error' },
       { status: 500 },
     );
   }
@@ -156,12 +156,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (markErr) {
     Sentry.captureException(markErr, {
       contexts: {
-        stripe: { eventType: event.type, action: "webhook/markProcessed" },
+        stripe: { eventType: event.type, action: 'webhook/markProcessed' },
       },
     });
     logger.error(
       { markErr, eventId: event.id },
-      "Stripe webhook: failed to mark event processed",
+      'Stripe webhook: failed to mark event processed',
     );
   }
 
@@ -174,24 +174,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
-    case "checkout.session.completed":
+    case 'checkout.session.completed':
       await handleCheckoutCompleted(
         event.data.object as Stripe.Checkout.Session,
       );
       break;
-    case "invoice.paid":
+    case 'invoice.paid':
       await handleInvoicePaid(event.data.object as Stripe.Invoice);
       break;
-    case "customer.subscription.updated":
+    case 'customer.subscription.updated':
       await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
       break;
-    case "customer.subscription.deleted":
+    case 'customer.subscription.deleted':
       await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
       break;
     default:
       logger.info(
         { eventType: event.type },
-        "Unhandled Stripe webhook event type",
+        'Unhandled Stripe webhook event type',
       );
   }
 }
@@ -228,8 +228,8 @@ async function resolveTierByPriceId(priceId: string): Promise<{
     return null;
   }
 
-  const billingInterval: BillingInterval =
-    tier.stripePriceIdYearly === priceId ? "yearly" : "monthly";
+  const billingInterval: BillingInterval
+    = tier.stripePriceIdYearly === priceId ? 'yearly' : 'monthly';
 
   return { tierId: tier.id, billingInterval };
 }
@@ -259,15 +259,15 @@ async function getUserEmailAndName(
     }
     const userMeta = data.user.user_metadata as
       Record<string, unknown> | undefined;
-    const name =
-      typeof userMeta?.display_name === "string"
+    const name
+      = typeof userMeta?.display_name === 'string'
         ? userMeta.display_name
-        : typeof userMeta?.full_name === "string"
+        : typeof userMeta?.full_name === 'string'
           ? userMeta.full_name
           : undefined;
     return { email: data.user.email, name };
   } catch (err) {
-    logger.error({ err, userId }, "getUserEmailAndName: failed to fetch user");
+    logger.error({ err, userId }, 'getUserEmailAndName: failed to fetch user');
     return null;
   }
 }
@@ -282,7 +282,7 @@ async function getTierName(tierId: string): Promise<string> {
     .from(subscriptionTiers)
     .where(eq(subscriptionTiers.id, tierId))
     .limit(1);
-  return tier?.displayName ?? tier?.name ?? "Pro";
+  return tier?.displayName ?? tier?.name ?? 'Pro';
 }
 
 // ---------------------------------------------------------------------------
@@ -296,24 +296,24 @@ async function handleCheckoutCompleted(
   if (!userId) {
     logger.warn(
       { sessionId: session.id },
-      "checkout.session.completed: missing user_id in metadata",
+      'checkout.session.completed: missing user_id in metadata',
     );
     return;
   }
 
-  const stripeSubscriptionId =
-    typeof session.subscription === "string"
+  const stripeSubscriptionId
+    = typeof session.subscription === 'string'
       ? session.subscription
       : session.subscription?.id;
-  const stripeCustomerId =
-    typeof session.customer === "string"
+  const stripeCustomerId
+    = typeof session.customer === 'string'
       ? session.customer
       : session.customer?.id;
 
   if (!stripeSubscriptionId || !stripeCustomerId) {
     logger.warn(
       { sessionId: session.id },
-      "checkout.session.completed: missing subscription or customer",
+      'checkout.session.completed: missing subscription or customer',
     );
     return;
   }
@@ -321,7 +321,7 @@ async function handleCheckoutCompleted(
   const subscription = await getStripe().subscriptions.retrieve(
     stripeSubscriptionId,
     {
-      expand: ["items.data.price"],
+      expand: ['items.data.price'],
     },
   );
 
@@ -329,7 +329,7 @@ async function handleCheckoutCompleted(
   if (!priceId) {
     logger.warn(
       { stripeSubscriptionId },
-      "checkout.session.completed: no price ID on subscription",
+      'checkout.session.completed: no price ID on subscription',
     );
     return;
   }
@@ -338,14 +338,14 @@ async function handleCheckoutCompleted(
   if (!tierInfo) {
     logger.warn(
       { priceId },
-      "checkout.session.completed: no tier matched price ID",
+      'checkout.session.completed: no tier matched price ID',
     );
     return;
   }
 
-  const isTrialing = subscription.status === "trialing";
-  const trialExpiresAt =
-    isTrialing && subscription.trial_end
+  const isTrialing = subscription.status === 'trialing';
+  const trialExpiresAt
+    = isTrialing && subscription.trial_end
       ? new Date(subscription.trial_end * 1000)
       : null;
 
@@ -353,7 +353,7 @@ async function handleCheckoutCompleted(
     .update(userSubscriptions)
     .set({
       tierId: tierInfo.tierId,
-      status: isTrialing ? "trial" : "active",
+      status: isTrialing ? 'trial' : 'active',
       billingInterval: tierInfo.billingInterval,
       hasTrialed: true,
       trialExpiresAt,
@@ -382,15 +382,15 @@ async function handleCheckoutCompleted(
     }
 
     trackEventServer(
-      "subscription_converted",
+      'subscription_converted',
       {
         billing_interval: tierInfo.billingInterval,
         tier_name: tierName,
-        conversion_source: "checkout",
+        conversion_source: 'checkout',
       },
       userId,
-    ).catch((err) =>
-      logger.warn({ err, userId }, "subscription_converted tracking failed"),
+    ).catch(err =>
+      logger.warn({ err, userId }, 'subscription_converted tracking failed'),
     );
   }
 
@@ -401,7 +401,7 @@ async function handleCheckoutCompleted(
       billingInterval: tierInfo.billingInterval,
       isTrialing,
     },
-    "Subscription activated via checkout",
+    'Subscription activated via checkout',
   );
 }
 
@@ -411,7 +411,7 @@ async function handleCheckoutCompleted(
 
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   const subRef = invoice.parent?.subscription_details?.subscription;
-  const stripeSubscriptionId = typeof subRef === "string" ? subRef : subRef?.id;
+  const stripeSubscriptionId = typeof subRef === 'string' ? subRef : subRef?.id;
 
   if (!stripeSubscriptionId) {
     return;
@@ -431,7 +431,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   if (!sub) {
     logger.warn(
       { stripeSubscriptionId },
-      "invoice.paid: no matching user_subscriptions row",
+      'invoice.paid: no matching user_subscriptions row',
     );
     return;
   }
@@ -443,12 +443,12 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   // performs it and flips the row to 'active'; the later event sees 'active' and
   // skips. (Previously this lived ONLY in handleSubscriptionUpdated, so an
   // invoice.paid arriving first silently dropped both.)
-  const isTrialUpgrade = sub.currentStatus === "trial";
+  const isTrialUpgrade = sub.currentStatus === 'trial';
 
   await db
     .update(userSubscriptions)
     .set({
-      status: "active",
+      status: 'active',
       // Reset the rolling quota window to start at conversion.
       ...(isTrialUpgrade ? { currentPeriodAnchorAt: new Date() } : {}),
       updatedAt: new Date(),
@@ -460,17 +460,17 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   if (isTrialUpgrade && sub.billingInterval) {
     const tierName = await getTierName(sub.tierId);
     trackEventServer(
-      "subscription_converted",
+      'subscription_converted',
       {
         billing_interval: sub.billingInterval,
         tier_name: tierName,
-        conversion_source: "trial_upgrade",
+        conversion_source: 'trial_upgrade',
       },
       sub.userId,
-    ).catch((err) =>
+    ).catch(err =>
       logger.warn(
         { err, userId: sub.userId },
-        "subscription_converted tracking failed",
+        'subscription_converted tracking failed',
       ),
     );
   }
@@ -497,7 +497,7 @@ async function handleSubscriptionUpdated(
   if (!sub) {
     logger.warn(
       { subscriptionId: subscription.id },
-      "customer.subscription.updated: no matching row",
+      'customer.subscription.updated: no matching row',
     );
     return;
   }
@@ -505,15 +505,15 @@ async function handleSubscriptionUpdated(
   // Map Stripe status to local status.
   const statusMap: Record<
     string,
-    "active" | "cancelled" | "expired" | "trial"
+    'active' | 'cancelled' | 'expired' | 'trial'
   > = {
-    active: "active",
-    trialing: "trial",
-    past_due: "active", // Still has access while Stripe retries payment
-    canceled: "cancelled",
-    unpaid: "expired",
+    active: 'active',
+    trialing: 'trial',
+    past_due: 'active', // Still has access while Stripe retries payment
+    canceled: 'cancelled',
+    unpaid: 'expired',
   };
-  const localStatus = statusMap[subscription.status] ?? "active";
+  const localStatus = statusMap[subscription.status] ?? 'active';
 
   // Re-resolve tier in case the plan changed.
   const updates: Partial<typeof userSubscriptions.$inferInsert> = {
@@ -521,7 +521,7 @@ async function handleSubscriptionUpdated(
     updatedAt: new Date(),
   };
 
-  let tierName = "Pro";
+  let tierName = 'Pro';
   if (priceId) {
     const tierInfo = await resolveTierByPriceId(priceId);
     if (tierInfo) {
@@ -533,7 +533,7 @@ async function handleSubscriptionUpdated(
 
   // Trial → active conversion: reset the period anchor so the user gets a fresh
   // quota window starting at conversion.
-  if (sub.currentStatus === "trial" && localStatus === "active") {
+  if (sub.currentStatus === 'trial' && localStatus === 'active') {
     updates.currentPeriodAnchorAt = new Date();
   }
 
@@ -546,7 +546,7 @@ async function handleSubscriptionUpdated(
     : null;
 
   // Keep trial_expires_at in sync for trialing subs.
-  if (localStatus === "trial" && subscription.trial_end) {
+  if (localStatus === 'trial' && subscription.trial_end) {
     updates.trialExpiresAt = new Date(subscription.trial_end * 1000);
   }
 
@@ -559,22 +559,22 @@ async function handleSubscriptionUpdated(
 
   // Track trial → active conversion.
   if (
-    sub.currentStatus === "trial" &&
-    localStatus === "active" &&
-    updates.billingInterval
+    sub.currentStatus === 'trial'
+    && localStatus === 'active'
+    && updates.billingInterval
   ) {
     trackEventServer(
-      "subscription_converted",
+      'subscription_converted',
       {
         billing_interval: updates.billingInterval,
         tier_name: tierName,
-        conversion_source: "trial_upgrade",
+        conversion_source: 'trial_upgrade',
       },
       sub.userId,
-    ).catch((err) =>
+    ).catch(err =>
       logger.warn(
         { err, userId: sub.userId },
-        "subscription_converted tracking failed",
+        'subscription_converted tracking failed',
       ),
     );
   }
@@ -599,7 +599,7 @@ async function handleSubscriptionDeleted(
   if (!sub) {
     logger.warn(
       { subscriptionId: subscription.id },
-      "customer.subscription.deleted: no matching row",
+      'customer.subscription.deleted: no matching row',
     );
     return;
   }
@@ -607,11 +607,11 @@ async function handleSubscriptionDeleted(
   const [freeTier] = await db
     .select({ id: subscriptionTiers.id })
     .from(subscriptionTiers)
-    .where(eq(subscriptionTiers.name, "free"))
+    .where(eq(subscriptionTiers.name, 'free'))
     .limit(1);
 
   if (!freeTier) {
-    logger.error("customer.subscription.deleted: free tier not found in DB");
+    logger.error('customer.subscription.deleted: free tier not found in DB');
     return;
   }
 
@@ -621,7 +621,7 @@ async function handleSubscriptionDeleted(
     .update(userSubscriptions)
     .set({
       tierId: freeTier.id,
-      status: "cancelled",
+      status: 'cancelled',
       billingInterval: null,
       stripeSubscriptionId: null,
       currentPeriodAnchorAt: new Date(),
@@ -632,7 +632,7 @@ async function handleSubscriptionDeleted(
 
   // Block any in-flight scheduled tasks so they don't run without an active
   // subscription.
-  await blockScheduledTasksForUser(sub.userId, "subscription_cancelled");
+  await blockScheduledTasksForUser(sub.userId, 'subscription_cancelled');
 
   await invalidateAllQuotaCaches(sub.userId);
 
@@ -646,18 +646,18 @@ async function handleSubscriptionDeleted(
   }
 
   trackEventServer(
-    "subscription_cancelled",
+    'subscription_cancelled',
     { tier_name: tierName },
     sub.userId,
-  ).catch((err) =>
+  ).catch(err =>
     logger.warn(
       { err, userId: sub.userId },
-      "subscription_cancelled tracking failed",
+      'subscription_cancelled tracking failed',
     ),
   );
 
   logger.info(
     { userId: sub.userId },
-    "User downgraded to free tier after subscription deletion",
+    'User downgraded to free tier after subscription deletion',
   );
 }
