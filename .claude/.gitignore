@@ -1,36 +1,11 @@
-# Installed by @torka/claude-workflows
-commands/implement-epic-with-subagents.md
-commands/plan-parallelization.md
-commands/git-local-cleanup-push-pr.md
-commands/github-pr-resolve.md
-commands/dev-story-backend.md
-commands/dev-story-fullstack.md
-commands/dev-story-ui.md
-agents/principal-code-reviewer.md
-agents/story-prep-master.md
-agents/desk-check-gate.md
-skills/agent-creator/
-skills/designer-founder/
-*.backup
+# Local-only Claude Code settings (machine-specific permissions/paths)
+settings.local.json
 
-# Installed by @torka/claude-qol
-scripts/auto_approve_safe.py
-scripts/auto_approve_safe.rules.json
-scripts/auto_approve_safe_rules_check.py
-scripts/context-monitor.py
-scripts/__pycache__/
-commands/optimize-auto-approve-hook.md
-skills/nash/
+# Runtime state (auto-approve hook decision logs)
 auto_approve_safe.decisions.jsonl
 auto_approve_safe.decisions.archived.jsonl
 
-# Installed by @torka/claude-qol
-commands/docs-quick-update.md
-
-# Installed by @torka/claude-workflows
-skills/product-architect/
-commands/deep-audit.md
-skills/deep-audit/
-
-# Installed by @torka/claude-qol
-commands/fresh-eyes.md
+# Misc
+*.backup
+scripts/__pycache__/
+.DS_Store
