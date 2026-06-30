@@ -85,14 +85,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .returning();
 
     if (claimed.length === 0) {
-      // Row already exists. Only a fully-processed row is a true duplicate; a
-      // still-pending row (processed_at NULL) is a prior attempt that threw.
+      // Row already exists — resolve which of three states the existing claim is in.
       const [existing] = await db
-        .select({ processedAt: stripeWebhookEvents.processedAt })
+        .select({
+          processedAt: stripeWebhookEvents.processedAt,
+          receivedAt: stripeWebhookEvents.receivedAt,
+        })
         .from(stripeWebhookEvents)
         .where(eq(stripeWebhookEvents.eventId, event.id))
         .limit(1);
 
+      // At-least-once dedupe: a completed claim (processed_at set) is a true
+      // duplicate. A NULL claim that is still FRESH means another delivery is
+      // mid-flight — skip it to avoid double-running non-idempotent side effects.
+      // A STALE NULL claim means the prior attempt died before completing —
+      // reprocess it. NOTE: this does not make the side effects themselves
+      // idempotent across a swallowed mark-processed or a Stripe redelivery after
+      // a partial failure — that is handled by the atomic trial→active transition
+      // + idempotent lifecycle side-effects (tracked follow-up, template issue
+      // #345 item 3).
       if (existing?.processedAt) {
         logger.info(
           { eventId: event.id, eventType: event.type },
@@ -103,6 +114,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           { status: 200 },
         );
       }
+
+      // processed_at NULL: distinguish an in-flight concurrent delivery from a
+      // dead prior attempt by the claim's age. 15 min is longer than the max
+      // serverless function duration (so a live handler can't be misjudged dead)
+      // and shorter than Stripe's retry cadence (so a genuinely dead attempt gets
+      // reprocessed before Stripe gives up). Tunable.
+      const STALE_CLAIM_MS = 15 * 60 * 1000;
+      if (existing?.receivedAt) {
+        const age = Date.now() - existing.receivedAt.getTime();
+        if (age < STALE_CLAIM_MS) {
+          logger.info(
+            { eventId: event.id, eventType: event.type, ageMs: age },
+            'Stripe webhook: claim in flight (fresh) — skipping to avoid double-fire',
+          );
+          return NextResponse.json(
+            { received: true, duplicate: true },
+            { status: 200 },
+          );
+        }
+      }
+      // Stale (or missing received_at) NULL claim → fall through and reprocess.
     }
   } catch (err) {
     // Fail closed: if the ledger read/write itself fails, return 500 so Stripe

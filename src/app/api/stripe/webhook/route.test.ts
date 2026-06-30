@@ -182,12 +182,14 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     expect(updateChain.set).not.toHaveBeenCalled();
   });
 
-  it('re-delivery with processed_at NULL: reprocesses (prior attempt threw, not a dup)', async () => {
+  it('re-delivery with a STALE NULL claim: reprocesses (prior attempt died, not a dup)', async () => {
     insertReturning.mockResolvedValueOnce([]); // conflict → row already exists
-    // Re-check: row exists but processed_at NULL ⇒ prior attempt never finished.
-    // Then the handler's own reads follow (deleted-event reads).
+    // Re-check: processed_at NULL and received_at older than STALE_CLAIM_MS ⇒ the
+    // prior attempt died before completing, so it is safe to reprocess. Then the
+    // handler's own reads follow (deleted-event reads).
+    const staleReceivedAt = new Date(Date.now() - 16 * 60 * 1000); // 16 min ago
     selectResults = [
-      [{ processedAt: null }],
+      [{ processedAt: null, receivedAt: staleReceivedAt }],
       [{ userId: 'user-1', tierId: 'tier-pro' }],
       [{ id: 'tier-free' }],
       [{ displayName: 'Pro', name: 'pro' }],
@@ -203,6 +205,23 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     expect(updateChain.set).toHaveBeenCalledWith(
       expect.objectContaining({ processedAt: expect.any(Date) }),
     );
+  });
+
+  it('re-delivery with a FRESH NULL claim: treated as in-flight, does NOT reprocess', async () => {
+    insertReturning.mockResolvedValueOnce([]); // conflict → row already exists
+    // Re-check: processed_at NULL but received_at is recent ⇒ another delivery is
+    // mid-flight. We must skip to avoid double-running non-idempotent side effects.
+    selectResults = [[{ processedAt: null, receivedAt: new Date() }]];
+
+    const res = await POST(makeRequest() as never);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ received: true, duplicate: true });
+    // Handler never ran → no emails, no analytics, no mark-processed write.
+    expect(mockSendEnded).not.toHaveBeenCalled();
+    expect(mockTrackEventServer).not.toHaveBeenCalled();
+    expect(updateChain.set).not.toHaveBeenCalled();
   });
 
   it('handler error after claim: does NOT delete the claim (leaves row reprocessable)', async () => {
