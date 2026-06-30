@@ -12,7 +12,7 @@ test.describe('SEO - Hreflang Tags', () => {
 
     // Extract hreflang values
     const hreflangValues = await Promise.all(
-      hreflangLinks.map(link => link.getAttribute('hreflang')),
+      (await hreflangLinks.all()).map(link => link.getAttribute('hreflang')),
     );
 
     expect(hreflangValues).toContain('en');
