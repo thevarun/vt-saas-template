@@ -34,8 +34,8 @@ const updateConversationSchema = z.object({
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export const GET = withAuth(async (_request, { user, params }) => {
-  const id = params?.id;
+export const GET = withAuth<{ id: string }>(async (_request, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // Fetch conversation and messages in parallel
     const [convResult, messagesResult] = await Promise.all([
@@ -94,8 +94,8 @@ export const GET = withAuth(async (_request, { user, params }) => {
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export const PATCH = withAuth(async (request: NextRequest, { user, params }) => {
-  const id = params?.id;
+export const PATCH = withAuth<{ id: string }>(async (request: NextRequest, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -151,8 +151,8 @@ export const PATCH = withAuth(async (request: NextRequest, { user, params }) => 
  * - AC #5: Returns 404 for conversations not owned by user (not 403)
  * - AC #7: Returns 401 for unauthenticated requests
  */
-export const DELETE = withAuth(async (_request, { user, params }) => {
-  const id = params?.id;
+export const DELETE = withAuth<{ id: string }>(async (_request, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // Delete conversation - userId filter ensures user ownership
     // Messages are automatically deleted via cascade (schema: onDelete: 'cascade')

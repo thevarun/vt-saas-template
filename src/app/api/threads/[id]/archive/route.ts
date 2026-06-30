@@ -18,8 +18,8 @@ import { getThreadById, updateThread } from '@/libs/queries/threads';
  * - AC #8: Toggles archive status
  * - AC #10: Returns 401 for unauthenticated requests
  */
-export const PATCH = withAuth(async (_request, { user, params }) => {
-  const id = params?.id;
+export const PATCH = withAuth<{ id: string }>(async (_request, { user, params }) => {
+  const id = params?.id ?? '';
   try {
     // First, fetch the current thread to get its archived status
     // userId WHERE filter enforces ownership

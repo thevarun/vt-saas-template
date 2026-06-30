@@ -168,6 +168,36 @@ describe('GET /api/auth/callback', () => {
     expect(location).not.toContain('evil.com');
   });
 
+  it.each([
+    ['/\\evil.com', 'backslash (normalizes to http://evil.com)'],
+    ['/\\/evil.com', 'backslash + slash'],
+    ['//evil.com', 'protocol-relative'],
+    ['https://evil.com', 'absolute external'],
+  ])('never redirects to an external origin for next=%s (%s)', async (next) => {
+    const request = makeRequest(
+      `http://localhost:3000/api/auth/callback?code=abc123&next=${encodeURIComponent(next)}`,
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(307);
+
+    const location = response.headers.get('location')!;
+
+    // The location header is an absolute URL — its origin must stay same-origin.
+    expect(new URL(location).origin).toBe('http://localhost:3000');
+    expect(location).not.toContain('evil.com');
+  });
+
+  it('honours a safe internal next param (origin stays local)', async () => {
+    const request = makeRequest('http://localhost:3000/api/auth/callback?code=abc123&next=/en/dashboard');
+    const response = await GET(request);
+
+    const location = response.headers.get('location')!;
+
+    expect(new URL(location).origin).toBe('http://localhost:3000');
+    expect(location).toContain('/en/dashboard');
+  });
+
   it('redirects to / when next param is not provided', async () => {
     const request = makeRequest('http://localhost:3000/api/auth/callback?code=abc123');
     const response = await GET(request);

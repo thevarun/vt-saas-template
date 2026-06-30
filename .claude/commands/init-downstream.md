@@ -40,17 +40,38 @@ Set up a freshly forked/templated project as an independent downstream project.
 3. Update .env.example:
    - Change DB_SCHEMA=vt_saas → DB_SCHEMA=<new_schema>
 
-4. Generate fresh migration:
+4. Trim optional feature tables (pick only what this project needs):
+   - The template schema is modular — one file per feature under src/models/schema/,
+     re-exported by src/models/schema/index.ts. The regenerated migration below
+     contains EXACTLY the tables exported there, so dropping a feature now keeps it
+     out of the new project's baseline migration (and its DB) entirely.
+   - SHOW the optional feature modules and ASK which to keep. Typical optional ones:
+     - platform-connections (third-party OAuth) → platform-connections.ts
+     - scheduled-tasks (background-job queue) → scheduled-tasks.ts
+     - subscriptions/billing/quota (subscription-tiers, tier-quotas, user-subscriptions,
+       resource-usage, stripe-webhook-events) → keep or drop as a SET (they reference
+       each other via FKs)
+     - vercel-chat (AI chat history) → vercel-chat.ts
+   - Usually-core (keep): preferences, audit, feedback, threads, share-links.
+   - For each feature the user drops:
+     a. Remove its export line(s) from src/models/schema/index.ts
+     b. Delete the module file(s) under src/models/schema/
+     c. Remove the matching ENABLE ROW LEVEL SECURITY / policy block from supabase/prod-setup.sql
+     d. Flag the now-orphaned app code (features/routes/libs that import the dropped tables)
+        for the user to delete — don't auto-delete app code here.
+   - If unsure, keep everything — extra tables are harmless; you can drop later.
+
+5. Generate fresh migration:
    - Run: DB_SCHEMA=<new_schema> npm run db:generate
    - This creates a single clean migration for the new schema name
    - NOTE: drizzle-kit generate does NOT need DATABASE_URL — it reads Schema.ts only
 
-5. Verify idempotency:
+6. Verify idempotency:
    - Run: DB_SCHEMA=<new_schema> npm run db:generate
    - Confirm output says "No schema changes, nothing to migrate"
    - If a second migration was generated → OUTPUT: "WARNING: Schema generation is not idempotent. Check Schema.ts."
 
-6. OUTPUT: "Schema renamed to '<new_schema>'. Migration regenerated."
+7. OUTPUT: "Schema renamed to '<new_schema>'. Migration regenerated."
 ```
 
 ---
@@ -139,7 +160,13 @@ Set up a freshly forked/templated project as an independent downstream project.
    Next steps:
    1. Create .env.local with your DB_SCHEMA=<new_schema> and other secrets
    2. Set up your database and run: npm run db:migrate
-   3. Commit these changes: git add -A && git commit -m "chore: initialize downstream project"
-   4. Add upstream remote for future syncs: git remote add upstream https://github.com/thevarun/vt-saas-template.git
+   3. Enable build-time migrations for production: set RUN_PROD_MIGRATIONS=true in your
+      deploy environment (e.g. Vercel → Production env). The template ships with this OFF
+      so a build never migrates an unintended DB; your downstream has its own dedicated DB,
+      so turn it on. (Required, or production builds skip migrations — see .claude/rules/database.md.)
+      Only enable this when DATABASE_URL points at a database THIS project owns — never a
+      shared/dev DB whose drizzle ledger other projects also use.
+   4. Commit these changes: git add -A && git commit -m "chore: initialize downstream project"
+   5. Add upstream remote for future syncs: git remote add upstream https://github.com/thevarun/vt-saas-template.git
    ────────────────────────────────────
 ```

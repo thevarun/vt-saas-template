@@ -20,7 +20,10 @@ export type AuditLogEntry = {
   adminEmail?: string;
   action: string;
   targetType: string;
-  targetId: string;
+  // Nullable: the cross-schema FK (prod-setup.sql) is ON DELETE SET NULL, so this
+  // reads back null once the targeted auth.users row is deleted. Writes are always
+  // non-null (see logAdminAction) — only the deletion cascade nulls it.
+  targetId: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: Date;
 };

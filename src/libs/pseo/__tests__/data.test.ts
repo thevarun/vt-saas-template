@@ -1,189 +1,187 @@
 /**
- * Tests for pSEO data loading utilities
+ * Tests for pSEO data loading utilities.
+ *
+ * The loader resolves content from `process.env.PSEO_CONTENT_ROOT` when set,
+ * otherwise from `<cwd>/content/blog`. Tests point at fixture directories
+ * via this env override and re-import the module to reset its in-memory cache.
+ *
+ * Caching is gated on `NODE_ENV === 'production'`: in prod, repeat calls return
+ * the same array reference; outside prod the cache is bypassed so content edits
+ * surface without a dev-server restart. Both dimensions are asserted below by
+ * stubbing NODE_ENV with vi.stubEnv.
  */
 
-import { describe, expect, it } from 'vitest';
+import { join } from 'node:path';
 
-import {
-  getAllPageParams,
-  getCategoryBySlug,
-  getPageBySlug,
-  getPagesByCategory,
-  getRelatedPages,
-  loadCategories,
-  loadPages,
-} from '../data';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('pSEO Data Utilities', () => {
+const FIXTURES = join(__dirname, '__fixtures__');
+
+async function loadDataModule(root: string) {
+  process.env.PSEO_CONTENT_ROOT = root;
+  vi.resetModules();
+  return import('../data');
+}
+
+describe('pSEO Data Utilities — happy path', () => {
+  let mod: typeof import('../data');
+
+  beforeEach(async () => {
+    mod = await loadDataModule(join(FIXTURES, 'blog'));
+  });
+
+  afterEach(() => {
+    delete process.env.PSEO_CONTENT_ROOT;
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
   describe('loadCategories', () => {
-    it('should load all categories', async () => {
-      const categories = await loadCategories();
+    it('loads categories from directory names', async () => {
+      const categories = await mod.loadCategories();
 
-      expect(categories).toBeDefined();
       expect(Array.isArray(categories)).toBe(true);
-      expect(categories.length).toBeGreaterThan(0);
+      expect(categories.map(c => c.slug).sort()).toEqual(['health', 'productivity']);
     });
 
-    it('should return categories with required fields', async () => {
-      const categories = await loadCategories();
-      const category = categories[0];
+    it('uses _category.md frontmatter when present', async () => {
+      const categories = await mod.loadCategories();
+      const productivity = categories.find(c => c.slug === 'productivity');
 
-      expect(category).toHaveProperty('id');
-      expect(category).toHaveProperty('name');
-      expect(category).toHaveProperty('description');
-      expect(category).toHaveProperty('slug');
+      expect(productivity?.name).toBe('Productivity');
+      expect(productivity?.description).toBe('Tools and techniques to boost your productivity.');
     });
 
-    it('should cache categories on subsequent calls', async () => {
-      const first = await loadCategories();
-      const second = await loadCategories();
+    it('falls back to title-cased slug when no _category.md', async () => {
+      const categories = await mod.loadCategories();
+      const health = categories.find(c => c.slug === 'health');
 
-      expect(first).toBe(second); // Same reference = cached
+      expect(health?.name).toBe('Health');
+      expect(health?.description).toBe('');
     });
   });
 
   describe('loadPages', () => {
-    it('should load all pages', async () => {
-      const pages = await loadPages();
+    it('loads all MDX pages', async () => {
+      const pages = await mod.loadPages();
 
-      expect(pages).toBeDefined();
-      expect(Array.isArray(pages)).toBe(true);
-      expect(pages.length).toBeGreaterThan(0);
+      expect(pages.length).toBe(3);
     });
 
-    it('should return pages with required fields', async () => {
-      const pages = await loadPages();
-      const page = pages[0];
+    it('returns pages with required fields and frontmatter values', async () => {
+      const pages = await mod.loadPages();
+      const page = pages.find(p => p.slug === 'time-management-techniques');
 
-      expect(page).toHaveProperty('id');
-      expect(page).toHaveProperty('categoryId');
-      expect(page).toHaveProperty('slug');
-      expect(page).toHaveProperty('title');
-      expect(page).toHaveProperty('description');
-      expect(page).toHaveProperty('content');
-      expect(page).toHaveProperty('keywords');
-      expect(page).toHaveProperty('lastModified');
+      expect(page).toMatchObject({
+        id: 'time-management-techniques',
+        categoryId: 'productivity',
+        slug: 'time-management-techniques',
+        title: '10 Proven Time Management Techniques',
+        description: 'Master your time with these effective techniques.',
+        keywords: ['time management', 'productivity'],
+        lastModified: '2024-02-01',
+      });
+      expect(page?.content).toContain('Body content for the fixture article');
     });
 
-    it('should cache pages on subsequent calls', async () => {
-      const first = await loadPages();
-      const second = await loadPages();
+    it('skips files prefixed with underscore', async () => {
+      const pages = await mod.loadPages();
 
-      expect(first).toBe(second); // Same reference = cached
+      expect(pages.find(p => p.slug.startsWith('_'))).toBeUndefined();
     });
   });
 
   describe('getCategoryBySlug', () => {
-    it('should find a category by slug', async () => {
-      const category = await getCategoryBySlug('productivity');
+    it('finds a category by slug', async () => {
+      const category = await mod.getCategoryBySlug('productivity');
 
-      expect(category).toBeDefined();
       expect(category?.slug).toBe('productivity');
     });
 
-    it('should return undefined for non-existent category', async () => {
-      const category = await getCategoryBySlug('non-existent-category');
+    it('returns undefined for non-existent category', async () => {
+      const category = await mod.getCategoryBySlug('does-not-exist');
 
       expect(category).toBeUndefined();
     });
   });
 
   describe('getPageBySlug', () => {
-    it('should find a page by category and slug', async () => {
-      const page = await getPageBySlug('productivity', 'time-management-techniques');
+    it('finds a page by category and slug', async () => {
+      const page = await mod.getPageBySlug('productivity', 'time-management-techniques');
 
-      expect(page).toBeDefined();
       expect(page?.slug).toBe('time-management-techniques');
     });
 
-    it('should return undefined for non-existent page', async () => {
-      const page = await getPageBySlug('productivity', 'non-existent-page');
+    it('returns undefined for non-existent page', async () => {
+      const page = await mod.getPageBySlug('productivity', 'does-not-exist');
 
       expect(page).toBeUndefined();
     });
 
-    it('should return undefined for valid page but wrong category', async () => {
-      const page = await getPageBySlug('health', 'time-management-techniques');
+    it('returns undefined when slug exists but wrong category', async () => {
+      const page = await mod.getPageBySlug('health', 'time-management-techniques');
 
       expect(page).toBeUndefined();
     });
   });
 
   describe('getPagesByCategory', () => {
-    it('should return all pages for a category', async () => {
-      const pages = await getPagesByCategory('productivity');
+    it('returns all pages for a category', async () => {
+      const pages = await mod.getPagesByCategory('productivity');
 
-      expect(pages).toBeDefined();
-      expect(Array.isArray(pages)).toBe(true);
-      expect(pages.length).toBeGreaterThan(0);
-
-      // All pages should be from productivity category
-      const categories = await loadCategories();
-      const productivityCat = categories.find(c => c.slug === 'productivity');
-      pages.forEach((page) => {
-        expect(page.categoryId).toBe(productivityCat?.id);
-      });
+      expect(pages.length).toBe(2);
+      expect(pages.every(p => p.categoryId === 'productivity')).toBe(true);
     });
 
-    it('should return empty array for non-existent category', async () => {
-      const pages = await getPagesByCategory('non-existent');
+    it('returns empty array for non-existent category', async () => {
+      const pages = await mod.getPagesByCategory('does-not-exist');
 
       expect(pages).toEqual([]);
     });
   });
 
   describe('getRelatedPages', () => {
-    it('should return related pages from same category', async () => {
-      const relatedPages = await getRelatedPages('productivity', 'time-management-techniques', 3);
+    it('returns sibling pages excluding the current one', async () => {
+      const related = await mod.getRelatedPages('productivity', 'time-management-techniques', 3);
 
-      expect(relatedPages).toBeDefined();
-      expect(Array.isArray(relatedPages)).toBe(true);
-      // Should not include the current page
-      expect(relatedPages.every(p => p.slug !== 'time-management-techniques')).toBe(true);
+      expect(related.every(p => p.slug !== 'time-management-techniques')).toBe(true);
+      expect(related.length).toBe(1);
     });
 
-    it('should respect limit parameter', async () => {
-      const relatedPages = await getRelatedPages('productivity', 'time-management-techniques', 2);
+    it('respects the limit parameter', async () => {
+      const related = await mod.getRelatedPages('productivity', 'time-management-techniques', 0);
 
-      expect(relatedPages.length).toBeLessThanOrEqual(2);
+      expect(related.length).toBe(0);
     });
 
-    it('should return empty array if no other pages in category', async () => {
-      const relatedPages = await getRelatedPages('non-existent', 'some-page', 3);
+    it('returns empty array when category has no other pages', async () => {
+      const related = await mod.getRelatedPages('health', 'stress-management', 3);
 
-      expect(relatedPages).toEqual([]);
+      expect(related).toEqual([]);
     });
   });
 
   describe('getAllPageParams', () => {
-    it('should return all page params for static generation', async () => {
-      const params = await getAllPageParams();
+    it('returns one entry per MDX file', async () => {
+      const params = await mod.getAllPageParams();
 
-      expect(params).toBeDefined();
-      expect(Array.isArray(params)).toBe(true);
-      expect(params.length).toBeGreaterThan(0);
+      expect(params.length).toBe(3);
     });
 
-    it('should return params with category and slug', async () => {
-      const params = await getAllPageParams();
-      const param = params[0];
+    it('each entry has category and slug strings', async () => {
+      const params = await mod.getAllPageParams();
 
-      expect(param).toBeDefined();
-      expect(param).toHaveProperty('category');
-      expect(param).toHaveProperty('slug');
-
-      if (param) {
+      for (const param of params) {
         expect(typeof param.category).toBe('string');
         expect(typeof param.slug).toBe('string');
       }
     });
 
-    it('should match categories to pages correctly', async () => {
-      const params = await getAllPageParams();
-      const categories = await loadCategories();
-      const pages = await loadPages();
+    it('matches every param to a real page', async () => {
+      const params = await mod.getAllPageParams();
+      const categories = await mod.loadCategories();
+      const pages = await mod.loadPages();
 
-      // Every param should correspond to a real page
       for (const param of params) {
         const category = categories.find(c => c.slug === param.category);
 
@@ -194,5 +192,76 @@ describe('pSEO Data Utilities', () => {
         expect(page).toBeDefined();
       }
     });
+  });
+});
+
+describe('pSEO Data Utilities — cache gate (NODE_ENV)', () => {
+  afterEach(() => {
+    delete process.env.PSEO_CONTENT_ROOT;
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('caches categories in production (same reference on repeat calls)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const mod = await loadDataModule(join(FIXTURES, 'blog'));
+
+    const first = await mod.loadCategories();
+    const second = await mod.loadCategories();
+
+    // Second call is served from cache: identical reference, not re-read.
+    expect(first).toBe(second);
+  });
+
+  it('bypasses the categories cache outside production (fresh data each call)', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const mod = await loadDataModule(join(FIXTURES, 'blog'));
+
+    const first = await mod.loadCategories();
+    const second = await mod.loadCategories();
+
+    expect(first).toEqual(second); // Equal content...
+    expect(first).not.toBe(second); // ...but freshly read each time (no cache)
+  });
+
+  it('caches pages in production (same reference on repeat calls)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const mod = await loadDataModule(join(FIXTURES, 'blog'));
+
+    const first = await mod.loadPages();
+    const second = await mod.loadPages();
+
+    expect(first).toBe(second);
+  });
+
+  it('bypasses the pages cache outside production (fresh data each call)', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const mod = await loadDataModule(join(FIXTURES, 'blog'));
+
+    const first = await mod.loadPages();
+    const second = await mod.loadPages();
+
+    expect(first).toEqual(second); // Equal content...
+    expect(first).not.toBe(second); // ...but freshly read each time (no cache)
+  });
+});
+
+describe('pSEO Data Utilities — invalid frontmatter', () => {
+  afterEach(() => {
+    delete process.env.PSEO_CONTENT_ROOT;
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('throws with the offending file path when frontmatter is missing required fields', async () => {
+    const mod = await loadDataModule(join(FIXTURES, 'blog-bad'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(mod.loadPages()).rejects.toThrow(/missing-title\.mdx/);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid frontmatter in:'),
+    );
+
+    errorSpy.mockRestore();
   });
 });

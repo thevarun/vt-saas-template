@@ -1,5 +1,6 @@
 /** @module withAuth HOF -- wraps API route handlers with authentication. */
 
+import * as Sentry from '@sentry/nextjs';
 import type { User } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
@@ -7,9 +8,12 @@ import type { NextRequest } from 'next/server';
 import { logAuthError, unauthorizedError } from '@/libs/api/errors';
 import { createClient } from '@/libs/supabase/server';
 
-export type AuthenticatedHandler = (
+// Parameterise `params` so dynamic-route handlers can declare the expected
+// shape (e.g. `{ id: string }`) instead of accepting `any`. The default keeps
+// the previous behaviour intact for routes that omit the generic.
+export type AuthenticatedHandler<P = Record<string, string>> = (
   request: NextRequest,
-  context: { user: User; params?: any },
+  context: { user: User; params?: P },
 ) => Promise<Response>;
 
 /**
@@ -29,8 +33,8 @@ export type AuthenticatedHandler = (
  * })
  * ```
  */
-export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: Request, routeContext?: { params?: Promise<any> }) => {
+export function withAuth<P = Record<string, string>>(handler: AuthenticatedHandler<P>) {
+  return async (request: Request, routeContext?: { params?: Promise<P> }) => {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -42,6 +46,10 @@ export function withAuth(handler: AuthenticatedHandler) {
       });
       return unauthorizedError();
     }
+
+    // Attach user to the request's Sentry scope so any captureException within
+    // this request (direct or via logApiError) carries user context.
+    Sentry.setUser({ id: user.id });
 
     const params = routeContext?.params ? await routeContext.params : undefined;
     return handler(request as NextRequest, { user, params });

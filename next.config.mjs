@@ -75,5 +75,17 @@ export default withSentryConfig(
 
     // Disable Sentry telemetry
     telemetry: false,
+
+    // Associate commits with each release so a commit message containing
+    // "Fixes <ISSUE-ID>" auto-resolves that Sentry issue on deploy.
+    // Requires the Sentry GitHub integration to be connected. ignoreMissing/
+    // ignoreEmpty keep the build green if commit detection can't run.
+    release: {
+      setCommits: {
+        auto: true,
+        ignoreMissing: true,
+        ignoreEmpty: true,
+      },
+    },
   },
 );
