@@ -2,7 +2,11 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 import { Env } from '@/libs/Env';
 
-let cachedClient: ReturnType<typeof createSupabaseClient> | null = null;
+// types.ts is a stub, so the admin client stays untyped. The explicit
+// `<any, string>` generics let `db.schema` accept the runtime DB_SCHEMA value
+// (the default generic narrows `schema` to `undefined`, rejecting any string).
+let cachedClient: ReturnType<typeof createSupabaseClient<any, string>> | null
+  = null;
 
 /**
  * Returns a singleton Supabase admin client using the service role key.
@@ -23,12 +27,17 @@ export function createAdminClient() {
     );
   }
 
-  cachedClient = createSupabaseClient(Env.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
+  cachedClient = createSupabaseClient<any, string>(
+    Env.NEXT_PUBLIC_SUPABASE_URL,
+    serviceRoleKey,
+    {
+      db: { schema: Env.NEXT_PUBLIC_DB_SCHEMA },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
     },
-  });
+  );
 
   return cachedClient;
 }

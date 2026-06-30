@@ -8,6 +8,7 @@ export function createClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
     Env.NEXT_PUBLIC_SUPABASE_URL,
     Env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      db: { schema: Env.NEXT_PUBLIC_DB_SCHEMA },
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value;
