@@ -146,6 +146,10 @@ Before deploying, run `/launch-checklist` to audit 35 production-readiness check
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`)
 - **Imports:** Absolute with `@/` prefix, auto-sorted
 
+### Bundler gotcha: no lazy-`require()` of local ESM modules
+
+Under Next 16 + Turbopack, always use static `import` for local modules. Never reach for an `eslint-disable` to lazy-`require()` a local ESM module — the production bundle drops the named export under ESM↔CJS interop, so a module that works in dev silently loses its export in prod. Every `eslint-disable` needs a `-- reason`.
+
 ---
 
 ## Key Patterns

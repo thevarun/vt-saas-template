@@ -16,9 +16,9 @@ import { isValidUuid } from '@/utils/validation';
  * Unsuspends a user by clearing ban_duration.
  * Requires admin authentication.
  */
-export const POST = withAdminAuth(async (request, { user, params }) => {
+export const POST = withAdminAuth<{ userId: string }>(async (request, { user, params }) => {
   try {
-    const { userId } = params;
+    const { userId } = params ?? { userId: '' };
 
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');

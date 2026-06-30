@@ -10,14 +10,23 @@ import {
   dbError,
   difyError,
   forbiddenError,
+  goneError,
   internalError,
   invalidRequestError,
   notFoundError,
+  quotaExhaustedError,
+  rateLimitError,
+  saveFailedError,
+  serviceUnavailableError,
+  timeoutError,
   unauthorizedError,
+  usernameTakenError,
   validationError,
 } from './responses';
 import type { ApiErrorResponse } from './types';
 import { HTTP_STATUS } from './types';
+
+const UPPER_SNAKE_CASE_RE = /^[A-Z_]+$/;
 
 describe('API Error Response Builders', () => {
   describe('createErrorResponse', () => {
@@ -282,9 +291,16 @@ describe('API Error Response Builders', () => {
         notFoundError('Resource'),
         conflictError('Conflict message'),
         invalidRequestError('Invalid message'),
+        usernameTakenError(),
         dbError(),
+        saveFailedError(),
         internalError(),
         difyError(),
+        serviceUnavailableError(),
+        timeoutError(),
+        rateLimitError(),
+        quotaExhaustedError(new Date('2026-01-01T00:00:00.000Z')),
+        goneError(),
       ];
 
       for (const error of errors) {
@@ -300,7 +316,7 @@ describe('API Error Response Builders', () => {
         expect(json.error.length).toBeGreaterThan(0);
 
         // Code should be uppercase snake case
-        expect(json.code).toMatch(/^[A-Z_]+$/);
+        expect(json.code).toMatch(UPPER_SNAKE_CASE_RE);
       }
     });
 
@@ -312,9 +328,16 @@ describe('API Error Response Builders', () => {
         { fn: () => notFoundError('Resource'), status: 404 },
         { fn: () => conflictError('Message'), status: 409 },
         { fn: () => invalidRequestError('Message'), status: 400 },
+        { fn: usernameTakenError, status: 409 },
         { fn: dbError, status: 500 },
+        { fn: saveFailedError, status: 500 },
         { fn: internalError, status: 500 },
         { fn: difyError, status: 500 },
+        { fn: serviceUnavailableError, status: 503 },
+        { fn: timeoutError, status: 408 },
+        { fn: rateLimitError, status: 429 },
+        { fn: () => quotaExhaustedError(new Date('2026-01-01T00:00:00.000Z')), status: 429 },
+        { fn: goneError, status: 410 },
       ];
 
       for (const { fn, status } of statusTests) {
@@ -322,6 +345,30 @@ describe('API Error Response Builders', () => {
 
         expect(response.status).toBe(status);
       }
+    });
+  });
+
+  // The inline snapshot guards the canonical error shape from drift across forks.
+  describe('canonical shape contract', () => {
+    it('canonical error shape is { error: string, code: ApiErrorCode, details?: object }', async () => {
+      const res = createErrorResponse('msg', 'INTERNAL_ERROR', 500, { foo: 'bar' });
+
+      await expect(res.json()).resolves.toMatchInlineSnapshot(`
+        {
+          "code": "INTERNAL_ERROR",
+          "details": {
+            "foo": "bar",
+          },
+          "error": "msg",
+        }
+      `);
+    });
+
+    it('goneError emits status 410 with code "GONE"', async () => {
+      const res = goneError();
+
+      expect(res.status).toBe(410);
+      await expect(res.json()).resolves.toMatchObject({ code: 'GONE' });
     });
   });
 });

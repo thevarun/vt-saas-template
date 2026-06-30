@@ -1,0 +1,10 @@
+# Queue for one-shot data migrations (cleanup, backfill, dedup).
+#
+# These are hand-written .sql files applied MANUALLY (Supabase MCP apply_migration
+# or the SQL editor) — NOT by `db:migrate`, whose runner is journal-driven and
+# only applies files listed in migrations/meta/_journal.json.
+#
+# Workflow: write NNNN_<name>.sql here (BEGIN/COMMIT, a header explaining why it
+# can't be a drizzle migration, verification queries at the bottom) → apply to dev
+# → after merge to main, apply to prod → delete the file. Git history keeps it as a
+# recipe; this directory should not accumulate. See docs/database-workflow.md.

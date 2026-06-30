@@ -56,7 +56,7 @@ export class EmailClient {
     payload: EmailPayload,
     options: EmailSendOptions = {},
   ): Promise<EmailSendResult> {
-    const from = getFromAddress();
+    const from = payload.from || getFromAddress();
     const replyTo = payload.replyTo || EMAIL_CONFIG.replyTo;
     const emailType = options.emailType || 'generic';
     const getTimer = createEmailTimer();

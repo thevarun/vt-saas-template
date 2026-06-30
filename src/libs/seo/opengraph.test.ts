@@ -134,6 +134,52 @@ describe('generateOpenGraphMetadata', () => {
       }
     }
   });
+
+  it('defaults og:type to website when type is omitted', () => {
+    const og = generateOpenGraphMetadata({
+      title: 'Test',
+      description: 'Test',
+    });
+
+    if (og && typeof og === 'object' && 'type' in og) {
+      expect(og.type).toBe('website');
+    }
+  });
+
+  it('sets og:type to article when type is "article"', () => {
+    const og = generateOpenGraphMetadata({
+      title: 'Test Article',
+      description: 'Test',
+      type: 'article',
+    });
+
+    if (og && typeof og === 'object' && 'type' in og) {
+      expect(og.type).toBe('article');
+    }
+  });
+
+  it('emits publishedTime for article pages when provided', () => {
+    const og = generateOpenGraphMetadata({
+      title: 'Test Article',
+      description: 'Test',
+      type: 'article',
+      publishedTime: '2024-02-01',
+    });
+
+    if (og && typeof og === 'object' && 'publishedTime' in og) {
+      expect(og.publishedTime).toBe('2024-02-01');
+    }
+  });
+
+  it('does not emit publishedTime for website pages', () => {
+    const og = generateOpenGraphMetadata({
+      title: 'Test',
+      description: 'Test',
+      publishedTime: '2024-02-01',
+    });
+
+    expect(og && 'publishedTime' in og).toBe(false);
+  });
 });
 
 describe('generateTwitterMetadata', () => {

@@ -16,12 +16,16 @@ The project includes:
 | Topic | Full Docs |
 |-------|-----------|
 | API Errors | [docs/api-error-handling.md](docs/api-error-handling.md) |
+| Database Workflow | [docs/database-workflow.md](docs/database-workflow.md) |
+| Legacy Columns | [docs/legacy-columns.md](docs/legacy-columns.md) |
 | Error Boundaries | [docs/error-handling-guide.md](docs/error-handling-guide.md) |
 | CI/CD | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) |
 | Development | [docs/development-guide.md](docs/development-guide.md) |
 | Admin Setup | [docs/admin-setup.md](docs/admin-setup.md) |
 | Email System | [docs/email-system.md](docs/email-system.md) |
 | Upstream Sync | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md) |
+
+Subsystem rules live in `.claude/rules/` and load automatically when you touch matching files (each rule's front-matter `paths` glob determines when it applies): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO content authoring).
 
 ## Core Architecture
 
@@ -226,8 +230,8 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run test:e2e` - Playwright E2E tests
 - `npm run dev:next` - Start Next.js only (no Sentry Spotlight)
 - `npm run email:dev` - Start React Email preview server (port 3001)
-- `/upstream-sync` - Interactive upstream sync (Claude Code command)
-- `/init-downstream` - Post-fork project initialization (Claude Code command)
+- `/init-downstream` - **Run first after forking.** Renames DB schema, configures merge strategies (`.gitattributes`), fixes `gh` CLI targeting, cleans template artifacts. See `docs/upstream-sync-guide.md` for manual equivalent.
+- `/upstream-sync` - **Pull upstream template updates.** Fetches releases, merges with conflict classification, auto-detects re-added deleted files. Requires `/init-downstream` to have run first.
 - `/launch-checklist` - Autonomous production-readiness audit (35 checks, scorecard report)
 
 ## Key Development Patterns
@@ -247,9 +251,11 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 
 ### Modifying Database Schema
 1. Edit `src/models/Schema.ts`
-2. Run `npm run db:generate` to create migration
-3. Migration auto-applies on next DB interaction (no restart needed)
-4. For Edge runtime: disable auto-migration in `src/libs/DB.ts` and run manually
+2. Run `npm run db:generate` **on `main`** to create the migration (commit the `.sql` + `_journal.json` + `NNNN_snapshot.json` together)
+3. How it applies differs by environment:
+   - **Dev:** `src/libs/DB.ts` auto-runs `migratePg`/`migratePglite` on the next server start — no manual step.
+   - **Prod:** Vercel runs `npm run db:migrate:ci` during the build phase (see the `build` script in `package.json`) *before* `next build`, so schema lands atomically with the deploy. There is **no** "auto-apply on next interaction" in prod — if you skip the build-time migration you ship a stale schema.
+4. Migrations are **journal-driven**: only `.sql` files listed in `migrations/meta/_journal.json` run. Full reference: [`docs/database-workflow.md`](docs/database-workflow.md); must-not-break rules: [`.claude/rules/database.md`](.claude/rules/database.md).
 
 ### Adding Translations
 1. Add keys to `src/locales/{locale}/` JSON files
@@ -405,6 +411,23 @@ After implementing front-end changes, use Playwright MCP tools to navigate to af
 - **ESLint**: Antfu config (no semicolons, single quotes for JSX attributes)
 - **Formatting**: Prettier + ESLint with auto-fix on save
 - **Git Hooks**: Husky runs linting on staged files + commit message validation
+- **No lazy-`require()` of local ESM modules**: Never use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this has caused a provider module to silently lose its named export in production). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
+
+## Deployment & QA Skills
+
+Two first-party Claude Code skills live under `.claude/skills/` for go-live work:
+
+- **`/production-deploy`** — provider-agnostic 8-phase first-deploy orchestrator (Plan → Readiness → Env Strategy → Core Infra → Integrations → Smoke Test → Document → Backport). Resume-safe via `_bmad-output/deployment-checklist.md`. Phase 7 extends `docs/deployment-guide.md` and adds a `## Deployment` section to this file with the actual production specifics once a real deploy runs.
+- **`/qa`** — on-demand manual-QA runner for flows unit/E2E tests can't cover (real browser via Playwright MCP, real email via Gmail MCP, real env plumbing). Two targets (`--dev` / `--prod`); ships generic auth runbooks (magic signup/signin, password reset, admin-route gating, cookie flags). Reads `QA_EMAIL` / `QA_PASSWORD` from `.env.local`.
+
+These compose with the read-only `/launch-checklist` audit: **audit (launch-checklist) → execute (production-deploy) → verify (qa)** — sequential and complementary, not duplicative.
+
+## Contributing back to the template
+
+**This template is the source of truth for shared/infra code.** When a product accumulates a generic, reusable improvement, contribute it **up** here — it then reaches every product (and every future fork) via `upstream-sync`. Never keep divergent copies of shared code.
+
+- **`/upstream-contribute`** — the repeatable harvest loop: Identify → Plan → Produce → Verify → Merge → Harvest. A produce-only fan-out (`workflows/port-to-template.js`) opens dependency-ordered PRs; the merge is human-supervised and gated on **independent byte-level verification** — trust the pushed bytes, never an agent's "I fixed it" report. It auto-detects whether you're in the template or a product and nudges; re-run it whenever a product accrues new candidates.
+- **What to contribute:** does it make the *next* product faster to build, or improve the *whole fleet*? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
 
 ## Research
 

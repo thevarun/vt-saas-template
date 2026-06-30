@@ -20,9 +20,9 @@ import { isValidUuid } from '@/utils/validation';
  * Requires admin authentication.
  * Cannot reset own password (self-preservation).
  */
-export const POST = withAdminAuth(async (_request, { user, params }) => {
+export const POST = withAdminAuth<{ userId: string }>(async (_request, { user, params }) => {
   try {
-    const { userId } = params;
+    const { userId } = params ?? { userId: '' };
 
     if (!isValidUuid(userId)) {
       return invalidRequestError('Invalid user ID format');
