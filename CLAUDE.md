@@ -232,6 +232,7 @@ Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run c
 - `npm run email:dev` - Start React Email preview server (port 3001)
 - `/init-downstream` - **Run first after forking.** Renames DB schema, configures merge strategies (`.gitattributes`), fixes `gh` CLI targeting, cleans template artifacts. See `docs/upstream-sync-guide.md` for manual equivalent.
 - `/upstream-sync` - **Pull upstream template updates.** Fetches releases, merges with conflict classification, auto-detects re-added deleted files. Requires `/init-downstream` to have run first.
+- `/launch-checklist` - Autonomous production-readiness audit (35 checks, scorecard report)
 
 ## Key Development Patterns
 
