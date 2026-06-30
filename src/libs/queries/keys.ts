@@ -27,4 +27,8 @@ export const queryKeys = {
     /** Current user's subscription + tier + quota + usage. See `useSubscriptionUsage`. */
     usage: ['subscription', 'usage'] as const,
   },
+  admin: {
+    /** Admin analytics dashboard metrics. See `useAdminAnalytics`. */
+    analytics: ['admin', 'analytics'] as const,
+  },
 } as const;
