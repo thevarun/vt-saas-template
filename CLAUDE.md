@@ -1,434 +1,138 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Behavioral guidance for this repo — kept deliberately lean. Detailed reference lives in `docs/` (start at the Documentation Map below); subsystem rules live in `.claude/rules/` and load automatically when you touch matching files.
 
 ## Project Overview
 
-VT SaaS Template is a production-ready foundation for building SaaS web applications, designed for a solo developer who prioritizes productivity and efficiency. 
+**VT SaaS Template** is a production-ready foundation for building SaaS web apps, optimized for a solo developer who prioritizes productivity. A fork is the starting point for a new product; this repo is the **upstream source of truth** for shared/infra code (see "Contributing back" below).
 
-The project includes:
-1. **Supabase Authentication** - Custom authentication with SSR support
-2. **Dify AI Integration** - Chat-based AI assistant via proxy API
-3. **Assistant UI** (@assistant-ui/react) - Modern chat interface with streaming support
+Ships: Supabase auth (SSR) · two interchangeable AI chat stacks (Dify proxy + Vercel AI SDK) · Drizzle/Postgres with PGlite for offline dev · next-intl i18n · Resend email · SEO (hreflang, OG, sitemap) · admin tooling.
+
+## Tech Stack (decisions that carry constraints)
+
+- **Framework:** Next.js 16 (App Router, RSC, Turbopack) · React 19 · TypeScript
+- **Auth + DB:** Supabase (Postgres + Auth + SSR). Tables live in the schema named by `DB_SCHEMA` (e.g. `vt_saas` in dev, `public` in prod) — never hardcode the schema
+- **Schema/ORM:** Drizzle — schema-as-code; apply to dev via Supabase MCP, generate the migration on `main`, migrate-on-prod (see DB rules below). **No `db:push`** (drift-destructive; intentionally absent)
+- **Query client + types:** Supabase JS for runtime queries; `src/libs/supabase/types.ts` is **generated** (`npm run db:gen-types` after each migration) — that's what turns a dropped column into a `tsc` error instead of a prod 400
+- **AI:** two stacks behind one `/chat` selector — see "Which chat to use." Vercel path uses AI SDK 6, provider-agnostic
+- **UI:** shadcn/ui + Tailwind 4. No other UI libraries without approval
+- **i18n:** next-intl — `en` (default), `hi`, `bn`. Strings in `src/locales/`
+- **Email:** Resend, provider-agnostic via `src/libs/email/`
+- **Validation:** Zod 4 at boundaries · **Deploy:** Vercel
+
+Full dependency inventory: `package.json`.
 
 ## Documentation Map
 
-| Topic | Full Docs |
-|-------|-----------|
-| API Errors | [docs/api-error-handling.md](docs/api-error-handling.md) |
-| Database Workflow | [docs/database-workflow.md](docs/database-workflow.md) |
-| Legacy Columns | [docs/legacy-columns.md](docs/legacy-columns.md) |
-| Error Boundaries | [docs/error-handling-guide.md](docs/error-handling-guide.md) |
-| CI/CD | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) |
-| Development | [docs/development-guide.md](docs/development-guide.md) |
-| Admin Setup | [docs/admin-setup.md](docs/admin-setup.md) |
-| Email System | [docs/email-system.md](docs/email-system.md) |
-| Upstream Sync | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md) |
+| Topic                               | Full reference                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Architecture                        | [docs/architecture.md](docs/architecture.md)                                                      |
+| Development                         | [docs/development-guide.md](docs/development-guide.md)                                            |
+| Database workflow                   | [docs/database-workflow.md](docs/database-workflow.md) · [legacy columns](docs/legacy-columns.md) |
+| API errors                          | [docs/api-error-handling.md](docs/api-error-handling.md)                                          |
+| Error boundaries                    | [docs/error-handling-guide.md](docs/error-handling-guide.md)                                      |
+| Email system                        | [docs/email-system.md](docs/email-system.md)                                                      |
+| SEO (hreflang, OG, sitemap, robots) | [docs/seo.md](docs/seo.md)                                                                        |
+| SSE streaming                       | [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md)                                  |
+| CI/CD                               | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md)                                                  |
+| Admin setup                         | [docs/admin-setup.md](docs/admin-setup.md)                                                        |
+| Upstream sync                       | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md)                                        |
 
-Subsystem rules live in `.claude/rules/` and load automatically when you touch matching files (each rule's front-matter `paths` glob determines when it applies): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO content authoring).
+Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO authoring).
 
-## Core Architecture
+## Architecture Rules (mandatory)
 
-### Authentication Flow
-- **Middleware**: `src/proxy.ts` handles session refresh and route protection
-- **Supabase Client**:
-  - Server-side: `src/libs/supabase/server.ts` (uses cookies)
-  - Client-side: `src/libs/supabase/client.ts`
-  - Middleware: `src/libs/supabase/middleware.ts` (session updates)
-- **Protected Routes**: `/dashboard`, `/onboarding`, `/chat`, `/api/*`
-- Auth redirects to `/{locale}/sign-in` for unauthenticated users
+- **Auth is Supabase, not Clerk.** Server client (`src/libs/supabase/server.ts`, cookie-based) for RSC/routes; client (`client.ts`) for components; `middleware.ts` refreshes the session.
+- **Middleware order** (`src/proxy.ts`): i18n → Supabase session refresh → auth check. Protected paths: `/dashboard`, `/onboarding`, `/chat`, `/admin`, `/settings`; `/admin` also requires admin. To protect a route, add its segment to `protectedPaths` in `src/proxy.ts`.
+- **Never expose the Dify API key client-side** — always proxy through `/api/chat`. Streaming responses need SSE headers.
+- **Absolute imports** via `@/` (configured in `tsconfig.json`).
+- **Async route params** (Next 15+): `params` is a Promise — `const { locale, id } = await props.params`.
+- **Validation at boundaries only** — Zod for Route Handlers, Server Actions, env vars.
+- **Tests co-located** with source (`Component.test.tsx`). **Error boundaries** per route segment (`error.tsx`).
+- **Reuse before building** — extend the established patterns (auth wrappers, API error helpers, email service, SEO utils) rather than reinventing them.
 
-### Chat/AI Integration
+### TypeScript & lint
 
-The project includes **two chat implementations**. Users can choose between them at `/chat`:
-- **Dify Chat** (`/chat/dify`) - Simple, managed chat with minimal setup
-- **Vercel AI SDK Chat** (`/chat/vercel`) - Full control with conversation management
+Use `type`, not `interface` (`ts/consistent-type-definitions`). **Semicolons are required** and single quotes for JSX attributes (antfu `stylistic`). Imports are auto-sorted — let `npm run lint:fix` handle order, never hand-order.
 
-**Configuration Detection:**
-- Both implementations support graceful degradation
-- Navigation automatically shows/hides options based on environment variables
-- Use `getChatConfig()` (server) or `getPublicChatConfig()` (client) from `src/utils/chatConfig.ts`
-- If neither is configured, chat selection page shows setup instructions
+> **Never** use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this silently broke a provider module's named export in prod). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
 
-**Dify Implementation** (`/chat/dify`):
-- **API Route**: `/api/chat` (`src/app/api/chat/route.ts`)
-  - Validates Supabase session
-  - Proxies requests to Dify API (keeps API key server-side only)
-  - Returns Server-Sent Events (SSE) streaming responses
-  - Handles conversation state via conversation_id
-- **Dify Client**: `src/libs/dify/client.ts`
-  - Wrapper for Dify Chat Messages API
-  - Configurable timeout (default from config)
-  - SSE streaming support
-- **Chat UI**: `src/components/chat/ChatInterface.tsx`
-  - Uses Assistant UI's runtime with custom adapter
-  - Streams responses in real-time
-  - Maintains conversation context
-  - Client-side only (requires authentication via middleware)
+## Which chat to use
 
-**Vercel AI SDK Implementation** (`/chat/vercel`):
-- **API Routes**: `/api/chat/vercel/*` for chat operations, `/api/conversations/*` for management
-- **Conversation Management**: Create, list, delete conversations with Postgres storage
-- **Chat UI**: Uses Vercel AI SDK `useChat` hook with streaming support
-- **Features**: Conversation persistence, memory integration (optional with Mem0), observability (optional with LangFuse)
+Two AI chat stacks share the `/chat` selector; both degrade gracefully (nav hides what isn't configured — detect via `getChatConfig()` server / `getPublicChatConfig()` client from `src/utils/chatConfig.ts`):
 
-### Database
-- **ORM**: Drizzle ORM with PostgreSQL
-- **Schema**: `src/models/Schema.ts`
-- **Migrations**: Auto-applied on app start, or manual via `npm run db:migrate`
-- **Local Dev**: PGlite for offline development
-- **Production**: Compatible with Prisma Postgres or any PostgreSQL provider
+- **Dify** (`/chat/dify`) — managed, minimal setup. `/api/chat` proxies to Dify (key stays server-side), streams SSE, tracks `conversation_id`. Use for simple managed chat.
+- **Vercel AI SDK** (`/chat/vercel`) — full control. `/api/chat/vercel/*` + `/api/conversations/*`, Postgres-backed conversation persistence, optional Mem0 memory + Langfuse tracing. Use when you need conversation management or provider control.
 
-### Internationalization (i18n)
-- **Library**: next-intl
-- **Locales**: English (default), Hindi, Bengali
-- **Location**: Translation files in `src/locales/`
-- **Middleware**: Handles locale detection and prefix routing
-- **Config**: `src/utils/AppConfig.ts`
+API-error contract (`AUTH_REQUIRED` 401, `VALIDATION_ERROR` 400, `NOT_FOUND` 404, `INTERNAL_ERROR` 500): import helpers from `@/libs/api/errors` (server) and `@/libs/api/client` (client). Details: [docs/api-error-handling.md](docs/api-error-handling.md).
 
-### SEO Configuration
-- **Site URL**: Configured via `NEXT_PUBLIC_SITE_URL` env var (auto-detected on Vercel)
-- **Hreflang Tags**: Automatically added to all public pages via root layout
-  - Includes alternates for all locales: en, hi, bn
-  - Includes x-default pointing to English version
-  - Uses absolute URLs with site domain
-- **Social Metadata**: Open Graph and Twitter Card tags for rich social sharing
-  - Default metadata set in root layout (`src/app/[locale]/layout.tsx`)
-  - Page-specific overrides via `generateMetadata()` function
-  - Utilities: `src/libs/seo/opengraph.ts`
-  - Constants: `src/libs/seo/constants.ts` (DEFAULT_TITLE, DEFAULT_DESCRIPTION, etc.)
-  - Default OG image: `public/og-image.png` (1200x630, static fallback)
-- **Dynamic OG Images**: Edge-generated images at `/api/og` (`src/app/api/og/route.tsx`)
-  - Runs on Vercel Edge Runtime for fast worldwide generation
-  - Query params: `?title=Page+Title&description=Page+Description`
-  - Auto-used by `generateSocialMetadata()` when no custom image provided
-  - Brand colors and Inter font, 1200x630 PNG output
-  - Fallback: returns static `/og-image.png` on generation failure
-  - Helper: `buildOgImageUrl()` from `src/libs/seo/opengraph.ts`
-- **Robots.txt**: Configures search engine crawling rules (`src/app/robots.ts`)
-  - Allows all public pages by default (`Allow: /`)
-  - Disallows: `/dashboard`, `/admin`, `/api`, `/onboarding`, `/chat`, `/sign-out`, `/design-system`
-  - References sitemap location with absolute URL
-  - Auto-generated at build time, served at `/robots.txt`
-- **Sitemap**: XML sitemap for search engine indexing (`src/app/sitemap.ts`)
-  - Dynamically generated for all public pages
-  - Includes localized versions (en, hi, bn) of each page
-  - Absolute URLs with domain
-  - Auto-generated at build time, served at `/sitemap.xml`
-  - Auto-updates on each deployment (no manual sitemap.xml editing needed)
-  - **Adding New Public Pages**: Add route to `publicRoutes` array in `src/app/sitemap.ts` with appropriate priority/changeFrequency
-- **Protected Pages**: Dashboard and admin pages have `noindex, nofollow` robots meta tags
-- **Implementation**: `src/libs/seo/` - SEO utilities (hreflang, Open Graph, constants)
-- **Validation Tools**:
-  - Sitemap: [XML Sitemaps Validator](https://www.xml-sitemaps.com/validate-xml-sitemap.html)
-  - Robots.txt: [Google Search Console Robots Tester](https://support.google.com/webmasters/answer/6062598)
-  - Submit sitemap to Google Search Console after deployment
+## Database — non-negotiables
 
-### Email Integration
-- **Provider**: Resend (https://resend.com)
-- **Email Service**: `src/libs/email/`
-  - Client for sending emails (provider-agnostic interface)
-  - React Email templates in `templates/` subdirectory
-  - TypeScript types for email payloads
-- **Development**: `npm run email:dev` starts template preview server (port 3001)
-- **Configuration**: Environment variables for sender settings
-- **Dev Mode**: Without API key, emails are logged to console (no actual sending)
+1. **On a feature branch, apply schema changes to dev manually — don't commit migrations.** Edit `src/models/Schema.ts`, then apply the equivalent SQL to the dev Supabase DB via **Supabase MCP `apply_migration`** or the SQL editor. A pre-commit hook blocks `migrations/` writes on non-`main` branches. Run `npm run db:gen-types` so `src/libs/supabase/types.ts` stays in sync.
+2. **Generate the committed migration on `main`, after merge.** Run `npm run db:generate` once on `main`, inspect the SQL (red flags: `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`), and commit the `.sql` + `meta/_journal.json` + `NNNN_snapshot.json` together. `db:migrate` is **journal-driven** — only `.sql` files listed in `_journal.json` run; a hand-written file not in the journal is silently skipped.
+3. **Prod applies at build time — there is no auto-apply.** Vercel runs `npm run db:migrate:ci` before `next build`, gated behind `RUN_PROD_MIGRATIONS=true`. Nothing applies migrations on first interaction. (`db:migrate` runs under `dotenv -c production` and targets prod by design — don't run it locally against shared dev.)
 
-### Email Error Handling
-
-**Retry Logic:**
-- Email sending automatically retries on transient failures
-- Default: 3 attempts with exponential backoff (1s, 2s, 4s)
-- Retryable errors: rate_limit_exceeded, temporarily_unavailable, internal_server_error
-- Non-retryable errors: validation_error, invalid_api_key, domain_not_verified
-
-**Logging:**
-- All email events logged with structured JSON format
-- Fields: type, emailType, recipient (hashed), status, messageId, durationMs
-- Privacy: Email addresses hashed in logs (e.g., jo***@example.com)
-
-**Non-Blocking Pattern (Critical Emails):**
-```typescript
-import { sendEmailAsync, sendWelcomeEmail } from '@/libs/email';
-
-// Fire and forget - doesn't block user flow
-sendEmailAsync(
-  () => sendWelcomeEmail(user.email, user.name),
-  { emailType: 'welcome', recipientHint: user.email }
-);
-```
-
-**Development Mode:**
-- Without RESEND_API_KEY: Emails logged to console with full details
-- Shows: type, from, to, subject, content preview
-- Returns mock success for testing
-
-### Routing Structure
-**Routes**: `src/app/[locale]/` - `(unauth)/` public, `(auth)/` protected + dashboard, `(chat)/` chat interface, `api/chat/` Dify proxy
-
-### API Error Handling
-
-| Code | Status | When |
-|------|--------|------|
-| `AUTH_REQUIRED` | 401 | Not authenticated |
-| `VALIDATION_ERROR` | 400 | Input validation failed |
-| `NOT_FOUND` | 404 | Resource doesn't exist |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
-
-**Server**: Import from `@/libs/api/errors` (unauthorizedError, validationError, formatZodErrors)
-**Client**: Import from `@/libs/api/client` (parseApiError, getErrorMessage, isAuthError)
-
-## Environment Variables
-
-### Required for Development
-```bash
-# Supabase (Public)
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# Dify API (Server-side only) - Optional
-# If not configured, chat page shows setup message (graceful degradation)
-DIFY_API_URL=                     # e.g., https://api.dify.ai/v1
-DIFY_API_KEY=                     # Get from https://dify.ai - Keep in .env.local
-NEXT_PUBLIC_DIFY_API_URL=         # For UI config detection only (not sensitive)
-
-# Vercel AI SDK (Server-side only) - Optional
-# If not configured, chat/vercel route shows setup message
-OPENAI_API_KEY=                   # or ANTHROPIC_API_KEY
-NEXT_PUBLIC_OPENAI_API_KEY=       # Set to "configured" for UI detection (not actual key!)
-AI_PROVIDER=openai                # or anthropic
-DEFAULT_AI_MODEL=gpt-4o-mini      # Model to use
-
-# Database
-DB_SCHEMA=              # PostgreSQL schema name (e.g. 'vt_saas' for dev, 'public' for prod)
-DATABASE_URL=           # PostgreSQL connection string
-
-# Email (Resend - Server-side only)
-RESEND_API_KEY=           # Resend API key (optional in dev - logs to console)
-EMAIL_FROM_ADDRESS=       # Sender email (default: noreply@example.com)
-EMAIL_FROM_NAME=          # Sender name (default: VT SaaS Template)
-EMAIL_REPLY_TO=           # Reply-to address (optional)
-
-# SEO - Site URL (required for hreflang, Open Graph, sitemaps)
-NEXT_PUBLIC_SITE_URL=     # Absolute site URL (optional - auto-detected on Vercel)
-```
-
-### Sensitive (.env.local only)
-```bash
-SUPABASE_SERVICE_ROLE_KEY=
-RESEND_API_KEY=           # (also listed above - keep in .env.local only)
-```
+Three-home model, dev→prod flow, destructive-change checklist: [`.claude/rules/database.md`](.claude/rules/database.md) → [docs/database-workflow.md](docs/database-workflow.md).
 
 ## Commands
 
-Standard: `npm run dev`, `npm run build`, `npm test`, `npm run lint`, `npm run check-types`
-
-**Project-specific:**
-- `npm run db:generate` - Generate migration from schema changes
-- `npm run db:studio` - Open Drizzle Studio
-- `npm run commit` - Interactive commit with Commitizen
-- `npm run test:e2e` - Playwright E2E tests
-- `npm run dev:next` - Start Next.js only (no Sentry Spotlight)
-- `npm run email:dev` - Start React Email preview server (port 3001)
-- `/init-downstream` - **Run first after forking.** Renames DB schema, configures merge strategies (`.gitattributes`), fixes `gh` CLI targeting, cleans template artifacts. See `docs/upstream-sync-guide.md` for manual equivalent.
-- `/upstream-sync` - **Pull upstream template updates.** Fetches releases, merges with conflict classification, auto-detects re-added deleted files. Requires `/init-downstream` to have run first.
-
-## Key Development Patterns
-
-### Adding a New Protected Route
-1. Add route path to `protectedPaths` array in `src/proxy.ts`
-2. Create route in `src/app/[locale]/(auth)/` directory structure
-3. Access user session via Supabase client:
-   ```typescript
-   import { cookies } from 'next/headers';
-   import { createClient } from '@/libs/supabase/server';
-
-   const cookieStore = await cookies();
-   const supabase = createClient(cookieStore);
-   const { data: { user } } = await supabase.auth.getUser();
-   ```
-
-### Modifying Database Schema
-1. Edit `src/models/Schema.ts`
-2. Run `npm run db:generate` **on `main`** to create the migration (commit the `.sql` + `_journal.json` + `NNNN_snapshot.json` together)
-3. How it applies differs by environment:
-   - **Dev:** `src/libs/DB.ts` auto-runs `migratePg`/`migratePglite` on the next server start — no manual step.
-   - **Prod:** Vercel runs `npm run db:migrate:ci` during the build phase (see the `build` script in `package.json`) *before* `next build`, so schema lands atomically with the deploy. There is **no** "auto-apply on next interaction" in prod — if you skip the build-time migration you ship a stale schema.
-4. Migrations are **journal-driven**: only `.sql` files listed in `migrations/meta/_journal.json` run. Full reference: [`docs/database-workflow.md`](docs/database-workflow.md); must-not-break rules: [`.claude/rules/database.md`](.claude/rules/database.md).
-
-### Adding Translations
-1. Add keys to `src/locales/{locale}/` JSON files
-2. Use in components:
-   ```typescript
-   import { useTranslations } from 'next-intl';
-   const t = useTranslations('Namespace');
-   ```
-3. Crowdin syncs translations automatically via GitHub Actions on push to `main`
-
-### Adding New Email Templates
-1. Create template in `src/libs/email/templates/YourTemplate.tsx`
-2. Use React Email components from `@react-email/components`
-3. Preview with `npm run email:dev` (hot-reload on port 3001)
-4. Send with:
-   ```typescript
-   import { sendEmail } from '@/libs/email';
-   import { YourTemplate } from '@/libs/email/templates/YourTemplate';
-
-   await sendEmail(
-     'recipient@example.com',
-     'Subject Line',
-     <YourTemplate data={yourData} />
-   );
-   ```
-
-### SSE Streaming for AI Chat
-
-This template includes two complete Server-Sent Events (SSE) implementations for AI streaming:
-
-**Dify Implementation:**
-- API Route: `src/app/api/chat/route.ts` (SSE proxy pattern)
-- Pattern: Fetch from external API, stream to client
-- Zero-copy streaming (response.body passthrough)
-
-**Vercel AI SDK Implementation:**
-- API Route: `src/app/api/chat/vercel/route.ts` (streamText pattern)
-- Pattern: Vercel AI SDK with useChat hook
-- Automatic SSE formatting and state management
-
-**Documentation:** See [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) for complete SSE streaming patterns, examples, and troubleshooting.
-
-### Adding Social Metadata to Pages
-1. Import utilities from `@/libs/seo`:
-   ```typescript
-   import type { Metadata } from 'next';
-   import { generateSocialMetadata } from '@/libs/seo/opengraph';
-   import { SITE_NAME } from '@/libs/seo/constants';
-   ```
-
-2. Create `generateMetadata` function in page:
-   ```typescript
-   export async function generateMetadata(props: {
-     params: Promise<{ locale: string }>;
-   }): Promise<Metadata> {
-     const { locale } = await props.params;
-
-     const title = `Page Title | ${SITE_NAME}`;
-     const description = 'Page-specific description for social sharing';
-
-     return {
-       title,
-       description,
-       ...generateSocialMetadata({
-         title,
-         description,
-         path: `/${locale}/your-path`,
-       }),
-     };
-   }
-   ```
-
-3. For custom Open Graph images:
-   ```typescript
-   ...generateSocialMetadata({
-     title,
-     description,
-     image: '/custom-og-image.png', // Must be 1200x630
-     path: `/${locale}/your-path`,
-   })
-   ```
-
-### Error Handling
-
-See [docs/error-handling-guide.md](docs/error-handling-guide.md) for complete patterns.
-
-**Key Points:**
-- Route-level: Use `error.tsx` files (automatic by Next.js)
-- Component-level: Wrap critical components with `<ErrorBoundary>` from `@/components/errors`
-- Errors logged to Sentry automatically
-- Error boundaries DON'T catch: event handlers, async code outside rendering, server errors
-
-**Error Monitoring:**
-- Development: Sentry Spotlight runs automatically with `npm run dev`
-- Production: Update `org` and `project` in `next.config.mjs` and add DSN to `sentry.*.config.ts`
-
-## CI/CD Pipeline
-
-Remote main is protected. Always start a new branch for making changes so we can create PR later.
-When fixing CI issues, run all tests locally before pushing new commits to get a faster feedback loop.
-
-**Run all CI checks locally:**
 ```bash
-npm run lint && npm run check-types && npm test && npm run build
+# Dev
+npm run dev              # Next.js + Sentry Spotlight (Turbopack)
+npm run dev:next         # Next.js only
+
+# Quality  (run all before pushing)
+npm run lint             # ESLint (antfu)            npm run lint:fix
+npm run check-types      # tsc --noEmit
+npm run build            # production build
+
+# Test  (creds: test@test.com / password)
+npm run test                              # Vitest (unit, co-located)
+npx vitest run path/to/file.test.ts       # single file
+npm run test:e2e                          # Playwright
+
+# Database  (no db:push — see "Database" above)
+npm run db:generate      # migration from schema diff (on main, after merge)
+npm run db:migrate       # apply migrations (journal-driven)
+npm run db:gen-types     # regenerate Supabase types after a migration
+npm run db:studio        # Drizzle Studio
+
+npm run email:dev        # React Email preview, port 3001
+npm run storybook        # port 6006
+npm run commit           # Commitizen
 ```
 
-**Quality Gates:** ESLint, TypeScript, Vitest, Build, Playwright E2E
+Environment variables: copy and fill `.env.example` (the canonical, annotated list). Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DIFY_API_KEY`) stay in `.env.local` only.
 
-**Deployment:** Preview on PRs (Vercel), Production on merge to main
+**Fork lifecycle (Claude Code commands):** `/init-downstream` (run first after forking — renames the DB schema, sets `.gitattributes` merge strategies, retargets the `gh` CLI, cleans template artifacts) · `/upstream-sync` (pull template updates; needs `/init-downstream` first) · `/launch-checklist` (production-readiness audit).
 
-**Release Automation:** semantic-release runs after CI on main. Conventional Commits determine version bumps (`feat:`→minor, `fix:`→patch, `feat!:`→major). Changelog generated at `docs/CHANGELOG.md`. See [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) for details.
+## Testing notes
 
-**Required GitHub Secrets:** `DIFY_API_KEY`, `DIFY_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- Unit (Vitest): co-located, `jsdom` for components / `node` for utilities.
+- E2E (Playwright): `tests/`, `*.spec.ts` / `*.e2e.ts`; setup/teardown create the test account.
+- After a frontend change, do a quick visual check (Playwright/Chrome MCP) and save screenshots to `_bmad-output/implementation-artifacts/screenshots`.
 
-## Testing Notes
+## Commits & CI
 
-- Screenshots directory - `_bmad-output/implementation-artifacts/screenshots`
-- Test credentials - `test@test.com`, `password`
+- **Remote `main` is protected** — always branch, then PR. Run `npm run lint && npm run check-types && npm test && npm run build` locally before pushing (faster feedback than CI).
+- **Conventional Commits**, one-line, no "Co-Authored-By". semantic-release bumps version from commit type (`feat:`→minor, `fix:`→patch, `feat!:`→major) and writes `docs/CHANGELOG.md`.
+- Quality gates: ESLint · TypeScript · Vitest · Build · Playwright E2E. Preview deploy on PRs, production on merge. Required secrets + details: [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md).
 
-### Unit Tests (Vitest)
-- Location: Co-located with source (e.g., `Component.test.tsx`)
-- Environment: `jsdom` for components, `node` for utilities
+## Deployment & QA skills
 
-### E2E Tests (Playwright)
-- Location: `tests/` directory
-- Pattern: `*.spec.ts` or `*.e2e.ts`
-- Setup/teardown files handle test account creation
+- **`/production-deploy`** — provider-agnostic 8-phase first-deploy orchestrator, resume-safe via `_bmad-output/deployment-checklist.md`. Writes production specifics into `docs/deployment-guide.md` and a `## Deployment` section here once a real deploy runs.
+- **`/qa`** — manual-QA runner for flows unit/E2E can't cover (real browser, real email, real env). `--dev` / `--prod`; reads `QA_EMAIL` / `QA_PASSWORD` from `.env.local`.
 
-### Visual Development & Inspection
-After implementing front-end changes, use Playwright MCP tools to navigate to affected pages, capture screenshots, and check console for errors. Always save screenshots to `_bmad-output/implementation-artifacts/screenshots` using the `downloadsDir` parameter (and `savePng: true`).
-
-## Important Implementation Notes
-
-1. **Authentication**: This project uses Supabase Auth (not Clerk)
-2. **Chat Proxy Pattern**: Never expose Dify API key to client - always proxy through `/api/chat`
-3. **Streaming**: Chat uses SSE (Server-Sent Events) - ensure proper headers in responses
-4. **Conversation Persistence**: Track `conversation_id` from Dify for multi-turn conversations
-5. **Middleware Order**: i18n middleware runs first, then Supabase session update, then auth check
-6. **Absolute Imports**: Use `@/` prefix for all imports (configured in `tsconfig.json`)
-7. **Next.js 15 Async Params**: Route params are Promises that must be awaited:
-   ```typescript
-   export default async function Page(props: {
-     params: Promise<{ locale: string; id: string }>;
-   }) {
-     const { locale, id } = await props.params;
-     // use locale and id
-   }
-   ```
-
-## Code Style
-
-- **Commits**: Use Conventional Commits format. Keep messages succinct (one line). Do not add "Co-Authored-By" lines.
-- **ESLint**: Antfu config (no semicolons, single quotes for JSX attributes)
-- **Formatting**: Prettier + ESLint with auto-fix on save
-- **Git Hooks**: Husky runs linting on staged files + commit message validation
-- **No lazy-`require()` of local ESM modules**: Never use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this has caused a provider module to silently lose its named export in production). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
-
-## Deployment & QA Skills
-
-Two first-party Claude Code skills live under `.claude/skills/` for go-live work:
-
-- **`/production-deploy`** — provider-agnostic 8-phase first-deploy orchestrator (Plan → Readiness → Env Strategy → Core Infra → Integrations → Smoke Test → Document → Backport). Resume-safe via `_bmad-output/deployment-checklist.md`. Phase 7 extends `docs/deployment-guide.md` and adds a `## Deployment` section to this file with the actual production specifics once a real deploy runs.
-- **`/qa`** — on-demand manual-QA runner for flows unit/E2E tests can't cover (real browser via Playwright MCP, real email via Gmail MCP, real env plumbing). Two targets (`--dev` / `--prod`); ships generic auth runbooks (magic signup/signin, password reset, admin-route gating, cookie flags). Reads `QA_EMAIL` / `QA_PASSWORD` from `.env.local`.
-
-These compose with the read-only `/launch-checklist` audit: **audit (launch-checklist) → execute (production-deploy) → verify (qa)** — sequential and complementary, not duplicative.
+Compose with the read-only `/launch-checklist`: audit → execute (`/production-deploy`) → verify (`/qa`).
 
 ## Contributing back to the template
 
-**This template is the source of truth for shared/infra code.** When a product accumulates a generic, reusable improvement, contribute it **up** here — it then reaches every product (and every future fork) via `upstream-sync`. Never keep divergent copies of shared code.
+**This template is the source of truth for shared/infra code.** When a product accrues a generic, reusable improvement, contribute it **up** here so it reaches every product (and future fork) via `upstream-sync`. Never keep divergent copies of shared code.
 
-- **`/upstream-contribute`** — the repeatable harvest loop: Identify → Plan → Produce → Verify → Merge → Harvest. A produce-only fan-out (`workflows/port-to-template.js`) opens dependency-ordered PRs; the merge is human-supervised and gated on **independent byte-level verification** — trust the pushed bytes, never an agent's "I fixed it" report. It auto-detects whether you're in the template or a product and nudges; re-run it whenever a product accrues new candidates.
-- **What to contribute:** does it make the *next* product faster to build, or improve the *whole fleet*? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
+- **`/upstream-contribute`** — harvest loop (Identify → Plan → Produce → Verify → Merge → Harvest). A produce-only fan-out (`workflows/port-to-template.js`) opens dependency-ordered PRs; merge is human-supervised and gated on **independent byte-level verification** — trust the pushed bytes, never an agent's "I fixed it" report.
+- **What to contribute:** does it make the _next_ product faster to build, or improve the whole fleet? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
 
 ## Research
 
-- During planning, use targeted web search early to find proven approaches; prefer established libraries/repos over building from scratch.
-- After 1-2 failed debugging attempts, online search for known issues/solutions before continuing.
+- During planning, use targeted web search early; prefer established libraries/repos over building from scratch.
+- After 1-2 failed debugging attempts, search online for known issues before continuing.
