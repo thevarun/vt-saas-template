@@ -12,7 +12,7 @@ Ships: Supabase auth (SSR) · two interchangeable AI chat stacks (Dify proxy + V
 
 - **Framework:** Next.js 16 (App Router, RSC, Turbopack) · React 19 · TypeScript
 - **Auth + DB:** Supabase (Postgres + Auth + SSR). Tables live in the schema named by `DB_SCHEMA` (e.g. `vt_saas` in dev, `public` in prod) — never hardcode the schema
-- **Schema/ORM:** Drizzle — schema-as-code; apply to dev via Supabase MCP, generate the migration on `main`, migrate-on-prod (see DB rules below). **No `db:push`** (drift-destructive; intentionally absent)
+- **Schema/ORM:** Drizzle — schema-as-code; apply to dev via Supabase MCP, generate + commit the migration on the feature branch alongside the schema edit, migrate-on-prod (see DB rules below). **No `db:push`** (drift-destructive; intentionally absent)
 - **Query client + types:** Supabase JS for runtime queries; `src/libs/supabase/types.ts` is **generated** (`npm run db:gen-types` after each migration) — that's what turns a dropped column into a `tsc` error instead of a prod 400
 - **AI:** two stacks behind one `/chat` selector — see "Which chat to use." Vercel path uses AI SDK 6, provider-agnostic
 - **UI:** shadcn/ui + Tailwind 4. No other UI libraries without approval
@@ -68,8 +68,8 @@ API-error contract (`AUTH_REQUIRED` 401, `VALIDATION_ERROR` 400, `NOT_FOUND` 404
 
 ## Database — non-negotiables
 
-1. **On a feature branch, apply schema changes to dev manually — don't commit migrations.** Edit `src/models/Schema.ts`, then apply the equivalent SQL to the dev Supabase DB via **Supabase MCP `apply_migration`** or the SQL editor. A pre-commit hook blocks `migrations/` writes on non-`main` branches. Run `npm run db:gen-types` so `src/libs/supabase/types.ts` stays in sync.
-2. **Generate the committed migration on `main`, after merge.** Run `npm run db:generate` once on `main`, inspect the SQL (red flags: `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`), and commit the `.sql` + `meta/_journal.json` + `NNNN_snapshot.json` together. `db:migrate` is **journal-driven** — only `.sql` files listed in `_journal.json` run; a hand-written file not in the journal is silently skipped.
+1. **Apply schema changes to dev manually on the feature branch.** Edit `src/models/Schema.ts`, then apply the equivalent SQL to the dev Supabase DB via **Supabase MCP `apply_migration`** or the SQL editor. Run `npm run db:gen-types` so `src/libs/supabase/types.ts` stays in sync.
+2. **Generate + commit the migration on the feature branch, alongside the `Schema.ts` change.** Rebase onto latest `main` first (concurrent schema PRs collide on `_journal.json` / the `NNNN` index), then `npm run db:generate` — it diffs `Schema.ts` against the snapshot JSON (no live DB), so it works on any branch. Inspect the SQL (red flags: `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`) and commit the `.sql` + `meta/_journal.json` + `NNNN_snapshot.json` together with the schema edit, so code + DB merge atomically. `db:migrate` is **journal-driven** — only `.sql` files listed in `_journal.json` run; a hand-written file not in the journal is silently skipped.
 3. **Prod applies at build time — there is no auto-apply.** Vercel runs `npm run db:migrate:ci` before `next build`, gated behind `RUN_PROD_MIGRATIONS=true`. Nothing applies migrations on first interaction. (`db:migrate` runs under `dotenv -c production` and targets prod by design — don't run it locally against shared dev.)
 
 Three-home model, dev→prod flow, destructive-change checklist: [`.claude/rules/database.md`](.claude/rules/database.md) → [docs/database-workflow.md](docs/database-workflow.md).
@@ -92,7 +92,7 @@ npx vitest run path/to/file.test.ts       # single file
 npm run test:e2e                          # Playwright
 
 # Database  (no db:push — see "Database" above)
-npm run db:generate      # migration from schema diff (on main, after merge)
+npm run db:generate      # migration from schema diff (on the feature branch, rebased onto main)
 npm run db:migrate       # apply migrations (journal-driven)
 npm run db:gen-types     # regenerate Supabase types after a migration
 npm run db:studio        # Drizzle Studio
