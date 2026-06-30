@@ -1,9 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import type { TooltipValueType } from 'recharts';
 import * as RechartsPrimitive from 'recharts';
 
 import { cn } from '@/utils/Helpers';
+
+// recharts v3 no longer exports a tooltip NameType; it is `number | string`.
+type TooltipNameType = number | string;
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;
@@ -15,7 +19,7 @@ export type ChartConfig = {
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
+  );
 };
 
 type ChartContextProps = {
@@ -68,10 +72,17 @@ ${colorConfig
   );
 };
 
-const ChartContainer = ({ ref, id, className, children, config, ...props }: React.ComponentProps<'div'> & {
+const ChartContainer = ({
+  ref,
+  id,
+  className,
+  children,
+  config,
+  ...props
+}: React.ComponentProps<'div'> & {
   config: ChartConfig;
   children: React.ComponentProps<
-      typeof RechartsPrimitive.ResponsiveContainer
+    typeof RechartsPrimitive.ResponsiveContainer
   >['children'];
 } & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const uniqueId = React.useId();
@@ -112,16 +123,35 @@ ChartContainer.displayName = 'ChartContainer';
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
-const ChartTooltipContent = (
-  { ref, active, payload, className, indicator = 'dot', hideLabel = false, hideIndicator = false, label, labelFormatter, labelClassName, formatter, color, nameKey, labelKey }: React.ComponentProps<typeof RechartsPrimitive.Tooltip>
-    & React.ComponentProps<'div'> & {
-      hideLabel?: boolean;
-      hideIndicator?: boolean;
-      indicator?: 'line' | 'dot' | 'dashed';
-      nameKey?: string;
-      labelKey?: string;
-    } & { ref?: React.RefObject<HTMLDivElement | null> },
-) => {
+const ChartTooltipContent = ({
+  ref,
+  active,
+  payload,
+  className,
+  indicator = 'dot',
+  hideLabel = false,
+  hideIndicator = false,
+  label,
+  labelFormatter,
+  labelClassName,
+  formatter,
+  color,
+  nameKey,
+  labelKey,
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip>
+  & React.ComponentProps<'div'> & {
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    indicator?: 'line' | 'dot' | 'dashed';
+    nameKey?: string;
+    labelKey?: string;
+  } & Omit<
+    RechartsPrimitive.DefaultTooltipContentProps<
+      TooltipValueType,
+      TooltipNameType
+    >,
+    'accessibilityLayer'
+  > & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -183,7 +213,7 @@ const ChartTooltipContent = (
 
           return (
             <div
-              key={item.dataKey}
+              key={key}
               className={cn(
                 'flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground',
                 indicator === 'dot' && 'items-center',
@@ -208,7 +238,7 @@ const ChartTooltipContent = (
                                     'h-2.5 w-2.5': indicator === 'dot',
                                     'w-1': indicator === 'line',
                                     'w-0 border-[1.5px] border-dashed bg-transparent':
-                                    indicator === 'dashed',
+                              indicator === 'dashed',
                                     'my-0.5': nestLabel && indicator === 'dashed',
                                   },
                                 )}
@@ -252,13 +282,18 @@ ChartTooltipContent.displayName = 'ChartTooltipContent';
 
 const ChartLegend = RechartsPrimitive.Legend;
 
-const ChartLegendContent = (
-  { ref, className, hideIcon = false, payload, verticalAlign = 'bottom', nameKey }: React.ComponentProps<'div'>
-    & Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
-      hideIcon?: boolean;
-      nameKey?: string;
-    } & { ref?: React.RefObject<HTMLDivElement | null> },
-) => {
+const ChartLegendContent = ({
+  ref,
+  className,
+  hideIcon = false,
+  payload,
+  verticalAlign = 'bottom',
+  nameKey,
+}: React.ComponentProps<'div'>
+  & RechartsPrimitive.DefaultLegendContentProps & {
+    hideIcon?: boolean;
+    nameKey?: string;
+  } & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -297,9 +332,7 @@ const ChartLegendContent = (
                     }}
                   />
                 )}
-            <span className="text-muted-foreground">
-              {itemConfig?.label}
-            </span>
+            <span className="text-muted-foreground">{itemConfig?.label}</span>
           </div>
         );
       })}
