@@ -58,11 +58,36 @@ const createCheckoutSessionInner = withActionAuth(async (
       return { data: null, error: { message: 'This billing interval is not available for this tier', code: 'FORBIDDEN' } };
     }
 
+    // Look up the user's current subscription so we can reuse their Stripe
+    // customer AND block double-subscribe. A query error throws and is caught
+    // below as INTERNAL_ERROR — fail-closed, so we never create a checkout we
+    // couldn't dedupe against an existing live subscription.
     const [sub] = await db
-      .select({ stripeCustomerId: userSubscriptions.stripeCustomerId })
+      .select({
+        stripeCustomerId: userSubscriptions.stripeCustomerId,
+        stripeSubscriptionId: userSubscriptions.stripeSubscriptionId,
+        status: userSubscriptions.status,
+      })
       .from(userSubscriptions)
       .where(eq(userSubscriptions.userId, user.id))
       .limit(1);
+
+    // Block double-subscribe. Anyone who already has a live Stripe subscription
+    // must change plans via the billing portal, not by creating a second
+    // subscription on the same customer. The UI routes them there, but this
+    // Server Action is directly callable and a stale tab / double-submit /
+    // back-nav would otherwise orphan a second paid subscription that keeps
+    // billing. Expired/cancelled users have a null id (the deletion webhook
+    // clears it) and fall through to checkout normally.
+    if (sub?.stripeSubscriptionId) {
+      return {
+        data: null,
+        error: {
+          message: 'You already have an active subscription. Manage it from the billing portal.',
+          code: 'CONFLICT',
+        },
+      };
+    }
 
     const appUrl = getBaseUrl();
 
