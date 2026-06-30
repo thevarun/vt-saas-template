@@ -19,6 +19,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   // Retry once in CI to handle flaky auth fixture (shared test user across workers)
   retries: process.env.CI ? 1 : 0,
+  // Two workers on CI (2-CPU runners) to cut wall-clock; undefined = Playwright default locally
+  workers: process.env.CI ? 2 : undefined,
   // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: process.env.CI ? 'github' : 'list',
 

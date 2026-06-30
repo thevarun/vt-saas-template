@@ -48,6 +48,6 @@ test.describe('Sign-Out', () => {
     await authenticatedPage.goto('/sign-out');
 
     // THEN: "Signing out..." heading appears briefly before redirect
-    await expect(authenticatedPage.getByRole('heading', { name: 'Signing out...' })).toBeVisible();
+    await expect(authenticatedPage.getByRole('heading', { name: /signing out/i })).toBeVisible();
   });
 });

@@ -21,10 +21,17 @@ if (
 }
 
 async function globalSetup(_config: FullConfig) {
+  // Early exit when Supabase isn't configured — don't hang the whole CI job
+  // (or a local run) on a network call that cannot succeed.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.warn('⚠️  Skipping E2E auth setup: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set.');
+    return;
+  }
+
   // Create Supabase client using test project credentials
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
 
   // Test account credentials (stored in process.env for use in tests)
@@ -38,14 +45,19 @@ async function globalSetup(_config: FullConfig) {
   try {
     // Create test account using standard signUp
     // Note: Test Supabase project must have email verification disabled
-    const { data, error } = await supabase.auth.signUp({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-      options: {
-        // Skip email verification (test project configured for this)
-        emailRedirectTo: undefined,
-      },
-    });
+    const { data, error } = await Promise.race([
+      supabase.auth.signUp({
+        email: TEST_EMAIL,
+        password: TEST_PASSWORD,
+        options: {
+          // Skip email verification (test project configured for this)
+          emailRedirectTo: undefined,
+        },
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase signUp timed out after 15s')), 15_000),
+      ),
+    ]);
 
     if (error) {
       console.error('Failed to create test account:', error.message);
