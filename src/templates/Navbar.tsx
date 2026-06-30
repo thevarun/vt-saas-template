@@ -60,7 +60,7 @@ export const Navbar = () => {
         </li>
 
         <li>
-          <Link href="/articles">{t('blog')}</Link>
+          <Link href="/blog">{t('blog')}</Link>
         </li>
 
         <li>
@@ -72,7 +72,7 @@ export const Navbar = () => {
         </li>
 
         <li>
-          <Link href="/sign-up">{t('company')}</Link>
+          <Link href="/about">{t('about')}</Link>
         </li>
       </CenteredMenu>
     </Section>

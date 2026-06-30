@@ -1,5 +1,6 @@
 import { getBaseUrl } from '@/utils/Helpers';
 
+import { getLifecycleFromAddress } from './config';
 import { sendEmail } from './sendEmail';
 import { WelcomeEmail } from './templates/WelcomeEmail';
 import type { EmailSendResult } from './types';
@@ -42,6 +43,8 @@ export async function sendWelcomeEmail(
       appUrl={appUrl}
     />,
     {
+      // Welcome uses the lifecycle sender persona (human-named display name).
+      from: getLifecycleFromAddress(),
       tags: [{ name: 'type', value: 'welcome' }],
       emailType: 'welcome', // For logging
     },

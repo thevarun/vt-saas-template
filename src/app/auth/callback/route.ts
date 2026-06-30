@@ -2,6 +2,8 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { trackEventServer } from '@/libs/analytics/server';
+import { getPostAuthDestination } from '@/libs/auth/post-auth-destination';
+import { isSafeInternalPath } from '@/libs/auth/safe-path';
 import { logger } from '@/libs/Logger';
 import { createClient } from '@/libs/supabase/server';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
@@ -21,7 +23,10 @@ function getLocalePath(locale: string, path: string): string {
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  // Open-redirect guard: only honour a same-origin internal `next`; anything
+  // user-controlled that could escape the origin collapses to /dashboard.
+  const nextParam = searchParams.get('next') ?? '/dashboard';
+  const next = isSafeInternalPath(nextParam) ? nextParam : '/dashboard';
   const error_code = searchParams.get('error_code');
   const error_description = searchParams.get('error_description');
 
@@ -73,8 +78,18 @@ export async function GET(request: Request) {
         }
       }
 
-      // Build locale-aware redirect path
-      const redirectPath = getLocalePath(locale, next);
+      // Build locale-aware redirect path. Route the user through the
+      // onboarding gate so a user who hasn't completed onboarding lands on
+      // /onboarding instead of their naive `next` destination.
+      const preferredPath = getLocalePath(locale, next);
+      const redirectPath = user
+        ? await getPostAuthDestination({
+            supabase,
+            userId: user.id,
+            locale,
+            preferredPath,
+          })
+        : preferredPath;
 
       // If user just verified email, add success query param
       if (user?.email_confirmed_at) {
