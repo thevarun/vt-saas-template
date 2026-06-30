@@ -18,6 +18,14 @@ The database state lives in **three** homes — pick the right one and most pitf
 
 ---
 
+## Not the Supabase CLI
+
+Schema and migrations here are **Drizzle's**: migration files live in `./migrations/` (set by `drizzle.config.ts`) and apply via `npm run db:migrate`. The Supabase CLI's own migration system (`supabase/migrations/`) is **not** used, and that directory is empty.
+
+⚠️ **`supabase db push` will silently report "up to date".** It only reads `supabase/migrations/` (empty), so it never sees the Drizzle migrations in `./migrations/` — it cannot apply your schema. Use `npm run db:migrate` (prod / build-time) or the Supabase MCP / SQL editor (dev) instead. The `supabase/` directory here holds only `prod-setup.sql` and `pending-migrations/`, both applied by hand/MCP — never by `supabase db push`.
+
+---
+
 ## Drizzle commands
 
 | Command | Consults live DB? | Behaviour | When to use |

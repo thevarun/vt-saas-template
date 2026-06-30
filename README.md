@@ -291,9 +291,13 @@ When forking this template, run `/init-downstream` (Claude Code) to rename the s
 
 ### Making Schema Changes
 
-1. Edit `src/models/Schema.ts`
-2. Generate migration: `npm run db:generate`
-3. Migration applies automatically on next DB interaction
+This project uses **Drizzle** for migrations (files in `./migrations/`), **not** the Supabase CLI — see [docs/database-workflow.md](docs/database-workflow.md) for the full flow.
+
+1. Edit `src/models/Schema.ts`.
+2. **On a feature branch:** apply the equivalent SQL to the dev DB via the Supabase MCP or SQL editor — don't commit migration files (a pre-commit hook blocks them off `main`). Locally, `src/libs/DB.ts` auto-applies committed migrations on startup (PGlite and dev Postgres).
+3. **On `main` after merge:** run `npm run db:generate`, inspect the SQL, and commit it. Production applies migrations at build time via `db:migrate:ci` (gated on `RUN_PROD_MIGRATIONS`).
+
+> ⚠️ **Don't run `supabase db push`** — the Supabase CLI reads `supabase/migrations/` (empty here) and will silently report "up to date" while never applying the Drizzle migrations in `./migrations/`. Use `npm run db:migrate` or the Supabase MCP instead.
 
 ### Viewing Database
 
