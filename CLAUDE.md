@@ -11,7 +11,7 @@ Ships: Supabase auth (SSR) · two interchangeable AI chat stacks (Dify proxy + V
 ## Tech Stack (decisions that carry constraints)
 
 - **Framework:** Next.js 16 (App Router, RSC, Turbopack) · React 19 · TypeScript
-- **Auth + DB:** Supabase (Postgres + Auth + SSR). Tables live in the schema named by `DB_SCHEMA` (e.g. `vt_saas` in dev, `public` in prod) — never hardcode the schema
+- **Auth + DB:** Supabase (Postgres + Auth + SSR). Tables live in the schema named by `DB_SCHEMA` (`vt_saas` in all environments, incl. prod) — never hardcode the schema
 - **Schema/ORM:** Drizzle — schema-as-code; apply to dev via Supabase MCP, generate + commit the migration on the feature branch alongside the schema edit, migrate-on-prod (see DB rules below). **No `db:push`** (drift-destructive; intentionally absent)
 - **Query client + types:** Supabase JS for runtime queries; `src/libs/supabase/types.ts` is **generated** (`npm run db:gen-types` after each migration) — that's what turns a dropped column into a `tsc` error instead of a prod 400
 - **AI:** two stacks behind one `/chat` selector — see "Which chat to use." Vercel path uses AI SDK 6, provider-agnostic
