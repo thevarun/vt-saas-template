@@ -40,6 +40,12 @@ export async function register() {
 
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
+
+      // Prevent Sentry from claiming the global OpenTelemetry TracerProvider.
+      // Without this, Sentry.init owns the provider and the LangFuse exporter
+      // registered above silently receives no spans — forks with LangFuse keys
+      // would get zero AI traces.
+      skipOpenTelemetrySetup: true,
     });
   }
 
@@ -81,7 +87,8 @@ async function initializeLangfuseTracing() {
     // Dynamic import to avoid loading LangFuse in edge runtime
     const { registerOTel } = await import('@vercel/otel');
     const { LangfuseExporter } = await import('langfuse-vercel');
-    const { isConfigured, LANGFUSE_CONFIG } = await import('@/libs/langfuse/config');
+    const { isConfigured, LANGFUSE_CONFIG }
+      = await import('@/libs/langfuse/config');
 
     // Skip if not configured (graceful degradation)
     if (!isConfigured()) {
