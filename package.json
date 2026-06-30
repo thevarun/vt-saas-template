@@ -144,7 +144,7 @@
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/expect": "^4.1.4",
     "commitizen": "^4.3.1",
@@ -177,7 +177,8 @@
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4",
-    "vitest-fail-on-console": "^0.10.1"
+    "vitest-fail-on-console": "^0.10.1",
+    "vite": "^8.0.0"
   },
   "overrides": {
     "axios": ">=1.13.5",
