@@ -36,6 +36,13 @@
       "when": 1781573033903,
       "tag": "0004_black_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782815118557,
+      "tag": "0005_third_lord_tyger",
+      "breakpoints": true
     }
   ]
 }
