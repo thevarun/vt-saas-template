@@ -229,7 +229,7 @@ describe('UserProfilePage', () => {
 
   it('should handle loading state on mount', () => {
     mockSupabase.auth.getUser.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({
+      () => new Promise(resolve => setTimeout(resolve, 100, {
         data: {
           user: {
             id: 'test-user-id',
@@ -238,7 +238,7 @@ describe('UserProfilePage', () => {
           },
         },
         error: null,
-      }), 100)),
+      })),
     );
 
     const { container } = render(<UserProfilePage />);

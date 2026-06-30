@@ -29,7 +29,7 @@ function CopyButton({ url }: { url: string }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(setCopied, 2000, false);
 
       // TODO: Analytics — event: "share_link_copied", properties: { url }
 

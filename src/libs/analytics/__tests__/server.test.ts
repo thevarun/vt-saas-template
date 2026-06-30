@@ -77,9 +77,9 @@ describe('trackEventServer', () => {
   });
 
   it('adds automatic timestamp', async () => {
-    const beforeTime = new Date().getTime();
+    const beforeTime = Date.now();
     await trackEventServer('signup_completed', { method: 'email' });
-    const afterTime = new Date().getTime();
+    const afterTime = Date.now();
 
     const call = mockCapture.mock.calls[0];
     const properties = call?.[0]?.properties;

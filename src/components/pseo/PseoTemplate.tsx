@@ -69,7 +69,7 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
       {/* JSON-LD structured data for search engines */}
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
+        // eslint-disable-next-line react/dom-no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleSchema) }}
       />
       <main className="container mx-auto max-w-3xl px-4 pb-20 pt-28 sm:pt-32">

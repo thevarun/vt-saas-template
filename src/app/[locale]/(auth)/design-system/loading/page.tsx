@@ -18,7 +18,7 @@ export default function LoadingStatesPage() {
 
   const handleButtonClick = () => {
     setIsButtonLoading(true);
-    setTimeout(() => setIsButtonLoading(false), 2000);
+    setTimeout(setIsButtonLoading, 2000, false);
   };
 
   return (

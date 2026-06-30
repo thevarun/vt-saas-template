@@ -67,7 +67,7 @@ export function ShareWidget({
 
   useEffect(() => {
     if (copied) {
-      const timer = setTimeout(() => setCopied(false), 2000);
+      const timer = setTimeout(setCopied, 2000, false);
       return () => clearTimeout(timer);
     }
     return undefined;

@@ -203,7 +203,7 @@ describe('SignInFormClient', () => {
 
   it('shows loading state during submission', async () => {
     const user = userEvent.setup();
-    mockSignInWithPassword.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ data: { user: { id: '123' } }, error: null }), 100)));
+    mockSignInWithPassword.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100, { data: { user: { id: '123' } }, error: null })));
 
     render(<SignInFormClient />);
 
@@ -225,7 +225,7 @@ describe('SignInFormClient', () => {
 
   it('disables form during submission', async () => {
     const user = userEvent.setup();
-    mockSignInWithPassword.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ data: { user: { id: '123' } }, error: null }), 100)));
+    mockSignInWithPassword.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100, { data: { user: { id: '123' } }, error: null })));
 
     render(<SignInFormClient />);
 
