@@ -1,0 +1,229 @@
+name: Changelog Sync
+
+# Humanizes each semantic-release version into docs/changelog.json via a single
+# rolling PR (changelog/auto).
+#
+# How it works:
+#   - Chained off the Release workflow via `workflow_run` (NOT `on: release`).
+#     semantic-release creates the GitHub Release with GITHUB_TOKEN, and GitHub
+#     suppresses workflow triggers from token-created events — so `on: release`
+#     would never fire. `workflow_run` is the same chaining release.yml uses off
+#     CI, and fires reliably.
+#   - A cheap pre-check compares the newest version in docs/CHANGELOG.md against
+#     docs/changelog.json, so Claude only runs when there's a new release to
+#     humanize (the Release workflow completes on every main CI success).
+#   - Concurrency-grouped + queued: bursts of releases process in order.
+#   - One rolling PR on `changelog/auto` accumulates entries — max one open PR.
+#   - Each run rebases the rolling branch onto main BEFORE appending, so entries
+#     can never conflict or land out of order.
+#   - The PR auto-merges (squash) once it is mergeable. Changelog copy is
+#     low-impact and public-facing — bad copy is a cheap follow-up edit to
+#     docs/changelog.json, so we optimise for hands-off.
+#   - Claude only edits docs/changelog.json; the workflow owns git / PR / merge.
+#
+# Known minor inefficiency: a release whose only change is a non-user-facing
+# `fix(deps)` (e.g. moving a CLI to devDependencies) lands in CHANGELOG.md but
+# the humanizer correctly produces no entry — so the pre-check keeps seeing it as
+# "not present" and re-runs Claude (a no-op) on each Release completion until the
+# next user-facing release. Bounded and cheap; not worth a version high-water mark.
+#
+# Prerequisites (see docs/changelog/README.md):
+#   - A release-maintained source file at docs/CHANGELOG.md. The template's
+#     semantic-release config does NOT generate this by default — add
+#     @semantic-release/changelog (changelogFile: docs/CHANGELOG.md) to the
+#     release config first. Until then this workflow's pre-check finds no version
+#     and skips safely (dormant-but-correct).
+#   - The CLAUDE_CODE_OAUTH_TOKEN repo secret (shared with the Claude Code action).
+#   - "Allow auto-merge" enabled in repo settings.
+#   - Activates only once this file is on the default branch (workflow_run reads
+#     the workflow definition from main). Use the Run workflow button to test.
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch: {}
+
+concurrency:
+  group: changelog-sync
+  cancel-in-progress: false
+
+jobs:
+  humanize:
+    # Manual dispatch always runs; chained runs only after Release succeeded.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout main with full history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Detect un-humanized release
+        id: precheck
+        run: |
+          set -euo pipefail
+          if [ ! -f docs/CHANGELOG.md ]; then
+            echo "docs/CHANGELOG.md does not exist — nothing to do (see docs/changelog/README.md)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # semantic-release headers look like "## [1.29.1](url) (2026-06-13)" or
+          # "# [1.29.0](url) ..." — grab the version from the topmost one.
+          NEWEST=$(grep -oE '^#+[[:space:]]+\[?[0-9]+\.[0-9]+\.[0-9]+' docs/CHANGELOG.md \
+            | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
+          if [ -z "$NEWEST" ]; then
+            echo "No parseable version in docs/CHANGELOG.md — nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Newest version in CHANGELOG.md: $NEWEST"
+          PRESENT=no
+          if [ -f docs/changelog.json ]; then
+            PRESENT=$(node -e "const d=require('./docs/changelog.json'); process.stdout.write(d.versions.some(v=>v.version==='$NEWEST')?'yes':'no')")
+          fi
+          if [ "$PRESENT" = "yes" ]; then
+            echo "$NEWEST already in changelog.json — skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "$NEWEST not yet humanized — proceeding."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "newest=$NEWEST" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for existing rolling PR
+        id: existing
+        if: steps.precheck.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER=$(gh pr list --head changelog/auto --state open --json number --jq '.[0].number // empty')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "Found existing rolling PR #$PR_NUMBER"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No existing rolling PR"
+          fi
+
+      - name: Prepare rolling branch
+        if: steps.precheck.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Reuse the rolling branch whenever it exists on the remote — not just
+          # when an open PR points at it. The branch can outlive its PR (a squash
+          # merge that leaves it behind, or a manual close), and blindly
+          # recreating it makes the later push a non-fast-forward that fails the
+          # job. Probe the remote branch directly, independent of PR state.
+          if git ls-remote --exit-code --heads origin changelog/auto >/dev/null 2>&1; then
+            git fetch origin changelog/auto:refs/remotes/origin/changelog/auto
+            git checkout -B changelog/auto origin/changelog/auto
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::error::Rebase of changelog/auto onto main failed. Resolve manually on the PR, then re-run."
+              exit 1
+            fi
+          else
+            git checkout -b changelog/auto origin/main
+          fi
+
+      - name: Load command prompt
+        if: steps.precheck.outputs.skip != 'true'
+        run: |
+          {
+            echo 'CHANGELOG_PROMPT<<PROMPT_EOF'
+            cat .github/prompts/changelog-humanize.md
+            echo 'PROMPT_EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Run Claude changelog humanizer
+        if: steps.precheck.outputs.skip != 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --model claude-sonnet-4-6
+          prompt: ${{ env.CHANGELOG_PROMPT }}
+
+      - name: Commit and push changelog updates
+        id: commit
+        if: steps.precheck.outputs.skip != 'true'
+        env:
+          NEWEST: ${{ steps.precheck.outputs.newest }}
+        run: |
+          set -euo pipefail
+
+          # The humanizer must only ever touch docs/changelog.json. Fail loudly
+          # if it wandered, rather than committing unintended changes.
+          STRAY=$(git status --porcelain | grep -v 'docs/changelog.json' || true)
+          if [ -n "$STRAY" ]; then
+            echo "::error::Humanizer modified files other than docs/changelog.json:"
+            echo "$STRAY"
+            exit 1
+          fi
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changelog changes produced (release had no user-facing content). Exiting clean."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Reject invalid JSON before it ever reaches a PR.
+          node -e "JSON.parse(require('fs').readFileSync('docs/changelog.json','utf8'))"
+
+          git add docs/changelog.json
+          git commit -m "docs(changelog): humanize releases through ${NEWEST}"
+          # Rebasing onto main rewrote the branch SHAs, so this is a
+          # non-fast-forward by design. --force-with-lease lands it while still
+          # refusing to clobber any commit pushed since our fetch (e.g. a human
+          # editing the rolling PR), failing safely instead.
+          git push --force-with-lease origin changelog/auto
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open rolling PR if new
+        id: create
+        if: steps.commit.outputs.changed == 'true' && steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          URL=$(gh pr create \
+            --base main \
+            --head changelog/auto \
+            --title "docs(changelog): humanize releases" \
+            --body "$(cat <<'EOF'
+          Auto-generated user-facing changelog entries for recent releases, humanized into `docs/changelog.json`.
+
+          **Source:** `.github/prompts/changelog-humanize.md` via `.github/workflows/changelog-sync.yml`
+
+          ### How this PR evolves
+
+          This is a **rolling PR** that **auto-merges** (squash) once it is mergeable. Future releases push additional entries to `changelog/auto` rather than opening new PRs. To veto, edit `docs/changelog.json` on the branch — or close the PR — before it merges.
+          EOF
+          )")
+          echo "Created $URL"
+          echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
+
+      - name: Enable auto-merge
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NUMBER="${{ steps.create.outputs.number || steps.existing.outputs.number }}"
+          echo "Enabling squash auto-merge on PR #$NUMBER"
+          gh pr merge "$NUMBER" --auto --squash --delete-branch

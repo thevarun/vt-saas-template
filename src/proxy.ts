@@ -22,6 +22,7 @@ const protectedPaths = [
   '/onboarding',
   '/chat',
   '/admin',
+  '/settings',
 ];
 
 // Routes that require admin privileges

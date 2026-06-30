@@ -6,6 +6,7 @@ vi.mock('../Env', () => ({
     RESEND_API_KEY: undefined,
     EMAIL_FROM_ADDRESS: 'test@example.com',
     EMAIL_FROM_NAME: 'Test App',
+    EMAIL_LIFECYCLE_FROM_NAME: 'Team at Test App',
     EMAIL_REPLY_TO: undefined,
   },
 }));
@@ -79,6 +80,41 @@ describe('Email Config', () => {
       const { getFromAddress } = await import('./config');
 
       expect(getFromAddress()).toBe('My SaaS <noreply@domain.com>');
+    });
+  });
+
+  describe('getLifecycleFromAddress', () => {
+    it('formats the lifecycle FROM with the lifecycle display name', async () => {
+      vi.doMock('../Env', () => ({
+        Env: {
+          RESEND_API_KEY: undefined,
+          EMAIL_FROM_ADDRESS: 'test@example.com',
+          EMAIL_FROM_NAME: 'Test App',
+          EMAIL_LIFECYCLE_FROM_NAME: 'Team at Test App',
+          EMAIL_REPLY_TO: undefined,
+        },
+      }));
+
+      const { getLifecycleFromAddress } = await import('./config');
+
+      expect(getLifecycleFromAddress()).toBe('Team at Test App <test@example.com>');
+    });
+
+    it('shares the system FROM address but uses a different name', async () => {
+      vi.doMock('../Env', () => ({
+        Env: {
+          RESEND_API_KEY: undefined,
+          EMAIL_FROM_ADDRESS: 'noreply@domain.com',
+          EMAIL_FROM_NAME: 'My SaaS',
+          EMAIL_LIFECYCLE_FROM_NAME: 'Alex at My SaaS',
+          EMAIL_REPLY_TO: undefined,
+        },
+      }));
+
+      const { getFromAddress, getLifecycleFromAddress } = await import('./config');
+
+      expect(getFromAddress()).toBe('My SaaS <noreply@domain.com>');
+      expect(getLifecycleFromAddress()).toBe('Alex at My SaaS <noreply@domain.com>');
     });
   });
 });

@@ -40,7 +40,13 @@ export {
 } from './client';
 
 // Configuration
-export { EMAIL_CONFIG, getFromAddress, isEmailEnabled } from './config';
+export {
+  EMAIL_CONFIG,
+  EMAIL_LIFECYCLE_CONFIG,
+  getFromAddress,
+  getLifecycleFromAddress,
+  isEmailEnabled,
+} from './config';
 
 // Logging
 export {

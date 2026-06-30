@@ -133,6 +133,9 @@ npx playwright test --ui    # Interactive UI
 ### Visual Development
 After frontend changes, use Playwright MCP to navigate to affected pages and capture screenshots. Save to `_bmad-output/implementation-artifacts/screenshots`.
 
+### Launch Readiness
+Before deploying, run `/launch-checklist` to audit 35 production-readiness checks and get a prioritized scorecard.
+
 ---
 
 ## Code Style
@@ -142,6 +145,10 @@ After frontend changes, use Playwright MCP to navigate to affected pages and cap
 - **Git Hooks:** Husky runs linting on staged files + commitlint
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`)
 - **Imports:** Absolute with `@/` prefix, auto-sorted
+
+### Bundler gotcha: no lazy-`require()` of local ESM modules
+
+Under Next 16 + Turbopack, always use static `import` for local modules. Never reach for an `eslint-disable` to lazy-`require()` a local ESM module — the production bundle drops the named export under ESM↔CJS interop, so a module that works in dev silently loses its export in prod. Every `eslint-disable` needs a `-- reason`.
 
 ---
 
