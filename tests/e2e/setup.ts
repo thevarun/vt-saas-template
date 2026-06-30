@@ -14,25 +14,34 @@ import dotenv from 'dotenv';
 // Local fallback: load .env.local only if values are missing.
 const envFile = path.resolve(process.cwd(), '.env.local');
 if (
-  (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  (!process.env.NEXT_PUBLIC_SUPABASE_URL
+    || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   && fs.existsSync(envFile)
 ) {
   dotenv.config({ path: envFile });
 }
 
+const SETUP_TIMEOUT_MS = 15_000; // 15 seconds — fail fast instead of hanging
+
 async function globalSetup(_config: FullConfig) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
   // Early exit when Supabase isn't configured — don't hang the whole CI job
   // (or a local run) on a network call that cannot succeed.
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.warn('⚠️  Skipping E2E auth setup: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set.');
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn(
+      '⚠️  Skipping E2E auth setup: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set.',
+    );
+    // eslint-disable-next-line no-console -- E2E setup logs test-account lifecycle to the console
+    console.log(
+      '   Set these env vars or add them to .env.local to run E2E tests.',
+    );
     return;
   }
 
   // Create Supabase client using test project credentials
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Test account credentials (stored in process.env for use in tests)
   const TEST_EMAIL = `e2e-test-${Date.now()}@vt-saas-template.test`;
@@ -55,7 +64,15 @@ async function globalSetup(_config: FullConfig) {
         },
       }),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase signUp timed out after 15s')), 15_000),
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Supabase signUp timed out after ${SETUP_TIMEOUT_MS / 1000}s — is Supabase reachable at ${supabaseUrl}?`,
+              ),
+            ),
+          SETUP_TIMEOUT_MS,
+        ),
       ),
     ]);
 
