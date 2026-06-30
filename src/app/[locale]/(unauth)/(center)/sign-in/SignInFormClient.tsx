@@ -52,7 +52,7 @@ export default function SignInFormClient() {
       const savedPreference = localStorage.getItem('remember_me');
       if (savedPreference === 'true') {
         // Load saved preference on mount
-        // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+        // eslint-disable-next-line react/set-state-in-effect
         setRememberMe(true);
       }
     }

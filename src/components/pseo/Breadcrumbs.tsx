@@ -48,7 +48,7 @@ export function Breadcrumbs({ category, pageTitle, locale, rootLabel = 'Blog' }:
       {/* JSON-LD structured data for search engines */}
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
+        // eslint-disable-next-line react/dom-no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
 

@@ -5,9 +5,9 @@ test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
   test('landing page has exactly one h1', async ({ page }) => {
     await page.goto('/en');
 
-    const h1Count = await page.locator('h1').count();
+    const h1Count = page.locator('h1');
 
-    expect(h1Count).toBe(1);
+    await expect(h1Count).toHaveCount(1);
   });
 
   test('landing page renders canonical tag', async ({ page }) => {

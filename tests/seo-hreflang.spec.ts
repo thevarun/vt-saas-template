@@ -5,10 +5,10 @@ test.describe('SEO - Hreflang Tags', () => {
     await page.goto('/en');
 
     // Get all hreflang link tags
-    const hreflangLinks = await page.locator('link[rel="alternate"][hreflang]').all();
+    const hreflangLinks = page.locator('link[rel="alternate"][hreflang]');
 
     // Should have 4 links (en, hi, bn, x-default)
-    expect(hreflangLinks.length).toBe(4);
+    await expect(hreflangLinks).toHaveCount(4);
 
     // Extract hreflang values
     const hreflangValues = await Promise.all(
@@ -61,10 +61,10 @@ test.describe('SEO - Hreflang Tags', () => {
     await page.goto('/hi');
 
     // Get all hreflang link tags
-    const hreflangLinks = await page.locator('link[rel="alternate"][hreflang]').all();
+    const hreflangLinks = page.locator('link[rel="alternate"][hreflang]');
 
     // Should have 4 links (en, hi, bn, x-default)
-    expect(hreflangLinks.length).toBe(4);
+    await expect(hreflangLinks).toHaveCount(4);
 
     // Find the hi hreflang link (self-referential)
     const hiLink = page.locator('link[rel="alternate"][hreflang="hi"]');
@@ -85,9 +85,9 @@ test.describe('SEO - Hreflang Tags', () => {
     await page.waitForURL(/dashboard/, { timeout: 10000 });
 
     // Should NOT have hreflang tags
-    const hreflangLinks = await page.locator('link[rel="alternate"][hreflang]').all();
+    const hreflangLinks = page.locator('link[rel="alternate"][hreflang]');
 
-    expect(hreflangLinks.length).toBe(0);
+    await expect(hreflangLinks).toHaveCount(0);
 
     // Should have noindex meta tag
     const robotsMeta = page.locator('meta[name="robots"]').first();

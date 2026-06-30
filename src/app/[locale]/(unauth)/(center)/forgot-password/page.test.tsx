@@ -202,7 +202,7 @@ describe('ForgotPasswordPage', () => {
   it('disables form during submission', async () => {
     const user = userEvent.setup();
     mockResetPasswordForEmail.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ error: null }), 100)),
+      () => new Promise(resolve => setTimeout(resolve, 100, { error: null })),
     );
 
     render(<ForgotPasswordPage />);

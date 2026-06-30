@@ -17,7 +17,7 @@ const FormField = <
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react/exhaustive-deps
   const formFieldName = React.useMemo(() => ({ name: props.name }), []);
 
   return (
@@ -29,7 +29,7 @@ const FormField = <
 
 const FormItem = ({ ref, className, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const id = React.useId();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react/exhaustive-deps
   const formItemId = React.useMemo(() => ({ id }), []);
 
   return (

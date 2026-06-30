@@ -36,9 +36,9 @@ describe('trackEvent', () => {
   });
 
   it('adds automatic timestamp', () => {
-    const beforeTime = new Date().getTime();
+    const beforeTime = Date.now();
     trackEvent('signup_completed', { method: 'email' });
-    const afterTime = new Date().getTime();
+    const afterTime = Date.now();
 
     const call = mockProvider.track.mock.calls[0];
     const properties = call?.[1];

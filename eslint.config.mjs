@@ -95,6 +95,6 @@ export default antfu({
   // Playwright test helpers use 'use' from Playwright, not React hooks
   files: ['tests/e2e/helpers/**/*.ts'],
   rules: {
-    'react-hooks/rules-of-hooks': 'off',
+    'react/rules-of-hooks': 'off',
   },
 });

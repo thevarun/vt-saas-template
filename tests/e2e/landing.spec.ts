@@ -54,13 +54,11 @@ test.describe('Landing Page', () => {
       // Dashboard button should be visible (in the navbar's right menu section)
       const dashboardButton = authenticatedPage.locator('a[href="/dashboard"]:has-text("Dashboard")').first();
 
-      // eslint-disable-next-line playwright/no-standalone-expect
       await expect(dashboardButton).toBeVisible();
 
       // Hero section should also show "Go to Dashboard" button
       const heroDashboardButton = authenticatedPage.locator('a[href="/dashboard"]:has-text("Go to Dashboard")');
 
-      // eslint-disable-next-line playwright/no-standalone-expect
       await expect(heroDashboardButton).toBeVisible();
 
       // Auth-specific sign-in/sign-up buttons should NOT be visible
@@ -69,9 +67,8 @@ test.describe('Landing Page', () => {
       const authSignInLink = authenticatedPage.locator('a[href="/sign-in"]:has-text("Sign In")');
       const authSignUpButton = authenticatedPage.locator('a[href="/sign-up"]').filter({ hasText: /^Sign Up$/ });
 
-      // eslint-disable-next-line playwright/no-standalone-expect
       await expect(authSignInLink).toBeHidden();
-      // eslint-disable-next-line playwright/no-standalone-expect
+
       await expect(authSignUpButton).toBeHidden();
     });
 
@@ -81,7 +78,6 @@ test.describe('Landing Page', () => {
       const dashboardButton = authenticatedPage.locator('a[href*="/dashboard"], button:has-text("Dashboard")').first();
       await dashboardButton.click();
 
-      // eslint-disable-next-line playwright/no-standalone-expect
       await expect(authenticatedPage).toHaveURL(/\/dashboard/);
     });
   });
