@@ -24,19 +24,19 @@ Full dependency inventory: `package.json`.
 
 ## Documentation Map
 
-| Topic | Full reference |
-|-------|----------------|
-| Architecture | [docs/architecture.md](docs/architecture.md) |
-| Development | [docs/development-guide.md](docs/development-guide.md) |
-| Database workflow | [docs/database-workflow.md](docs/database-workflow.md) · [legacy columns](docs/legacy-columns.md) |
-| API errors | [docs/api-error-handling.md](docs/api-error-handling.md) |
-| Error boundaries | [docs/error-handling-guide.md](docs/error-handling-guide.md) |
-| Email system | [docs/email-system.md](docs/email-system.md) |
-| SEO (hreflang, OG, sitemap, robots) | [docs/seo.md](docs/seo.md) |
-| SSE streaming | [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md) |
-| CI/CD | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md) |
-| Admin setup | [docs/admin-setup.md](docs/admin-setup.md) |
-| Upstream sync | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md) |
+| Topic                               | Full reference                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Architecture                        | [docs/architecture.md](docs/architecture.md)                                                      |
+| Development                         | [docs/development-guide.md](docs/development-guide.md)                                            |
+| Database workflow                   | [docs/database-workflow.md](docs/database-workflow.md) · [legacy columns](docs/legacy-columns.md) |
+| API errors                          | [docs/api-error-handling.md](docs/api-error-handling.md)                                          |
+| Error boundaries                    | [docs/error-handling-guide.md](docs/error-handling-guide.md)                                      |
+| Email system                        | [docs/email-system.md](docs/email-system.md)                                                      |
+| SEO (hreflang, OG, sitemap, robots) | [docs/seo.md](docs/seo.md)                                                                        |
+| SSE streaming                       | [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md)                                  |
+| CI/CD                               | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md)                                                  |
+| Admin setup                         | [docs/admin-setup.md](docs/admin-setup.md)                                                        |
+| Upstream sync                       | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md)                                        |
 
 Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO authoring).
 
@@ -52,6 +52,7 @@ Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (sch
 - **Reuse before building** — extend the established patterns (auth wrappers, API error helpers, email service, SEO utils) rather than reinventing them.
 
 ### TypeScript & lint
+
 Use `type`, not `interface` (`ts/consistent-type-definitions`). **Semicolons are required** and single quotes for JSX attributes (antfu `stylistic`). Imports are auto-sorted — let `npm run lint:fix` handle order, never hand-order.
 
 > **Never** use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this silently broke a provider module's named export in prod). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
@@ -91,7 +92,7 @@ npx vitest run path/to/file.test.ts       # single file
 npm run test:e2e                          # Playwright
 
 # Database  (no db:push — see "Database" above)
-npm run db:generate      # migration from schema diff (on the feature branch)
+npm run db:generate      # migration from schema diff (on main, after merge)
 npm run db:migrate       # apply migrations (journal-driven)
 npm run db:gen-types     # regenerate Supabase types after a migration
 npm run db:studio        # Drizzle Studio
@@ -102,6 +103,8 @@ npm run commit           # Commitizen
 ```
 
 Environment variables: copy and fill `.env.example` (the canonical, annotated list). Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DIFY_API_KEY`) stay in `.env.local` only.
+
+**Fork lifecycle (Claude Code commands):** `/init-downstream` (run first after forking — renames the DB schema, sets `.gitattributes` merge strategies, retargets the `gh` CLI, cleans template artifacts) · `/upstream-sync` (pull template updates; needs `/init-downstream` first) · `/launch-checklist` (production-readiness audit).
 
 ## Testing notes
 
@@ -127,7 +130,7 @@ Compose with the read-only `/launch-checklist`: audit → execute (`/production-
 **This template is the source of truth for shared/infra code.** When a product accrues a generic, reusable improvement, contribute it **up** here so it reaches every product (and future fork) via `upstream-sync`. Never keep divergent copies of shared code.
 
 - **`/upstream-contribute`** — harvest loop (Identify → Plan → Produce → Verify → Merge → Harvest). A produce-only fan-out (`workflows/port-to-template.js`) opens dependency-ordered PRs; merge is human-supervised and gated on **independent byte-level verification** — trust the pushed bytes, never an agent's "I fixed it" report.
-- **What to contribute:** does it make the *next* product faster to build, or improve the whole fleet? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
+- **What to contribute:** does it make the _next_ product faster to build, or improve the whole fleet? If not, leave it in the product. Strip to the pattern, not the instance — keep the template a scaffold, not a library.
 
 ## Research
 
