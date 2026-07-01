@@ -47,7 +47,11 @@ type AdminSidebarProps = {
  * - Collapsed/expanded modes
  * - Dark sidebar background
  */
-export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }: AdminSidebarProps) {
+export function AdminSidebar({
+  collapsed = false,
+  mobile = false,
+  onLinkClick,
+}: AdminSidebarProps) {
   const t = useTranslations('Admin');
   const pathname = usePathname();
 
@@ -57,14 +61,22 @@ export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }:
       group: t('nav.overview'),
       items: [
         { label: t('nav.dashboard'), href: '/admin', icon: LayoutDashboard },
-        { label: t('nav.analytics'), href: '/admin/analytics', icon: BarChart3 },
+        {
+          label: t('nav.analytics'),
+          href: '/admin/analytics',
+          icon: BarChart3,
+        },
       ],
     },
     {
       group: t('nav.management'),
       items: [
         { label: t('nav.users'), href: '/admin/users', icon: Users },
-        { label: t('nav.feedback'), href: '/admin/feedback', icon: MessageSquareText },
+        {
+          label: t('nav.feedback'),
+          href: '/admin/feedback',
+          icon: MessageSquareText,
+        },
       ],
     },
     {
@@ -98,20 +110,20 @@ export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }:
     <div
       className={cn(
         'flex h-full flex-col',
-        'bg-slate-800 dark:bg-black',
+        'bg-sidebar',
         'transition-all duration-200',
         sidebarWidth,
       )}
       data-testid="admin-sidebar"
     >
       {/* Logo/Brand area */}
-      <div className="flex h-16 items-center border-b border-slate-700 px-4">
+      <div className="flex h-16 items-center border-b border-sidebar-border px-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
-            <Shield className="size-4 text-white" />
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
+            <Shield className="size-4 text-sidebar-primary-foreground" />
           </div>
           {(!collapsed || mobile) && (
-            <span className="text-lg font-semibold text-white">
+            <span className="text-lg font-semibold text-sidebar-foreground">
               {t('brand')}
             </span>
           )}
@@ -119,16 +131,18 @@ export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }:
       </div>
 
       {/* Navigation groups */}
-      <nav className="flex-1 overflow-y-auto p-2" role="navigation" aria-label="Admin navigation">
+      <nav
+        className="flex-1 overflow-y-auto p-2"
+        role="navigation"
+        aria-label="Admin navigation"
+      >
         {navGroups.map((group, groupIndex) => (
           <div key={group.group} className="py-2">
-            {groupIndex > 0 && (
-              <Separator className="my-2 bg-slate-700" />
-            )}
+            {groupIndex > 0 && <Separator className="my-2 bg-sidebar-border" />}
 
             {/* Group label - hidden when collapsed */}
             {(!collapsed || mobile) && (
-              <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/70">
                 {group.group}
               </div>
             )}
@@ -148,16 +162,14 @@ export function AdminSidebar({ collapsed = false, mobile = false, onLinkClick }:
                         'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
                         'transition-colors duration-150',
                         active
-                          ? 'bg-slate-700 text-white'
-                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white',
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground',
                         collapsed && !mobile && 'justify-center px-2',
                       )}
                       aria-current={active ? 'page' : undefined}
                     >
                       <Icon className="size-5 shrink-0" />
-                      {(!collapsed || mobile) && (
-                        <span>{item.label}</span>
-                      )}
+                      {(!collapsed || mobile) && <span>{item.label}</span>}
                     </Link>
                   </li>
                 );

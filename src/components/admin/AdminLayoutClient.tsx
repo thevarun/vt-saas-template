@@ -3,7 +3,12 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 import { AdminHeader } from './AdminHeader';
 import { AdminSidebar } from './AdminSidebar';
@@ -39,7 +44,10 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
 
   useEffect(() => {
     if (isInitialized.current) {
-      localStorage.setItem('admin_sidebar_collapsed', sidebarCollapsed ? 'true' : 'false');
+      localStorage.setItem(
+        'admin_sidebar_collapsed',
+        sidebarCollapsed ? 'true' : 'false',
+      );
     }
   }, [sidebarCollapsed]);
 
@@ -54,6 +62,15 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, [mobileMenuOpen]);
 
+  // Pin admin to a theme-independent palette. The root div below carries
+  // `data-admin` for SSR'd content (no flash); mirror it onto `document.body`
+  // so Radix portals (Dialog, Sheet, Popover, …) — which mount to `body` and
+  // escape the div — also resolve the admin-scoped tokens. See global.css.
+  useEffect(() => {
+    document.body.setAttribute('data-admin', '');
+    return () => document.body.removeAttribute('data-admin');
+  }, []);
+
   // Keyboard shortcut: Escape closes mobile menu
   useEffect(() => {
     const handleKeyboard = (e: KeyboardEvent) => {
@@ -66,24 +83,20 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
   }, [mobileMenuOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100 dark:bg-zinc-950">
+    <div data-admin className="flex h-screen overflow-hidden bg-muted">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex" aria-label="Admin sidebar">
-        <AdminSidebar
-          collapsed={sidebarCollapsed}
-          onLinkClick={() => {}}
-        />
+        <AdminSidebar collapsed={sidebarCollapsed} onLinkClick={() => {}} />
       </aside>
 
       {/* Mobile Sidebar (Sheet) */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="w-60 p-0">
           <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
-          <SheetDescription className="sr-only">Main admin navigation menu</SheetDescription>
-          <AdminSidebar
-            mobile
-            onLinkClick={() => setMobileMenuOpen(false)}
-          />
+          <SheetDescription className="sr-only">
+            Main admin navigation menu
+          </SheetDescription>
+          <AdminSidebar mobile onLinkClick={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
@@ -95,9 +108,7 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );

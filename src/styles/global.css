@@ -206,6 +206,161 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
+/* =============================================================================
+   Admin panel palette — theme-independent (template issue #175)
+
+   Admin is a maintainer tool; it must NOT follow the consumer product theme.
+   `[data-admin]` re-declares the full DEFAULT token set, so the admin panel
+   always looks like the default light/dark theme regardless of which consumer
+   theme (warm, sage, …) is active. It respects light/dark only, never hue.
+
+   Scope is applied on BOTH the admin layout root (SSR, no flash for the main
+   UI) AND `document.body` (via a client effect) so Radix portals — Dialog,
+   Sheet, Popover, Select, DropdownMenu, Tooltip — which mount to `body` and
+   would otherwise escape the scope, also pick up the admin palette.
+
+   The sidebar keeps its own always-dark identity (slate-800 / blue-600),
+   overriding the near-white default `--sidebar`. To retint admin, edit these
+   two blocks only — nowhere else.
+
+   NOTE ON THE `--color-*` RE-ALIAS BELOW: Tailwind's `@theme` emits
+   `--color-x: var(--x)` at `:root`, which is substituted once at `<html>` and
+   inherits down as a frozen value. Overriding a raw `--x` on a *descendant*
+   scope like `[data-admin]` therefore does NOT reach the Tailwind utilities
+   (`bg-sidebar`, `bg-card`, …) — they'd keep the html-level color. The
+   consumer multi-theme system dodges this only because next-themes sets the
+   theme class on `<html>` itself. A descendant scope must re-alias the
+   `--color-*` tokens so they recompute here against the admin raw tokens.
+   ============================================================================= */
+[data-admin] {
+  /* Re-alias Tailwind's theme colors so utilities recompute at this scope
+     (see NOTE above). Declared once here; it resolves against whichever raw
+     `--*` wins on this element, so it covers `.dark [data-admin]` too. */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Content surface — default light neutrals (mirror of `:root`) */
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --ring: hsl(222.2 84% 4.9%);
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+
+  --primary: hsl(222.2 47.4% 11.2%);
+  --primary-foreground: hsl(210 40% 98%);
+
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 42%);
+
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+
+  --chart-1: hsl(12 76% 61%);
+  --chart-2: hsl(173 58% 39%);
+  --chart-3: hsl(197 37% 24%);
+  --chart-4: hsl(43 74% 66%);
+  --chart-5: hsl(27 87% 67%);
+
+  /* Always-dark sidebar (was bg-slate-800 / border-slate-700 / bg-blue-600) */
+  --sidebar: hsl(217 33% 17%); /* slate-800 */
+  --sidebar-foreground: hsl(213 27% 84%); /* slate-300 */
+  --sidebar-primary: hsl(221 83% 53%); /* blue-600 */
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(215 25% 27%); /* slate-700 */
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(215 25% 27%); /* slate-700 */
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark [data-admin] {
+  /* Content surface — default dark neutrals (mirror of `.dark`) */
+  --background: hsl(222.2 84% 4.9%);
+  --foreground: hsl(210 40% 98%);
+
+  --card: hsl(222.2 84% 4.9%);
+  --card-foreground: hsl(210 40% 98%);
+
+  --popover: hsl(222.2 84% 4.9%);
+  --popover-foreground: hsl(210 40% 98%);
+
+  --primary: hsl(210 40% 98%);
+  --primary-foreground: hsl(222.2 47.4% 11.2%);
+
+  --secondary: hsl(217.2 32.6% 17.5%);
+  --secondary-foreground: hsl(210 40% 98%);
+
+  --muted: hsl(217.2 32.6% 17.5%);
+  --muted-foreground: hsl(215 20.2% 65.1%);
+
+  --accent: hsl(217.2 32.6% 17.5%);
+  --accent-foreground: hsl(210 40% 98%);
+
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --border: hsl(217.2 32.6% 17.5%);
+  --input: hsl(217.2 32.6% 17.5%);
+  --ring: hsl(212.7 26.8% 83.9%);
+
+  --chart-1: hsl(220 70% 50%);
+  --chart-2: hsl(160 60% 45%);
+  --chart-3: hsl(30 80% 55%);
+  --chart-4: hsl(280 65% 60%);
+  --chart-5: hsl(340 75% 55%);
+
+  /* Sidebar goes black in dark (was dark:bg-black); rest of the slate set holds */
+  --sidebar: hsl(0 0% 0%);
+  --sidebar-foreground: hsl(213 27% 84%);
+  --sidebar-primary: hsl(221 83% 53%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(215 25% 27%);
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(215 25% 27%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
 @layer base {
   /* ===========================================================================
      Multi-theme registry — neutral, professional defaults shipped with the
