@@ -1,16 +1,16 @@
 ---
-name: 'step-01-init'
-description: 'Detect project structure, validate VT SaaS Template project, identify available MCPs'
+name: "step-01-init"
+description: "Detect project structure, validate VT SaaS Template project, identify available MCPs"
 
 # Path Definitions
-workflow_path: '{workflow_path}'
+workflow_path: "{workflow_path}"
 
 # File References
-thisStepFile: '{workflow_path}/steps/step-01-init.md'
-nextStepFile: '{workflow_path}/steps/step-02-scan.md'
-workflowFile: '{workflow_path}/SKILL.md'
-checksData: '{workflow_path}/data/checks.csv'
-reportTemplate: '{workflow_path}/templates/report-template.md'
+thisStepFile: "{workflow_path}/steps/step-01-init.md"
+nextStepFile: "{workflow_path}/steps/step-02-scan.md"
+workflowFile: "{workflow_path}/SKILL.md"
+checksData: "{workflow_path}/data/checks.csv"
+reportTemplate: "{workflow_path}/templates/report-template.md"
 ---
 
 # Step 1: Project Discovery
@@ -99,13 +99,20 @@ Scan key directories to understand what exists:
 - `.github/workflows/` — check for CI config
 - `public/` — check for static assets (og-image.png, etc.)
 
-### 5. Detect Available MCPs
+### 5. Detect Available MCPs & Live Tooling
 
-Check if enriched scanning is possible:
+Check what live (deployed-platform) scanning is possible. The Platform-domain checks
+(36-43) rely on these; when a tool is missing they degrade to WARN, never a false PASS/FAIL.
 
-- **GitHub MCP**: Attempt to detect if GitHub CLI or MCP tools are available (check if `gh` commands work or GitHub MCP tools are accessible). If yes, flag `github_mcp: true`.
-- **Vercel MCP**: Check if Vercel CLI or MCP tools are available. If yes, flag `vercel_mcp: true`.
-- If neither is available, that's fine — all checks have local file fallbacks.
+- **GitHub CLI**: Run `gh auth status`. Flag `github_cli: true` ONLY if installed AND
+  authenticated (both required for `gh api`/`gh secret list`). Also resolve the repo slug:
+  `gh repo view --json nameWithOwner -q .nameWithOwner` → store as `repo_slug` for checks 36-40.
+- **GitHub MCP**: If GitHub MCP tools are accessible, flag `github_mcp: true` (fallback path).
+- **Vercel**: Flag `vercel: true` if the Vercel MCP is connected OR `vercel` CLI is linked
+  (`vercel env ls production` succeeds). Needed for checks 41-42.
+- **Supabase MCP**: Flag `supabase_mcp: true` if the Supabase MCP is connected. Needed for
+  check 43 (`get_advisors`).
+- If any is unavailable, that's fine — filesystem checks are unaffected and live checks WARN.
 
 ### 6. Load Checks Data
 
@@ -123,9 +130,12 @@ project_context:
   env_vars_configured: [set of var names]
   directories_found: {map of dir -> exists}
   files_found: {map of key files -> exists}
-  mcps_available:
-    github: true/false
-    vercel: true/false
+  live_tooling:
+    github_cli: true/false     # gh installed AND authed
+    github_mcp: true/false
+    repo_slug: {owner/repo or null}
+    vercel: true/false         # Vercel MCP connected OR CLI linked
+    supabase_mcp: true/false
   checks: [loaded from CSV]
   locale_dirs: [list of locale directories]
 ```
