@@ -96,6 +96,14 @@ export default async function RootLayout(props: {
   // which dynamically adds a `style` attribute to the body tag.
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* Prevent FOUC: sync the .dark class + selected theme before first paint. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(!t||t==='system'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var d=t==='dark'||t.indexOf('-dark')!==-1;var e=document.documentElement;if(d)e.classList.add('dark');else e.classList.remove('dark');if(t!=='light'&&t!=='dark')e.classList.add(t);}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
         <a
           href="#main-content"
