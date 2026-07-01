@@ -104,7 +104,7 @@ npm run commit           # Commitizen
 
 Environment variables: copy and fill `.env.example` (the canonical, annotated list). Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DIFY_API_KEY`) stay in `.env.local` only.
 
-**Fork lifecycle (Claude Code commands):** `/init-downstream` (run first after forking — renames the DB schema, sets `.gitattributes` merge strategies, retargets the `gh` CLI, cleans template artifacts) · `/upstream-sync` (pull template updates; needs `/init-downstream` first) · `/launch-checklist` (production-readiness audit).
+**Fork lifecycle (Claude Code commands):** `/init-downstream` (run first after forking — renames the DB schema, resets project identity, configures git behavior + GitHub repo merge settings, sets `.gitattributes` merge strategies, cleans template artifacts, scaffolds a CI-secrets manifest) · `/upstream-sync` (pull template updates; needs `/init-downstream` first) · `/launch-checklist` (production-readiness audit, incl. live GitHub/Vercel/Supabase platform checks).
 
 ## Testing notes
 
