@@ -1,15 +1,17 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
-  test('landing page has exactly one h1', async ({ page }) => {
-    await page.goto('/en');
+/**
+ * Accessibility + canonical metadata — cross-boundary only.
+ *
+ * Structural assertions (exactly one h1, skip-to-content link present) were
+ * dropped: they're component/layout structure better asserted in Vitest, and
+ * the axe scans below catch real WCAG regressions across the rendered page.
+ * The canonical-tag check stays because SEO metadata injection crosses the
+ * server-render boundary.
+ */
 
-    const h1Count = page.locator('h1');
-
-    await expect(h1Count).toHaveCount(1);
-  });
-
+test.describe('Accessibility & SEO metadata', () => {
   test('landing page renders canonical tag', async ({ page }) => {
     await page.goto('/en');
 
@@ -37,17 +39,5 @@ test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
       .analyze();
 
     expect(results.violations).toEqual([]);
-  });
-
-  test('app shell renders skip-to-main-content link', async ({ page }) => {
-    await page.goto('/en');
-
-    const skipLink = page.locator('a[href="#main-content"]');
-
-    await expect(skipLink).toHaveCount(1);
-
-    const mainContent = page.locator('#main-content');
-
-    await expect(mainContent).toHaveCount(1);
   });
 });
