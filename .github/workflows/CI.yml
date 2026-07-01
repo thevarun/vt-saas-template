@@ -192,7 +192,9 @@ jobs:
 
       # Dependabot PRs don't have access to secrets, use placeholders
       # Integration tests requiring real credentials are skipped via test config
-      - run: npm run test -- --coverage
+      # No --coverage: the number was generated but never gated, so it only added
+      # v8 instrumentation cost. Run `npm run test -- --coverage` locally on demand.
+      - run: npm run test
         env:
           DB_SCHEMA: vt_saas
           NEXT_PUBLIC_DB_SCHEMA: vt_saas
