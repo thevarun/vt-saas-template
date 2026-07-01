@@ -7,21 +7,15 @@ class IntersectionObserverMock {
   unobserve() {}
   disconnect() {}
 }
-globalThis.IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver;
-
-// Mock the marketing chrome — these are heavy client components (auth hooks,
-// i18n) and not under test here.
-vi.mock('@/templates/Navbar', () => ({
-  Navbar: () => <nav data-testid="navbar" />,
-}));
-vi.mock('@/templates/Footer', () => ({
-  Footer: () => <footer data-testid="footer" />,
-}));
+globalThis.IntersectionObserver
+  = IntersectionObserverMock as unknown as typeof IntersectionObserver;
 
 // next/image renders a plain <img> in tests so we can assert alt/src.
 vi.mock('next/image', () => ({
-  // eslint-disable-next-line next/no-img-element -- plain <img> is fine in a jsdom test mock
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+
+  default: ({ src, alt }: { src: string; alt: string }) => (
+    <img src={src} alt={alt} />
+  ),
 }));
 
 // eslint-disable-next-line import/first -- mocks must be hoisted above imports under test
@@ -66,9 +60,7 @@ describe('AboutPage', () => {
   it('renders the founder photo via next/image', async () => {
     await renderAbout();
 
-    const img = screen.getByAltText(
-      new RegExp(ABOUT_CONTENT.founderName, 'i'),
-    );
+    const img = screen.getByAltText(new RegExp(ABOUT_CONTENT.founderName, 'i'));
 
     expect(img).toHaveAttribute('src', ABOUT_CONTENT.founderImage);
   });

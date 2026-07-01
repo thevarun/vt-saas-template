@@ -76,7 +76,7 @@ export default async function ChangelogPage(props: {
   };
 
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-12">
+    <div className="container mx-auto max-w-3xl px-4 py-12">
       <header className="mb-10">
         <h1 className="text-4xl font-bold text-foreground">{t('title')}</h1>
         <p className="mt-2 text-muted-foreground">{t('description')}</p>
@@ -157,6 +157,6 @@ export default async function ChangelogPage(props: {
               </p>
             </div>
           )}
-    </main>
+    </div>
   );
 }

@@ -21,8 +21,8 @@ hardcoded:
 
 Then review the clause prose in:
 
-- `src/app/[locale]/(unauth)/terms/page.tsx`
-- `src/app/[locale]/(unauth)/privacy/page.tsx`
+- `src/app/[locale]/(unauth)/(marketing)/terms/page.tsx`
+- `src/app/[locale]/(unauth)/(marketing)/privacy/page.tsx`
 
 ## Get real, reviewed policies
 

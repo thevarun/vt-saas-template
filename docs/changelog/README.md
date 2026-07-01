@@ -15,7 +15,7 @@ release-generated changelog source  →  AI humanizer  →  docs/changelog.json 
    grouped under Features / Bug Fixes / Performance) — see the prerequisite below.
 2. The `Changelog Sync` workflow runs the humanizer prompt against that file and
    writes user-facing entries to `docs/changelog.json`.
-3. The `/changelog` page (`src/app/[locale]/(unauth)/changelog/page.tsx`)
+3. The `/changelog` page (`src/app/[locale]/(unauth)/(marketing)/changelog/page.tsx`)
    `fs`-reads `docs/changelog.json` at build/request time and renders one card per
    version with tag badges, highlights, and a collapsible "Under the hood" list.
    When the file is missing or empty it shows a translated empty state.
@@ -23,7 +23,7 @@ release-generated changelog source  →  AI humanizer  →  docs/changelog.json 
 ## Schema
 
 The shape is defined in
-[`src/app/[locale]/(unauth)/changelog/types.ts`](../../src/app/%5Blocale%5D/%28unauth%29/changelog/types.ts):
+[`src/app/[locale]/(unauth)/(marketing)/changelog/types.ts`](../../src/app/%5Blocale%5D/%28unauth%29/%28marketing%29/changelog/types.ts):
 
 ```json
 {
@@ -33,7 +33,11 @@ The shape is defined in
       "date": "2026-01-01",
       "summary": "One short sentence describing the release.",
       "highlights": [
-        { "tag": "new", "title": "Short, benefit-led title", "body": "One or two sentences." }
+        {
+          "tag": "new",
+          "title": "Short, benefit-led title",
+          "body": "One or two sentences."
+        }
       ],
       "underTheHood": ["Short transparency note"]
     }
