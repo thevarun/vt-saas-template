@@ -4,12 +4,8 @@ import { trackEventServer } from '@/libs/analytics/server';
 import { db } from '@/libs/DB';
 import { Env } from '@/libs/Env';
 import { blockScheduledTasksForUser } from '@/libs/jobs/blocking';
-import { invalidateQuotaCache } from '@/libs/subscriptions/quota';
-import {
-  subscriptionTiers,
-  tierQuotas,
-  userSubscriptions,
-} from '@/models/Schema';
+import { invalidateAllQuotaCaches } from '@/libs/subscriptions/quota-cache';
+import { subscriptionTiers, userSubscriptions } from '@/models/Schema';
 
 import { inngest } from '../client';
 
@@ -17,19 +13,6 @@ type Logger = {
   info: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
 };
-
-/**
- * Invalidates every cached quota state for a user — iterates the resource types
- * defined across all tiers (the cache is keyed by user+resourceType).
- */
-async function invalidateAllQuotaCaches(userId: string): Promise<void> {
-  const rows = await db
-    .selectDistinct({ resourceType: tierQuotas.resourceType })
-    .from(tierQuotas);
-  for (const { resourceType } of rows) {
-    invalidateQuotaCache(userId, resourceType);
-  }
-}
 
 async function transitionToFree(
   userId: string,
