@@ -87,7 +87,9 @@ describe('AdminLayoutClient', () => {
         </AdminLayoutClient>,
       );
 
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('admin_sidebar_collapsed');
+      expect(localStorageMock.getItem).toHaveBeenCalledWith(
+        'admin_sidebar_collapsed',
+      );
     });
 
     it('saves collapsed state to localStorage when toggled', async () => {
@@ -104,7 +106,10 @@ describe('AdminLayoutClient', () => {
       await user.click(toggleButton);
 
       await waitFor(() => {
-        expect(localStorageMock.setItem).toHaveBeenCalledWith('admin_sidebar_collapsed', 'true');
+        expect(localStorageMock.setItem).toHaveBeenCalledWith(
+          'admin_sidebar_collapsed',
+          'true',
+        );
       });
     });
   });
@@ -120,7 +125,9 @@ describe('AdminLayoutClient', () => {
       );
 
       // Click mobile menu button
-      const menuButton = screen.getByRole('button', { name: /open navigation menu/i });
+      const menuButton = screen.getByRole('button', {
+        name: /open navigation menu/i,
+      });
       await user.click(menuButton);
 
       // Sheet should be open - look for close button which appears when sheet is open
@@ -141,12 +148,16 @@ describe('AdminLayoutClient', () => {
       );
 
       // Open menu
-      const menuButton = screen.getByRole('button', { name: /open navigation menu/i });
+      const menuButton = screen.getByRole('button', {
+        name: /open navigation menu/i,
+      });
       await user.click(menuButton);
 
       // Wait for sheet to open
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /close/i }),
+        ).toBeInTheDocument();
       });
 
       // Press escape
@@ -154,7 +165,9 @@ describe('AdminLayoutClient', () => {
 
       // Sheet should close
       await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('button', { name: /close/i }),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -184,7 +197,7 @@ describe('AdminLayoutClient', () => {
       expect(layoutRoot).toHaveClass('overflow-hidden');
     });
 
-    it('has background color classes', () => {
+    it('uses the theme-scoped surface token and admin scope', () => {
       const { container } = render(
         <AdminLayoutClient>
           <div>Content</div>
@@ -193,7 +206,10 @@ describe('AdminLayoutClient', () => {
 
       const layoutRoot = container.firstChild as HTMLElement;
 
-      expect(layoutRoot).toHaveClass('bg-slate-100', 'dark:bg-zinc-950');
+      // Admin pins itself to a theme-independent palette (issue #175):
+      // the surface uses `bg-muted` and the root carries `data-admin`.
+      expect(layoutRoot).toHaveClass('bg-muted');
+      expect(layoutRoot).toHaveAttribute('data-admin');
     });
   });
 

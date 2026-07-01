@@ -54,7 +54,10 @@ describe('AdminSidebar', () => {
 
       const usersLink = screen.getByText('nav.users').closest('a');
 
-      expect(usersLink).toHaveClass('bg-slate-700', 'text-white');
+      expect(usersLink).toHaveClass(
+        'bg-sidebar-accent',
+        'text-sidebar-accent-foreground',
+      );
     });
 
     it('sets aria-current on active item', () => {
@@ -70,7 +73,7 @@ describe('AdminSidebar', () => {
 
       const dashboardLink = screen.getByText('nav.dashboard').closest('a');
 
-      expect(dashboardLink).not.toHaveClass('bg-slate-700');
+      expect(dashboardLink).not.toHaveClass('bg-sidebar-accent');
       expect(dashboardLink).not.toHaveAttribute('aria-current');
     });
   });
@@ -191,13 +194,14 @@ describe('AdminSidebar', () => {
   });
 
   describe('styling', () => {
-    it('has dark background', () => {
+    it('uses the sidebar theme token for its background', () => {
       render(<AdminSidebar />);
 
       const sidebar = screen.getByTestId('admin-sidebar');
 
-      expect(sidebar).toHaveClass('bg-slate-800');
-      expect(sidebar).toHaveClass('dark:bg-black');
+      // The always-dark look now comes from the admin-scoped `--sidebar`
+      // token (issue #175), not a hardcoded slate/black class.
+      expect(sidebar).toHaveClass('bg-sidebar');
     });
 
     it('has transition classes', () => {
