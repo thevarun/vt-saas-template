@@ -48,6 +48,11 @@
   --color-sidebar-border: hsl(220 13% 91%);
   --color-sidebar-ring: hsl(217.2 91.2% 59.8%);
 
+  /* Marketing shell (opt-in): self-contained footer brand tokens with safe
+     defaults — no dependency on a multi-theme system. */
+  --color-footer-bg: hsl(222.2 47.4% 11.2%);
+  --color-footer-foreground: hsl(210 40% 98%);
+
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
