@@ -29,9 +29,15 @@ const globalForDb = globalThis as unknown as {
 if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
   // Check both pool AND drizzle instance exist (drizzle could be undefined if previous init failed)
   if (!globalForDb.pgPool || !globalForDb.pgDrizzle) {
+    // Per-Node-instance pool. Supabase Session Pooler / pgBouncer multiplexes
+    // across instances upstream, so this max is the local ceiling. Production
+    // gets a bit more headroom for bursty server-action traffic; dev / preview
+    // stays modest to avoid exhausting local Postgres on rapid hot-reloads.
     globalForDb.pgPool = new Pool({
       connectionString: Env.DATABASE_URL,
-      max: 1, // Limit to single connection for serverless/dev environments
+      max: process.env.NODE_ENV === 'production' ? 10 : 5,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 5_000,
     });
 
     globalForDb.pgDrizzle = drizzlePg(globalForDb.pgPool, { schema });
@@ -47,7 +53,9 @@ if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
     globalForDb.pgliteClient = new PGlite();
     await globalForDb.pgliteClient.waitReady;
 
-    globalForDb.pgliteDrizzle = drizzlePglite(globalForDb.pgliteClient, { schema });
+    globalForDb.pgliteDrizzle = drizzlePglite(globalForDb.pgliteClient, {
+      schema,
+    });
     await migratePglite(globalForDb.pgliteDrizzle, {
       migrationsFolder: path.join(process.cwd(), 'migrations'),
     });
