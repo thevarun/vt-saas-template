@@ -1,25 +1,26 @@
 name: Release
 
+# Triggered directly on push to main (was chained off the CI workflow via
+# `workflow_run`). CI no longer needs to gate the release: branch protection is
+# `strict` (branches must be up to date before merge), so the PR already
+# validated the exact merge result — re-running CI just to gate the release was
+# redundant. semantic-release no-ops when a push has no releasable commits, so
+# firing on every main push is safe. Releases are tag-only (no commit back to
+# main), so this never re-triggers itself.
 on:
-  workflow_run:
-    workflows: [CI]
-    types:
-      - completed
+  push:
     branches:
       - main
 
-# Serialize releases: if two CI runs finish close together, queue the second
-# run instead of racing on the tag/changelog push. Never cancel an in-flight
-# release — let it finish, then the queued run sees the new tag and only
-# processes newer commits.
+# Serialize releases: if two pushes land close together, queue the second run
+# instead of racing on the tag push. Never cancel an in-flight release — let it
+# finish, then the queued run sees the new tag and only processes newer commits.
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
   release:
-    # Only run if CI workflow succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Create a new release
     runs-on: ubuntu-latest
 

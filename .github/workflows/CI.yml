@@ -103,6 +103,13 @@ jobs:
 
       - run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
+      # Audit only production (runtime) dependencies at high+ severity. Dev-only
+      # chains (Storybook, Commitizen, etc.) can carry CVEs that never ship to the
+      # production runtime, so `--omit=dev` keeps the signal on what actually
+      # deploys. Fails the job on high/critical runtime vulns; lower severities pass.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Build
         run: npm run build
         env:
@@ -258,3 +265,32 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 14
+
+  # ============================================
+  # CI Gate — aggregate status check (additive)
+  # ============================================
+  # Additive rollup: the three required contexts ("Lint & Types", "Unit Tests",
+  # "Build & E2E") still run and report unchanged. This extra job `if: always()`
+  # runs and aggregates every needed job's result — green when they all passed OR
+  # were legitimately skipped (docs-only / deps-only PR), red when any actually
+  # failed or was cancelled. It reports `CI Gate` on EVERY PR, so it can become
+  # the SINGLE required context: docs-only PRs skip the real jobs but `CI Gate`
+  # still reports success. NOTE: a workflow file cannot change branch protection —
+  # after this merges, a maintainer must swap the required contexts on `main` to
+  # ONLY "CI Gate" (see the commit body). Keep this `name:` in sync with that
+  # required-check context.
+  ci-gate:
+    name: CI Gate
+    if: always()
+    needs: [changes, install, lint, unit-tests, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require no upstream failure
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          node -e "const n=JSON.parse(process.env.NEEDS);
+            const bad=Object.entries(n).filter(([,v])=>!['success','skipped'].includes(v.result));
+            if(bad.length){console.error('Failing jobs:',JSON.stringify(bad));process.exit(1)}
+            console.log('All upstream jobs success or skipped.')"
