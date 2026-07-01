@@ -2,13 +2,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { getPagesByCategory, loadCategories } from '@/libs/pseo/data';
-import { getBaseUrl } from '@/utils/Helpers';
+import { getBaseUrl, getI18nPath } from '@/utils/Helpers';
 
 type BlogPageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export async function generateMetadata(props: BlogPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: BlogPageProps,
+): Promise<Metadata> {
   const { locale } = await props.params;
   const baseUrl = getBaseUrl();
 
@@ -16,7 +18,7 @@ export async function generateMetadata(props: BlogPageProps): Promise<Metadata> 
     title: 'Blog',
     description: 'Browse our collection of posts across various topics.',
     alternates: {
-      canonical: `${baseUrl}/${locale}/blog`,
+      canonical: `${baseUrl}${getI18nPath('/blog', locale)}`,
     },
   };
 }
@@ -55,8 +57,12 @@ export default async function BlogIndexPage(props: BlogPageProps) {
             <section key={category.id}>
               <div className="mb-6 flex items-baseline justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">{category.name}</h2>
-                  <p className="mt-1 text-muted-foreground">{category.description}</p>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {category.name}
+                  </h2>
+                  <p className="mt-1 text-muted-foreground">
+                    {category.description}
+                  </p>
                 </div>
                 <Link
                   href={`/${locale}/blog/${category.slug}`}

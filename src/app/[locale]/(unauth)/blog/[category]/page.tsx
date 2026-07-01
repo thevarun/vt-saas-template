@@ -7,7 +7,7 @@ import {
   getCategoryBySlug,
   getPagesByCategory,
 } from '@/libs/pseo/data';
-import { getBaseUrl } from '@/utils/Helpers';
+import { getBaseUrl, getI18nPath } from '@/utils/Helpers';
 
 type CategoryPageProps = {
   params: Promise<{
@@ -20,7 +20,9 @@ export async function generateStaticParams() {
   return getAllCategoryParams();
 }
 
-export async function generateMetadata(props: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: CategoryPageProps,
+): Promise<Metadata> {
   const { locale, category: categorySlug } = await props.params;
   const category = await getCategoryBySlug(categorySlug);
 
@@ -34,7 +36,7 @@ export async function generateMetadata(props: CategoryPageProps): Promise<Metada
     title: category.name,
     description: category.description,
     alternates: {
-      canonical: `${baseUrl}/${locale}/blog/${categorySlug}`,
+      canonical: `${baseUrl}${getI18nPath(`/blog/${categorySlug}`, locale)}`,
     },
   };
 }
@@ -64,8 +66,12 @@ export default async function CategoryPage(props: CategoryPageProps) {
             <span className="mx-2">/</span>
             <span className="text-foreground">{category.name}</span>
           </nav>
-          <h1 className="mb-3 text-4xl font-bold text-foreground">{category.name}</h1>
-          <p className="text-lg text-muted-foreground">{category.description}</p>
+          <h1 className="mb-3 text-4xl font-bold text-foreground">
+            {category.name}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {category.description}
+          </p>
         </header>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -92,7 +98,9 @@ export default async function CategoryPage(props: CategoryPageProps) {
 
         {pages.length === 0 && (
           <div className="py-16 text-center">
-            <p className="text-muted-foreground">No posts in this category yet.</p>
+            <p className="text-muted-foreground">
+              No posts in this category yet.
+            </p>
           </div>
         )}
       </div>
