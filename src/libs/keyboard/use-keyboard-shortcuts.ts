@@ -49,7 +49,8 @@ export function useKeyboardShortcuts(
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      const { isCommandPaletteOpen, actionHandlers } = useKeyboardShortcutStore.getState();
+      const { isCommandPaletteOpen, actionHandlers }
+        = useKeyboardShortcutStore.getState();
 
       // When command palette is open, let it handle all keys
       if (isCommandPaletteOpen) {
@@ -92,7 +93,9 @@ export function useKeyboardShortcuts(
           }
 
           const keyMatch = e.key.toLowerCase() === shortcut.keyPattern.key;
-          const shiftMatch = shortcut.keyPattern.shift ? e.shiftKey : !e.shiftKey;
+          const shiftMatch = shortcut.keyPattern.shift
+            ? e.shiftKey
+            : !e.shiftKey;
 
           if (keyMatch && shiftMatch) {
             // Skip non-editable-safe combos when in editable field
@@ -104,7 +107,11 @@ export function useKeyboardShortcuts(
             }
 
             e.preventDefault();
-            executeAction(shortcut.id, staticHandlersRef.current, actionHandlers);
+            executeAction(
+              shortcut.id,
+              staticHandlersRef.current,
+              actionHandlers,
+            );
             return;
           }
         }
@@ -155,11 +162,23 @@ export function useKeyboardShortcuts(
   }, [pathname]);
 }
 
-function isShortcutActiveOnPath(activePaths: string[] | undefined, cleanPath: string): boolean {
+export function isShortcutActiveOnPath(
+  activePaths: string[] | undefined,
+  cleanPath: string,
+): boolean {
   if (!activePaths) {
     return true;
   }
-  return activePaths.some(p => cleanPath === p || cleanPath.startsWith(`${p}/`));
+  return activePaths.some((p) => {
+    // A trailing slash marks "sub-paths only" — e.g. '/posts/' matches the
+    // detail page '/posts/123' but not the '/posts' list.
+    if (p.endsWith('/')) {
+      return cleanPath.startsWith(p);
+    }
+    // Exact match or a true sub-path. The `${p}/` boundary prevents a bare
+    // `startsWith(p)` from letting '/dashboard' match '/dashboards'.
+    return cleanPath === p || cleanPath.startsWith(`${p}/`);
+  });
 }
 
 function executeAction(
