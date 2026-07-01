@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 /* eslint-enable simple-import-sort/imports */
 
 import { isAdmin } from '@/libs/auth/isAdmin';
-import { buildLandingAuthUrl } from '@/libs/auth/landing-auth-url';
+import { redirectUnauthToLanding } from '@/libs/auth/landing-auth-url';
 import { updateSession } from '@/libs/supabase/middleware';
 import { AllLocales, AppConfig } from './utils/AppConfig';
 
@@ -92,18 +92,13 @@ export async function proxy(request: NextRequest, _event: NextFetchEvent) {
         );
       }
 
-      const localePrefix = getLocalePrefix(request.nextUrl.pathname);
-      const locale = localePrefix
-        ? localePrefix.slice(1)
-        : AppConfig.defaultLocale;
       // Send unauthenticated users to the landing page with the overlay auth
       // dialog auto-opened (?auth=signin&redirect=<path>), preserving their
-      // intended destination for after sign-in.
-      const landingUrl = new URL(
-        buildLandingAuthUrl({ locale, redirect: request.nextUrl.pathname }),
-        request.url,
+      // intended destination — including any query string — for after sign-in.
+      return redirectUnauthToLanding(
+        request,
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
       );
-      return NextResponse.redirect(landingUrl);
     }
 
     // Check email verification for protected routes

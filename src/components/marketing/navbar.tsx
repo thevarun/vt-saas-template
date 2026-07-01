@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { useAuthDialog } from '@/components/marketing/auth-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -121,6 +122,7 @@ export const MarketingNavbar = () => {
           </NavigationMenu>
 
           <div className="flex items-center gap-3">
+            <LocaleSwitcher />
             {user
               ? (
                   <Link href="/dashboard">
@@ -187,6 +189,7 @@ export const MarketingNavbar = () => {
             </Link>
           ))}
           <div className="mt-3 flex items-center gap-3">
+            <LocaleSwitcher />
             {user
               ? (
                   <Link href="/dashboard">

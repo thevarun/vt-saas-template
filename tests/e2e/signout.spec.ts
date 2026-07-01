@@ -6,7 +6,9 @@ import { expect, test } from './helpers/fixtures';
  */
 
 test.describe('Sign-Out', () => {
-  test('[P0] should sign out authenticated user and redirect to home', async ({ authenticatedPage }) => {
+  test('[P0] should sign out authenticated user and redirect to home', async ({
+    authenticatedPage,
+  }) => {
     // GIVEN: User is authenticated and on dashboard
     await authenticatedPage.goto('/dashboard');
 
@@ -21,7 +23,9 @@ test.describe('Sign-Out', () => {
     await expect(authenticatedPage).toHaveURL(/\/$/);
   });
 
-  test('[P0] should prevent access to protected routes after sign-out', async ({ authenticatedPage }) => {
+  test('[P0] should prevent access to protected routes after sign-out', async ({
+    authenticatedPage,
+  }) => {
     // GIVEN: User is authenticated
     await authenticatedPage.goto('/dashboard');
 
@@ -34,11 +38,13 @@ test.describe('Sign-Out', () => {
     // AND: User tries to access protected route
     await authenticatedPage.goto('/dashboard');
 
-    // THEN: User is redirected to sign-in
-    await expect(authenticatedPage).toHaveURL(/\/sign-in/);
+    // THEN: User is redirected to the landing with dialog-intent params
+    await expect(authenticatedPage).toHaveURL(/[?&]auth=signin/);
   });
 
-  test('[P1] should show signing out loading state', async ({ authenticatedPage }) => {
+  test('[P1] should show signing out loading state', async ({
+    authenticatedPage,
+  }) => {
     // GIVEN: User is authenticated
     await authenticatedPage.goto('/dashboard');
 
@@ -48,6 +54,8 @@ test.describe('Sign-Out', () => {
     await authenticatedPage.goto('/sign-out');
 
     // THEN: "Signing out..." heading appears briefly before redirect
-    await expect(authenticatedPage.getByRole('heading', { name: /signing out/i })).toBeVisible();
+    await expect(
+      authenticatedPage.getByRole('heading', { name: /signing out/i }),
+    ).toBeVisible();
   });
 });
