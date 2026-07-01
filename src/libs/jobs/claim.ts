@@ -1,4 +1,5 @@
 import type { ScheduledTaskWrite } from '@/libs/jobs/types';
+import { logger } from '@/libs/Logger';
 import { createAdminClient } from '@/libs/supabase/admin';
 
 /**
@@ -56,11 +57,21 @@ export async function claimDueTasks(): Promise<string[]> {
     status: 'scheduled',
     updated_at: new Date().toISOString(),
   };
-  await supabase
+  const { error: staleError } = await supabase
     .from('scheduled_tasks')
     .update(resetPayload as never)
     .in('status', ['claimed', 'running'])
     .lte('updated_at', staleThreshold);
+
+  // Best-effort: a failed stale-reset must not fail the tick — the claim above
+  // already succeeded and its IDs must be returned. Log it (the next tick retries
+  // the reset anyway) so a persistently stuck reset is observable rather than silent.
+  if (staleError) {
+    logger.error(
+      { error: staleError.message },
+      '[scheduled-tasks-cron] stale-reset failed; in-flight tasks remain until the next tick',
+    );
+  }
 
   return (tasks ?? []).map((t: { id: string }) => t.id);
 }
