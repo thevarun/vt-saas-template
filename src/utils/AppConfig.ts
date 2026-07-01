@@ -1,9 +1,11 @@
 import type { LocalePrefixMode } from 'next-intl/routing';
 
+import { SITE_CONFIG } from '@/config/site-config';
+
 const localePrefix: LocalePrefixMode = 'as-needed';
 
 export const AppConfig = {
-  name: 'VT SaaS Template',
+  name: SITE_CONFIG.brand.name,
   locales: [
     {
       id: 'en',
