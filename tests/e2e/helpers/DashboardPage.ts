@@ -16,7 +16,9 @@ export class DashboardPage {
   // Verification methods
   async getPersonalizedGreeting() {
     // Target greeting in main content area, not sidebar
-    return this.page.locator('main h1, main h2, [data-testid="greeting"]').first();
+    return this.page
+      .locator('main h1, main h2, [data-testid="greeting"]')
+      .first();
   }
 
   async getUserEmail() {
@@ -27,19 +29,9 @@ export class DashboardPage {
   }
 
   // Navigation links
-  getChatLink() {
-    // Use .first() to avoid strict mode violation when multiple chat links exist
-    return this.page.locator('a[href*="/chat"], button:has-text("Chat")').first();
-  }
-
   getHomeLink() {
     // Select the "Home" navigation link, not the logo link
     return this.page.locator('a[href="/dashboard"]:has-text("Home")');
-  }
-
-  async navigateToChat() {
-    await this.getChatLink().click();
-    await this.page.waitForURL(/\/chat/);
   }
 
   async navigateToHome() {
@@ -49,16 +41,22 @@ export class DashboardPage {
 
   // Verify removed links don't exist (from Story 2.2)
   async hasMembers() {
-    return this.page.locator('a:has-text("Members"), button:has-text("Members")').count();
+    return this.page
+      .locator('a:has-text("Members"), button:has-text("Members")')
+      .count();
   }
 
   async hasSettings() {
-    return this.page.locator('a:has-text("Settings"), button:has-text("Settings")').count();
+    return this.page
+      .locator('a:has-text("Settings"), button:has-text("Settings")')
+      .count();
   }
 
   // Sign out
   getSignOutButton() {
-    return this.page.locator('button:has-text("Sign Out"), a[href*="sign-out"]');
+    return this.page.locator(
+      'button:has-text("Sign Out"), a[href*="sign-out"]',
+    );
   }
 
   async signOut() {
