@@ -25,8 +25,9 @@ describe('sitemap', () => {
   it('generates entries for all locales', async () => {
     const entries = await sitemap();
 
-    // 2 public routes (/ , /about) × 3 locales + 1 articles index × 3 locales = 9 entries
-    expect(entries).toHaveLength(9);
+    // 2 public routes (/ , /about) × 3 locales + 1 articles index × 3 locales
+    // + 2 legal scaffolds (/terms, /privacy) default-locale only = 11 entries
+    expect(entries).toHaveLength(11);
   });
 
   it('includes the /about page for all locales', async () => {
@@ -38,6 +39,27 @@ describe('sitemap', () => {
     aboutEntries.forEach((entry) => {
       expect(entry.priority).toBe(0.6);
       expect(entry.changeFrequency).toBe('monthly');
+    });
+  });
+
+  it('includes legal scaffolds at the default locale only', async () => {
+    const entries = await sitemap();
+    const legalEntries = entries.filter(
+      e => e.url.endsWith('/terms') || e.url.endsWith('/privacy'),
+    );
+
+    // One entry each — no /hi or /bn variants for legal pages.
+    expect(legalEntries).toHaveLength(2);
+
+    const legalUrls = legalEntries.map(e => e.url).sort();
+
+    expect(legalUrls).toEqual([
+      'https://example.com/privacy',
+      'https://example.com/terms',
+    ]);
+
+    legalEntries.forEach((entry) => {
+      expect(entry.url).not.toMatch(/\/(?:hi|bn)\//);
     });
   });
 
@@ -63,7 +85,11 @@ describe('sitemap', () => {
     const entries = await sitemap();
 
     // Homepage entries (the bare locale roots) should have priority 1.0
-    const homepageUrls = ['https://example.com', 'https://example.com/hi', 'https://example.com/bn'];
+    const homepageUrls = [
+      'https://example.com',
+      'https://example.com/hi',
+      'https://example.com/bn',
+    ];
     const homepageEntries = entries.filter(e => homepageUrls.includes(e.url));
 
     expect(homepageEntries).toHaveLength(3);
@@ -76,7 +102,11 @@ describe('sitemap', () => {
   it('sets correct changeFrequency for homepage', async () => {
     const entries = await sitemap();
 
-    const homepageUrls = ['https://example.com', 'https://example.com/hi', 'https://example.com/bn'];
+    const homepageUrls = [
+      'https://example.com',
+      'https://example.com/hi',
+      'https://example.com/bn',
+    ];
     const homepageEntries = entries.filter(e => homepageUrls.includes(e.url));
 
     expect(homepageEntries).toHaveLength(3);
@@ -105,15 +135,8 @@ describe('sitemap', () => {
 
   it('validates changeFrequency values are valid', async () => {
     const entries = await sitemap();
-    const validFrequencies: Array<MetadataRoute.Sitemap[0]['changeFrequency']> = [
-      'always',
-      'hourly',
-      'daily',
-      'weekly',
-      'monthly',
-      'yearly',
-      'never',
-    ];
+    const validFrequencies: Array<MetadataRoute.Sitemap[0]['changeFrequency']>
+      = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
 
     entries.forEach((entry) => {
       if (entry.changeFrequency) {
