@@ -24,10 +24,13 @@ export default function MarketingLayout({
 }) {
   return (
     <AuthDialogProvider>
-      <MarketingNavbar />
-      {/* pt-16 offsets the fixed navbar height (h-16). */}
-      <main className="pt-16">{children}</main>
-      <MarketingFooter />
+      <div className="flex min-h-screen flex-col">
+        <MarketingNavbar />
+        {/* pt-16 clears the fixed navbar (h-16); flex-1 makes content fill the
+            viewport so the footer stays at the bottom on short/empty pages. */}
+        <main className="flex-1 pt-16">{children}</main>
+        <MarketingFooter />
+      </div>
     </AuthDialogProvider>
   );
 }

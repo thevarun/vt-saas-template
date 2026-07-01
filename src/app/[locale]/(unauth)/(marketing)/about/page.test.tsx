@@ -12,8 +12,8 @@ globalThis.IntersectionObserver
 
 // next/image renders a plain <img> in tests so we can assert alt/src.
 vi.mock('next/image', () => ({
-
   default: ({ src, alt }: { src: string; alt: string }) => (
+    // eslint-disable-next-line next/no-img-element -- plain <img> is fine in a jsdom test mock
     <img src={src} alt={alt} />
   ),
 }));
