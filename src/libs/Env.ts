@@ -76,6 +76,11 @@ export const Env = createEnv({
     NEXT_PUBLIC_DB_SCHEMA: z.string().min(1),
     // Stripe publishable key — optional (billing disabled if unset).
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+    // Opt-in cookieless PostHog: when truthy, PostHog runs in `cookieless_mode`
+    // (no device storage / no consent banner) and client-side `identify()`
+    // becomes a no-op. Off by default — forks keep the standard cookie-based
+    // stance. See src/libs/analytics/providers/posthog.ts.
+    NEXT_PUBLIC_POSTHOG_COOKIELESS: z.string().optional(),
   },
   shared: {
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
@@ -123,6 +128,7 @@ export const Env = createEnv({
     NEXT_PUBLIC_DB_SCHEMA: process.env.NEXT_PUBLIC_DB_SCHEMA,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_POSTHOG_COOKIELESS: process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS,
     NODE_ENV: process.env.NODE_ENV,
   },
 });

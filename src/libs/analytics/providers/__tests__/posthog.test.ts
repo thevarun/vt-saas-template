@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PostHogProvider } from '../posthog';
 
@@ -132,7 +132,10 @@ describe('PostHogProvider', () => {
       await provider.init({ apiKey: 'test', enabled: true });
 
       const eventName = 'signup_completed';
-      const properties = { method: 'email' as const, timestamp: '2024-01-01T00:00:00.000Z' };
+      const properties = {
+        method: 'email' as const,
+        timestamp: '2024-01-01T00:00:00.000Z',
+      };
 
       provider.track(eventName, properties);
 
@@ -149,6 +152,47 @@ describe('PostHogProvider', () => {
       provider.track('signup_completed', { method: 'email' });
 
       expect(mockPosthog.capture).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cookieless mode (opt-in)', () => {
+    const original = process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS;
+
+    afterEach(() => {
+      process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS = original;
+    });
+
+    it('enables cookieless_mode and drops disable_session_recording when flag is truthy', async () => {
+      process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS = 'true';
+
+      await provider.init({ apiKey: 'test', enabled: true });
+
+      const config = mockPosthog.init.mock.calls[0]?.[1];
+
+      expect(config).toMatchObject({ cookieless_mode: 'always' });
+      expect(config).not.toHaveProperty('disable_session_recording');
+    });
+
+    it('makes identify a no-op under cookieless mode', async () => {
+      process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS = '1';
+
+      await provider.init({ apiKey: 'test', enabled: true });
+      provider.identify('user-123', { email: 'test@example.com' });
+
+      expect(mockPosthog.identify).not.toHaveBeenCalled();
+    });
+
+    it('keeps cookie-based behavior when flag is unset', async () => {
+      delete process.env.NEXT_PUBLIC_POSTHOG_COOKIELESS;
+
+      await provider.init({ apiKey: 'test', enabled: true });
+      provider.identify('user-123');
+
+      const config = mockPosthog.init.mock.calls[0]?.[1];
+
+      expect(config).toMatchObject({ disable_session_recording: true });
+      expect(config).not.toHaveProperty('cookieless_mode');
+      expect(mockPosthog.identify).toHaveBeenCalledWith('user-123', undefined);
     });
   });
 
