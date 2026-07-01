@@ -3,6 +3,7 @@
 import { Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
@@ -32,14 +33,12 @@ import {
  * A reusable, brand-config-driven header: sticky translucent bar with a shadcn
  * NavigationMenu Resources dropdown and a mobile flat menu. Brand name, logo,
  * and links come from `SITE_CONFIG` + `nav-config` so a fork rebrands in one
- * place. This is ADDITIVE — it does not replace `src/templates/Navbar.tsx`.
+ * place. Chrome LABELS localise via the `MarketingChrome` next-intl namespace.
+ * This is ADDITIVE — it does not replace `src/templates/Navbar.tsx`.
  *
  * Auth CTAs open the overlay `AuthDialog` (via `useAuthDialog`) so visitors can
  * sign in/up without leaving the page. The dedicated `/sign-in` + `/sign-up`
  * pages remain as fallbacks for direct URLs, password managers, and email links.
- *
- * TODO(i18n seam): labels are English-only literals via `nav-config`; swap to
- * next-intl there when localisation is needed.
  */
 
 const primaryLinkClass
@@ -51,6 +50,7 @@ const dropdownItemClass
   = 'block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none';
 
 export const MarketingNavbar = () => {
+  const t = useTranslations('MarketingChrome');
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useUser();
   const { openSignIn, openSignUp } = useAuthDialog();
@@ -81,7 +81,7 @@ export const MarketingNavbar = () => {
                 <NavigationMenuItem key={l.href}>
                   <NavigationMenuLink asChild>
                     <Link href={l.href} className={primaryLinkClass}>
-                      {l.label}
+                      {t(l.labelKey)}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -89,7 +89,7 @@ export const MarketingNavbar = () => {
 
               <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerOverrideClass}>
-                  Resources
+                  {t('resources')}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-72 gap-1 p-2">
@@ -97,9 +97,9 @@ export const MarketingNavbar = () => {
                       <li key={l.href}>
                         <NavigationMenuLink asChild>
                           <Link href={l.href} className={dropdownItemClass}>
-                            <div className="text-foreground">{l.label}</div>
+                            <div className="text-foreground">{t(l.labelKey)}</div>
                             <p className="mt-0.5 text-xs text-muted-foreground">
-                              {l.description}
+                              {t(l.descriptionKey)}
                             </p>
                           </Link>
                         </NavigationMenuLink>
@@ -113,7 +113,7 @@ export const MarketingNavbar = () => {
                 <NavigationMenuItem key={l.href}>
                   <NavigationMenuLink asChild>
                     <Link href={l.href} className={primaryLinkClass}>
-                      {l.label}
+                      {t(l.labelKey)}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -127,7 +127,7 @@ export const MarketingNavbar = () => {
               ? (
                   <Link href="/dashboard">
                     <Button size="sm" className="rounded-full px-5">
-                      Dashboard
+                      {t('dashboard')}
                     </Button>
                   </Link>
                 )
@@ -139,14 +139,14 @@ export const MarketingNavbar = () => {
                       className="rounded-full px-5"
                       onClick={() => openSignIn()}
                     >
-                      Log in
+                      {t('log_in')}
                     </Button>
                     <Button
                       size="sm"
                       className="rounded-full px-5"
                       onClick={() => openSignUp()}
                     >
-                      Get started
+                      {t('get_started')}
                     </Button>
                   </>
                 )}
@@ -161,14 +161,14 @@ export const MarketingNavbar = () => {
               className="rounded-full px-4 text-xs"
               onClick={() => openSignUp()}
             >
-              Get started
+              {t('get_started')}
             </Button>
           )}
           <button
             type="button"
             className="rounded-md p-1 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={t('toggle_menu')}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -185,7 +185,7 @@ export const MarketingNavbar = () => {
               onClick={() => setMobileOpen(false)}
               className="block py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {l.label}
+              {t(l.labelKey)}
             </Link>
           ))}
           <div className="mt-3 flex items-center gap-3">
@@ -194,7 +194,7 @@ export const MarketingNavbar = () => {
               ? (
                   <Link href="/dashboard">
                     <Button size="sm" className="rounded-full px-5">
-                      Dashboard
+                      {t('dashboard')}
                     </Button>
                   </Link>
                 )
@@ -209,7 +209,7 @@ export const MarketingNavbar = () => {
                         openSignIn();
                       }}
                     >
-                      Log in
+                      {t('log_in')}
                     </Button>
                     <Button
                       size="sm"
@@ -219,7 +219,7 @@ export const MarketingNavbar = () => {
                         openSignUp();
                       }}
                     >
-                      Get started
+                      {t('get_started')}
                     </Button>
                   </>
                 )}

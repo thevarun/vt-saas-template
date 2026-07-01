@@ -2,38 +2,39 @@
  * Marketing shell nav config (opt-in).
  *
  * Neutral default link sets for the brand-config-driven marketing Navbar +
- * Footer. Labels are English-only literals for now.
- *
- * TODO(i18n seam): these labels are deliberately plain strings so a fork can
- * swap them to next-intl later without touching the shell components. Point a
- * `messages`-backed lookup here (or thread labels via `site-config`) when the
- * marketing surface needs localisation.
+ * Footer. Each entry stores a next-intl message KEY (not a literal label) in the
+ * shared `MarketingChrome` namespace; the shell components resolve it via
+ * `t(entry.labelKey)` so the chrome localises with the rest of the app. `href`s
+ * stay plain so a fork can rewire routes without touching translations.
  */
 
+/** Keys of the shared `MarketingChrome` message namespace (type-safe labels). */
+type ChromeMessageKey = keyof IntlMessages['MarketingChrome'];
+
 export type NavLink = {
-  label: string;
+  labelKey: ChromeMessageKey;
   href: string;
 };
 
 export type NavResource = NavLink & {
-  description: string;
+  descriptionKey: ChromeMessageKey;
 };
 
 /** Primary links shown before the Resources dropdown. */
 export const leadingNavLinks: NavLink[] = [
-  { label: 'Features', href: '/#features' },
+  { labelKey: 'features', href: '/#features' },
 ];
 
 /** Primary links shown after the Resources dropdown. */
 export const trailingNavLinks: NavLink[] = [
-  { label: 'Pricing', href: '/#pricing' },
+  { labelKey: 'pricing', href: '/#pricing' },
 ];
 
 /** Grouped links surfaced in the Resources dropdown. */
 export const resourcesLinks: NavResource[] = [
-  { label: 'Blog', href: '/blog', description: 'Guides, updates, and how-tos.' },
-  { label: 'About', href: '/about', description: 'The story behind the product.' },
-  { label: 'Changelog', href: '/changelog', description: 'Recent updates and improvements.' },
+  { labelKey: 'blog', href: '/blog', descriptionKey: 'blog_description' },
+  { labelKey: 'about', href: '/about', descriptionKey: 'about_description' },
+  { labelKey: 'changelog', href: '/changelog', descriptionKey: 'changelog_description' },
 ];
 
 /** Flat list used by the mobile menu (no dropdowns). */

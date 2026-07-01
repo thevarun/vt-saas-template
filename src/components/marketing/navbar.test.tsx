@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { NextIntlClientProvider } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SITE_CONFIG } from '@/config/site-config';
+import messages from '@/locales/en.json';
 
 // next/image renders a plain <img> in tests.
 vi.mock('next/image', () => ({
@@ -32,6 +34,16 @@ vi.mock('@/components/LocaleSwitcher', () => ({
 // eslint-disable-next-line import/first -- mock must be hoisted above the import under test
 import { MarketingNavbar } from './navbar';
 
+// Chrome labels resolve via the MarketingChrome next-intl namespace, so wrap the
+// component in a provider backed by the real en.json messages.
+function renderNavbar() {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <MarketingNavbar />
+    </NextIntlClientProvider>,
+  );
+}
+
 describe('MarketingNavbar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,7 +51,7 @@ describe('MarketingNavbar', () => {
 
   it('renders dialog-opening auth CTAs (buttons, not links) when logged out', () => {
     useUserMock.mockReturnValue({ user: null, loading: false });
-    render(<MarketingNavbar />);
+    renderNavbar();
 
     expect(screen.getByText(SITE_CONFIG.brand.name)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
@@ -58,7 +70,7 @@ describe('MarketingNavbar', () => {
   it('opens the sign-in dialog when Log in is clicked', async () => {
     const user = userEvent.setup();
     useUserMock.mockReturnValue({ user: null, loading: false });
-    render(<MarketingNavbar />);
+    renderNavbar();
 
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
@@ -69,7 +81,7 @@ describe('MarketingNavbar', () => {
   it('opens the sign-up dialog when Get started is clicked', async () => {
     const user = userEvent.setup();
     useUserMock.mockReturnValue({ user: null, loading: false });
-    render(<MarketingNavbar />);
+    renderNavbar();
 
     await user.click(
       screen.getAllByRole('button', { name: 'Get started' })[0]!,
@@ -80,7 +92,7 @@ describe('MarketingNavbar', () => {
 
   it('shows a dashboard link when logged in', () => {
     useUserMock.mockReturnValue({ user: { id: 'u1' }, loading: false });
-    render(<MarketingNavbar />);
+    renderNavbar();
 
     expect(
       screen.getAllByRole('link', { name: 'Dashboard' })[0],
