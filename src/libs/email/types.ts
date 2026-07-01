@@ -122,3 +122,23 @@ export type PromotionGrantedEmailData = BaseTemplateData & {
   /** ISO date string for when the promotional access ends. */
   expiresAt: string;
 };
+
+/**
+ * Whole number of days until an OAuth connection expires. Common reminder
+ * cadences are T-7 (a week out) and T-1 (last nudge), but any positive value
+ * renders — the copy adapts to "in N days" / "tomorrow".
+ */
+export type ReconnectDaysRemaining = number;
+
+/**
+ * Reconnect-reminder email template data. Platform-neutral: the `platform`
+ * label (e.g. the third-party service name) comes from the caller, so the
+ * template carries no provider-specific copy.
+ */
+export type ReconnectReminderEmailData = BaseTemplateData & {
+  appUrl: string;
+  appName: string;
+  /** Human label for the expiring connection (e.g. the provider name). */
+  platform: string;
+  daysRemaining: ReconnectDaysRemaining;
+};
