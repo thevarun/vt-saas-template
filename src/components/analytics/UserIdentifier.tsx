@@ -5,6 +5,7 @@
 
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 
 import { identifyUser, resetUser } from '@/libs/analytics';
@@ -21,6 +22,7 @@ export function UserIdentifier() {
           email: user.email,
           createdAt: new Date(user.created_at),
         });
+        Sentry.setUser({ id: user.id });
       }
     });
 
@@ -33,8 +35,10 @@ export function UserIdentifier() {
           email: session.user.email,
           createdAt: new Date(session.user.created_at),
         });
+        Sentry.setUser({ id: session.user.id });
       } else if (event === 'SIGNED_OUT') {
         resetUser();
+        Sentry.setUser(null);
       }
     });
 
