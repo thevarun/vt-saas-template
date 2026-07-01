@@ -1,0 +1,142 @@
+import Image from 'next/image';
+import Link from 'next/link';
+
+import { SITE_CONFIG } from '@/config/site-config';
+
+import { flatNavLinks, resourcesLinks } from './nav-config';
+
+/**
+ * Marketing shell Footer (opt-in).
+ *
+ * Multi-column footer driven by `SITE_CONFIG` (brand name, tagline, logo,
+ * social) + `nav-config` link sets. ADDITIVE — it does not replace
+ * `src/templates/Footer.tsx`. Footer brand colours come from the self-contained
+ * `--color-footer-*` tokens in `global.css`.
+ *
+ * TODO(i18n seam): headings/labels are English-only literals; localise via
+ * next-intl when needed.
+ */
+
+const legalLinks = [
+  { label: 'Terms of Service', href: '/terms' },
+  { label: 'Privacy Policy', href: '/privacy' },
+];
+
+export const MarketingFooter = () => {
+  const { brand } = SITE_CONFIG;
+  const socialEntries = Object.entries(brand.social) as [string, string][];
+
+  return (
+    <footer className="bg-footer-bg py-12 text-footer-foreground">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-2">
+              <Image
+                src={brand.logo.nav}
+                alt=""
+                width={28}
+                height={28}
+                className="size-7"
+              />
+              <span className="text-2xl font-bold">{brand.name}</span>
+            </div>
+            <p className="mt-2 text-sm text-footer-foreground/70">
+              {brand.tagline}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-12 gap-y-8 sm:grid-cols-3 sm:gap-x-16">
+            <div>
+              <h4 className="text-xs font-semibold tracking-wider text-footer-foreground/60 uppercase">
+                Product
+              </h4>
+              <ul className="mt-3 space-y-2 text-sm">
+                {flatNavLinks.map(l => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="transition-colors hover:text-footer-foreground"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold tracking-wider text-footer-foreground/60 uppercase">
+                Company
+              </h4>
+              <ul className="mt-3 space-y-2 text-sm">
+                {resourcesLinks.map(l => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="transition-colors hover:text-footer-foreground"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <a
+                    href={`mailto:${brand.supportEmail}`}
+                    className="transition-colors hover:text-footer-foreground"
+                  >
+                    Contact
+                  </a>
+                </li>
+              </ul>
+
+              {socialEntries.length > 0 && (
+                <>
+                  <h4 className="mt-6 text-xs font-semibold tracking-wider text-footer-foreground/60 uppercase">
+                    Social
+                  </h4>
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {socialEntries.map(([platform, url]) => (
+                      <li key={platform}>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="capitalize transition-colors hover:text-footer-foreground"
+                        >
+                          {platform}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold tracking-wider text-footer-foreground/60 uppercase">
+                Legal
+              </h4>
+              <ul className="mt-3 space-y-2 text-sm">
+                {legalLinks.map(l => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="transition-colors hover:text-footer-foreground"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 border-t border-footer-foreground/10 pt-6 text-center text-xs text-footer-foreground/70">
+          {`© ${new Date().getFullYear()} ${brand.name}. All rights reserved.`}
+        </div>
+      </div>
+    </footer>
+  );
+};
