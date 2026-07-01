@@ -8,7 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { shutdownServerAnalytics, trackEventServer } from '../server';
 
-vi.mock('@/libs/Logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
+vi.mock('@/libs/Logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+}));
 
 vi.mock('posthog-node');
 
@@ -161,6 +163,55 @@ describe('trackEventServer', () => {
         step_name: 'preferences',
       }),
     });
+  });
+
+  it('forwards personSet as $set on capture', async () => {
+    mockCapture.mockClear();
+    mockCapture.mockImplementation(() => {});
+
+    await trackEventServer(
+      'signup_completed',
+      { method: 'email' },
+      'user-123',
+      { personSet: { plan: 'pro' } },
+    );
+
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        distinctId: 'user-123',
+        $set: { plan: 'pro' },
+      }),
+    );
+  });
+
+  it('forwards personSetOnce as $set_once on capture', async () => {
+    mockCapture.mockClear();
+    mockCapture.mockImplementation(() => {});
+
+    await trackEventServer(
+      'signup_completed',
+      { method: 'email' },
+      'user-123',
+      { personSetOnce: { first_seen: '2026-01-01' } },
+    );
+
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        $set_once: { first_seen: '2026-01-01' },
+      }),
+    );
+  });
+
+  it('omits $set/$set_once when no options are passed', async () => {
+    mockCapture.mockClear();
+    mockCapture.mockImplementation(() => {});
+
+    await trackEventServer('signup_completed', { method: 'email' }, 'user-123');
+
+    const payload = mockCapture.mock.calls[0]?.[0];
+
+    expect(payload).not.toHaveProperty('$set');
+    expect(payload).not.toHaveProperty('$set_once');
   });
 
   it('tracks error events with correct properties', async () => {
