@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BlogArticleLoading() {
   return (
-    <main className="container mx-auto max-w-3xl px-4 pb-20 pt-28 sm:pt-32">
+    <div className="container mx-auto max-w-3xl px-4 pb-20 pt-12">
       {/* Back link */}
       <Skeleton className="mb-6 h-5 w-32" />
 
@@ -47,6 +47,6 @@ export default function BlogArticleLoading() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

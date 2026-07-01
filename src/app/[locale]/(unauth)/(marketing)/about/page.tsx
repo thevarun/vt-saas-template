@@ -8,8 +8,6 @@ import { LinkedInIcon } from '@/components/share/platformIcons';
 import { getSiteUrl } from '@/libs/seo/config';
 import { generateHreflangLinks } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
-import { Footer } from '@/templates/Footer';
-import { Navbar } from '@/templates/Navbar';
 
 import { ABOUT_CONTENT } from './about-content';
 
@@ -71,10 +69,8 @@ export default async function AboutPage(props: {
 
   return (
     <>
-      <Navbar />
-
       {/* Founder hero */}
-      <section className="relative overflow-hidden pb-16 pt-28 sm:pt-32">
+      <section className="relative overflow-hidden pb-16 pt-12">
         {/* Decorative orbs */}
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[460px] w-[460px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
         <div className="pointer-events-none absolute -bottom-24 right-0 h-[280px] w-[280px] rounded-full bg-accent/40 blur-[100px]" />
@@ -111,9 +107,7 @@ export default async function AboutPage(props: {
             <h2 className="mt-6 text-2xl font-bold text-foreground">
               {founderName}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {founderRole}
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{founderRole}</p>
 
             {/* Icon socials */}
             <div className="mt-4 flex items-center gap-3">
@@ -152,7 +146,12 @@ export default async function AboutPage(props: {
           </p>
 
           <figure className="mt-12">
-            <span aria-hidden className="block text-7xl leading-none text-primary/25">&ldquo;</span>
+            <span
+              aria-hidden
+              className="block text-7xl leading-none text-primary/25"
+            >
+              &ldquo;
+            </span>
             <blockquote className="-mt-6 text-xl font-medium leading-relaxed text-foreground sm:text-2xl">
               {quote}
             </blockquote>
@@ -164,8 +163,6 @@ export default async function AboutPage(props: {
           </figure>
         </Reveal>
       </section>
-
-      <Footer />
     </>
   );
 }

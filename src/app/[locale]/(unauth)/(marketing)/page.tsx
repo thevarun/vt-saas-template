@@ -42,7 +42,7 @@ export async function generateMetadata(props: {
 /**
  * Primary marketing landing (`/`).
  *
- * Lives inside `(marketing-v2)` so the `AuthDialogProvider`, `MarketingNavbar`,
+ * Lives inside `(marketing)` so the `AuthDialogProvider`, `MarketingNavbar`,
  * and `MarketingFooter` all come from that route group's layout (the CTAs there
  * open the overlay auth dialog). The `AuthDialogAutoOpener` MUST live in the
  * page (not a layout) inside `<Suspense>` because it reads `useSearchParams()`,

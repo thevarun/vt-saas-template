@@ -37,7 +37,12 @@ type PseoTemplateProps = {
   locale: string;
 };
 
-export function PseoTemplate({ page, category, relatedPages, locale }: PseoTemplateProps) {
+export function PseoTemplate({
+  page,
+  category,
+  relatedPages,
+  locale,
+}: PseoTemplateProps) {
   // Absolute, locale-aware URL used for both the canonical JSON-LD id and social
   // sharing. This is an RSC, so `window` is never available — derive it from the
   // site URL rather than relying on a client-only `window.location.href`.
@@ -72,9 +77,14 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
         // eslint-disable-next-line react/dom-no-dangerously-set-innerhtml -- JSON-LD structured data; serializeJsonLd escapes `<` to prevent </script> breakout
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleSchema) }}
       />
-      <main className="container mx-auto max-w-3xl px-4 pb-20 pt-28 sm:pt-32">
+      <div className="container mx-auto max-w-3xl px-4 pb-20 pt-12">
         {/* Breadcrumb navigation */}
-        <Breadcrumbs category={category} pageTitle={page.title} locale={locale} rootLabel="Blog" />
+        <Breadcrumbs
+          category={category}
+          pageTitle={page.title}
+          locale={locale}
+          rootLabel="Blog"
+        />
 
         {/* Article header */}
         <header className="mb-10">
@@ -88,9 +98,17 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
             <time className="text-sm text-muted-foreground">
               Last updated
               {' '}
-              {new Date(page.lastModified).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+              {new Date(page.lastModified).toLocaleDateString(undefined, {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
             </time>
-            <ShareWidget url={canonicalUrl} title={page.title} description={page.description} />
+            <ShareWidget
+              url={canonicalUrl}
+              title={page.title}
+              description={page.description}
+            />
           </div>
         </header>
 
@@ -111,7 +129,9 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
         {/* Keywords as topic pills */}
         {page.keywords.length > 0 && (
           <div className="mt-12 border-t border-border pt-8">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Topics</h2>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Topics
+            </h2>
             <div className="flex flex-wrap gap-2">
               {page.keywords.map(keyword => (
                 <span
@@ -126,8 +146,12 @@ export function PseoTemplate({ page, category, relatedPages, locale }: PseoTempl
         )}
 
         {/* Related pages section */}
-        <RelatedPages pages={relatedPages} categorySlug={category.slug} locale={locale} />
-      </main>
+        <RelatedPages
+          pages={relatedPages}
+          categorySlug={category.slug}
+          locale={locale}
+        />
+      </div>
     </>
   );
 }
