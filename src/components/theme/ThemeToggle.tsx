@@ -1,6 +1,6 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
+import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
@@ -9,14 +9,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/utils/Helpers';
 
+import { isDarkTheme, THEME_GROUPS } from './theme-config';
+
 type ThemeToggleProps = {
   /** Show label text next to icon */
   showLabel?: boolean;
-  /** Compact mode - icon only button without dropdown */
+  /** Compact mode - icon-only trigger button */
   compact?: boolean;
   /** Extra classes for the trigger button (e.g. to override the ghost hover) */
   className?: string;
@@ -24,7 +28,9 @@ type ThemeToggleProps = {
 
 /**
  * Theme Toggle Component
- * Provides UI for switching between light, dark, and system themes
+ * Grouped dropdown theme picker: color swatches per theme family, sun/moon
+ * icons per light/dark variant, a check mark on the active theme, plus a
+ * System option. Light/dark selection behaves exactly as before.
  */
 export function ThemeToggle({ showLabel = false, compact = false, className }: ThemeToggleProps) {
   const { setTheme, theme, resolvedTheme } = useTheme();
@@ -45,68 +51,58 @@ export function ThemeToggle({ showLabel = false, compact = false, className }: T
     );
   }
 
-  // Compact mode: simple toggle between light/dark
-  if (compact) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-        aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
-        className={className}
-      >
-        {resolvedTheme === 'dark'
-          ? (
-              <Sun className="size-4" />
-            )
-          : (
-              <Moon className="size-4" />
-            )}
-      </Button>
-    );
-  }
+  const currentIsDark = resolvedTheme ? isDarkTheme(resolvedTheme) : false;
+  const TriggerIcon = currentIsDark ? Moon : Sun;
 
-  // Full mode: dropdown with all theme options
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
-          className={cn('w-full justify-start', className)}
-          aria-label="Toggle theme"
+          size={compact ? 'icon' : 'sm'}
+          className={cn(!compact && 'w-full justify-start', className)}
+          aria-label="Select theme"
         >
-          {resolvedTheme === 'dark'
-            ? (
-                <Moon className="size-4" />
-              )
-            : (
-                <Sun className="size-4" />
-              )}
-          {showLabel && <span className="ml-2">Theme</span>}
+          <TriggerIcon className="size-4" />
+          {showLabel && !compact && <span className="ml-2">Theme</span>}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => setTheme('light')}
-          className={theme === 'light' ? 'bg-accent' : ''}
-        >
-          <Sun className="mr-2 size-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme('dark')}
-          className={theme === 'dark' ? 'bg-accent' : ''}
-        >
-          <Moon className="mr-2 size-4" />
-          Dark
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-48">
+        {THEME_GROUPS.map((group, i) => (
+          <div key={group.group}>
+            {i > 0 && <DropdownMenuSeparator />}
+            <DropdownMenuLabel className="flex items-center gap-2">
+              <span
+                className="size-3 rounded-full border border-border/50"
+                style={{ backgroundColor: group.swatch }}
+              />
+              {group.group}
+            </DropdownMenuLabel>
+            {group.themes.map(t => (
+              <DropdownMenuItem
+                key={t.id}
+                onClick={() => setTheme(t.id)}
+                className="flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  {t.isDark ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
+                  {t.label}
+                </span>
+                {theme === t.id && <Check className="size-3.5 text-primary" />}
+              </DropdownMenuItem>
+            ))}
+          </div>
+        ))}
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => setTheme('system')}
-          className={theme === 'system' ? 'bg-accent' : ''}
+          className="flex items-center justify-between"
         >
-          <span className="mr-2 size-4 text-center">💻</span>
-          System
+          <span className="flex items-center gap-2">
+            <Monitor className="size-3.5" />
+            System
+          </span>
+          {theme === 'system' && <Check className="size-3.5 text-primary" />}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
