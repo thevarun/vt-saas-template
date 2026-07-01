@@ -301,6 +301,19 @@ export async function assignTier(
       };
     }
 
+    // 4b. An active promotion needs an expiry — else the lazy-expiry cron
+    // (which filters on isNotNull(expiresAt)) never reaps it and the user keeps
+    // promo access indefinitely. bulkAssignTier enforces the same guard.
+    if (newTierName === PROMO_TIER_NAME && status === 'active' && !expiresAt) {
+      return {
+        data: null,
+        error: {
+          message: 'An active promotion grant requires an expiry date.',
+          code: 'VALIDATION_ERROR',
+        },
+      };
+    }
+
     // 5. Update the subscription. Reset the rolling-period anchor when the tier
     // or status changes — gives the user a fresh quota window from now.
     const tierChanged = tierId !== oldRow.tierId || status !== oldRow.status;

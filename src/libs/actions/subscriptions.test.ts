@@ -250,6 +250,30 @@ describe('assignTier — eligibility guard', () => {
   });
 });
 
+describe('assignTier — promotion expiry guard', () => {
+  it('rejects an active promotion grant with no expiry (VALIDATION_ERROR)', async () => {
+    mockAuth();
+    mockAdminGetUser('user@test.com');
+    queueSelects(
+      [
+        {
+          tierId: TIER_FREE,
+          tierName: 'free',
+          status: 'active',
+          trialExpiresAt: null,
+        },
+      ],
+      [{ name: 'promotion' }],
+    );
+
+    const res = await assignTier(validAssignInput({ expiresAt: null }));
+
+    expect(res.error?.code).toBe('VALIDATION_ERROR');
+    expect(res.data).toBeNull();
+    expect(db.update).not.toHaveBeenCalled();
+  });
+});
+
 describe('assignTier — promotion email (fresh grant only)', () => {
   it('sends the promotion email on a fresh active promo grant', async () => {
     mockAuth();
