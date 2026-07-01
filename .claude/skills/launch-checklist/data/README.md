@@ -31,7 +31,7 @@ Production-readiness audit checks for VT SaaS Template projects.
 | `grep_config`               | `glob_pattern`      | `grep_config:sentry.*.config.ts`            | Search config files matching glob                                                     |
 | `glob`                      | `pattern`           | `glob:src/app/sitemap.ts`                   | Check if files matching glob exist (supports `AND`, `OR`)                             |
 | `read_file`                 | `path`              | `read_file:README.md`                       | Read file contents for analysis                                                       |
-| `command`                   | `cmd`               | `command:npm run build`                     | Execute shell command, check exit code                                                |
+| `command`                   | `cmd`               | `command:pnpm build`                        | Execute shell command, check exit code                                                |
 | `compare_locale_keys`       | (none)              | `compare_locale_keys`                       | Special: compare JSON keys across locale files                                        |
 | `analyze_build_output`      | (none)              | `analyze_build_output`                      | Special: analyze .next/ output for bundle sizes                                       |
 | `check_framework_detection` | (none)              | `check_framework_detection`                 | Special: verify Vercel framework auto-detection                                       |

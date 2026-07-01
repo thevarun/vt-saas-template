@@ -59,7 +59,7 @@ Set all variables from `.env.example` in Vercel dashboard:
 
 ### Build Settings
 - **Framework:** Next.js (auto-detected)
-- **Build Command:** `npm run build`
+- **Build Command:** `pnpm build`
 - **Output:** `.next/`
 - **Node.js:** 20.x
 
@@ -82,7 +82,7 @@ Configure in `vercel.json`:
 - PRs require CI to pass before merge
 - Run all checks locally before pushing:
 ```bash
-npm run lint && npm run check-types && npm test && npm run build
+pnpm lint && pnpm check-types && pnpm test && pnpm build
 ```
 
 ---
@@ -101,7 +101,7 @@ Configured in `next.config.mjs`:
 ## Monitoring
 
 - **Production:** Sentry (configure org/project in `next.config.mjs`)
-- **Development:** Sentry Spotlight (runs with `npm run dev`)
+- **Development:** Sentry Spotlight (runs with `pnpm dev`)
 - **Logging:** Pino + Logtail (optional)
 - **LLM Observability:** LangFuse (optional)
 - **Analytics:** PostHog (optional)

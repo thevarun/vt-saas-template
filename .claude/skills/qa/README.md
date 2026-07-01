@@ -34,7 +34,7 @@ Driving the sign-up/sign-in forms and clicking magic-links uses the template's P
 
 Boot whatever the runbook needs. The skill's pre-flight will tell you precisely what's missing if any of these aren't ready:
 
-* **Dev server** — `npm run dev`. The skill reads the actual port from the running process (default 3000).
+* **Dev server** — `pnpm dev`. The skill reads the actual port from the running process (default 3000).
 * **Supabase MCP** — connected to your dev project.
 
 ### 5. (Optional) Supabase base user for `auth-cookies`

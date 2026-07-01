@@ -28,8 +28,8 @@ Lint & Types ──┬──> Unit Tests
 ## Debugging Failures
 
 1. Download artifacts from GitHub Actions (test-results, playwright-report)
-2. View trace: `npx playwright show-trace path/to/trace.zip`
-3. Run locally with debug: `npm run test:e2e -- --debug`
+2. View trace: `pnpm exec playwright show-trace path/to/trace.zip`
+3. Run locally with debug: `pnpm test:e2e -- --debug`
 
 ## Required Secrets
 

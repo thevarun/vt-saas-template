@@ -84,7 +84,7 @@ Point to **dev** Supabase project (CI tests shouldn't touch prod):
 
 ```bash
 # 1. Run Drizzle migrations
-DATABASE_URL="<prod-pooler-url>" DB_SCHEMA={schema} npx drizzle-kit migrate
+DATABASE_URL="<prod-pooler-url>" DB_SCHEMA={schema} pnpm exec drizzle-kit migrate
 
 # 2. Seed via Supabase SQL Editor
 # File: supabase/seed.sql
@@ -95,8 +95,8 @@ DATABASE_URL="<prod-pooler-url>" DB_SCHEMA={schema} npx drizzle-kit migrate
 
 ### Ongoing Schema Changes
 Feature branch: edit schema files, apply to dev via Supabase MCP `apply_migration` (never `db:push`). Never commit migration files on feature branches.
-Main branch: run `npm run db:generate` to produce canonical migration, commit.
-Production: `npm run db:migrate:ci` via the Vercel build.
+Main branch: run `pnpm db:generate` to produce canonical migration, commit.
+Production: `pnpm db:migrate:ci` via the Vercel build.
 
 ---
 

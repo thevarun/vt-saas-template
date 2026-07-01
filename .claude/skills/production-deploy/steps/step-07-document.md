@@ -40,7 +40,7 @@ Add (or update) a short section `## Deployment` containing:
 - Production URL
 - Vercel project name
 - Supabase project ref
-- Critical commands (`npm run db:migrate`, how to run prod-setup.sql)
+- Critical commands (`pnpm db:migrate`, how to run prod-setup.sql)
 - Link to `docs/deployment-guide.md`
 - Any project-specific deploy hazards (e.g., "never db:push — apply dev schema via Supabase MCP; migrations get generated on main")
 

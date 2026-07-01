@@ -8,17 +8,17 @@ Common issues and solutions for the CI/CD pipeline.
 
 **Symptom:**
 ```
-Error: Command failed: npm run lint
+Error: Command failed: pnpm lint
 ✖ 10 problems (5 errors, 5 warnings)
 ```
 
 **Solution:**
 ```bash
 # Try auto-fix first
-npm run lint:fix
+pnpm lint:fix
 
 # Then verify
-npm run lint
+pnpm lint
 ```
 
 **Common Causes:**
@@ -63,15 +63,15 @@ purpose: Does things
 
 **Symptom:**
 ```
-Error: Command failed: npm run check-types
+Error: Command failed: pnpm check-types
 src/components/Example.tsx:10:5 - error TS2322: Type 'string' is not assignable to type 'number'
 ```
 
 **Solution:**
-1. Run locally: `npm run check-types`
+1. Run locally: `pnpm check-types`
 2. Fix type errors in your IDE
 3. Use proper types, don't use `any`
-4. Verify fix: `npm run check-types`
+4. Verify fix: `pnpm check-types`
 
 **Common Causes:**
 - Missing type definitions
@@ -95,7 +95,7 @@ error TS7016: Could not find a declaration file for module 'some-package'
 **Solution:**
 ```bash
 # Install types
-npm install --save-dev @types/some-package
+pnpm add -D @types/some-package
 
 # Or declare module in src/types/index.d.ts
 declare module 'some-package';
@@ -107,7 +107,7 @@ declare module 'some-package';
 
 **Symptom:**
 ```
-Error: Command failed: npm test
+Error: Command failed: pnpm test
 FAIL src/components/Example.test.tsx
   ✕ should render correctly (5 ms)
 ```
@@ -115,20 +115,20 @@ FAIL src/components/Example.test.tsx
 **Solution:**
 ```bash
 # Run tests locally
-npm test
+pnpm test
 
 # Run specific test file
-npm test src/components/Example.test.tsx
+pnpm test src/components/Example.test.tsx
 
 # Run in watch mode for debugging
-npm test -- --watch
+pnpm test -- --watch
 
 # See detailed output
-npm test -- --verbose
+pnpm test -- --verbose
 ```
 
 **Common Causes:**
-- Snapshot mismatches → Update with `npm test -- -u`
+- Snapshot mismatches → Update with `pnpm test -- -u`
 - Async timing issues → Use `waitFor` from Testing Library
 - Mock issues → Verify mocks are set up correctly
 - Environment differences → Check test setup files
@@ -144,19 +144,19 @@ Error: locator.click: Target closed
 **Solution:**
 ```bash
 # Run E2E locally
-npm run test:e2e
+pnpm test:e2e
 
 # Run specific test
-npx playwright test tests/e2e/Example.spec.ts
+pnpm exec playwright test tests/e2e/Example.spec.ts
 
 # Run with UI mode for debugging
-npx playwright test --ui
+pnpm exec playwright test --ui
 
 # Run headed (see browser)
-npx playwright test --headed
+pnpm exec playwright test --headed
 
 # Generate report
-npx playwright show-report
+pnpm exec playwright show-report
 ```
 
 **Common Causes:**
@@ -188,19 +188,19 @@ Tests pass on your machine but fail in GitHub Actions.
 
 **Symptom:**
 ```
-Error: Command failed: npm run build
+Error: Command failed: pnpm build
 Failed to compile.
 ```
 
 **Solution:**
 ```bash
 # Reproduce locally
-npm run build
+pnpm build
 
 # Check for errors
 # Fix issues in source files
 # Verify fix
-npm run build
+pnpm build
 ```
 
 **Common Causes:**
@@ -368,7 +368,7 @@ CI fails with outdated dependencies after updating package.json.
 
 **Solution:**
 - Wait for CI to complete (cache updates automatically)
-- Cache is keyed by `package-lock.json` hash
+- Cache is keyed by `pnpm-lock.yaml` hash
 - New hash = fresh install
 
 **Manual Cache Clear (if needed):**
@@ -512,10 +512,10 @@ gh run rerun <run-id> --failed
 Run checks locally:
 ```bash
 # Full check
-npm run lint && npm run check-types && npm test && npm run build
+pnpm lint && pnpm check-types && pnpm test && pnpm build
 
 # Quick check
-npm run lint && npm run check-types
+pnpm lint && pnpm check-types
 ```
 
 ### Before Creating PR

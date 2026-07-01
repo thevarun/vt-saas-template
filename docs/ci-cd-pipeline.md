@@ -23,10 +23,10 @@ Runs on every push to `main` and on all pull requests.
 - **Triggers:** All pushes and PRs
 - **Node Version:** From `.nvmrc` (v20)
 - **Checks:**
-  - ESLint validation (`npm run lint`)
-  - TypeScript type checking (`npm run check-types`)
+  - ESLint validation (`pnpm lint`)
+  - TypeScript type checking (`pnpm check-types`)
   - Commitlint validation (PR only)
-- **Caching:** npm dependencies via `actions/setup-node@v4`
+- **Caching:** pnpm dependencies via `actions/setup-node@v4`
 
 #### Job 2: Unit Tests (10 min timeout)
 - **Triggers:** After lint job passes
@@ -38,7 +38,7 @@ Runs on every push to `main` and on all pull requests.
   - `DIFY_API_URL`
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Caching:** npm dependencies
+- **Caching:** pnpm dependencies
 
 #### Job 3: Build & E2E (20 min timeout)
 - **Triggers:** After lint job passes (runs parallel with unit tests)
@@ -51,7 +51,7 @@ Runs on every push to `main` and on all pull requests.
   - `SUPABASE_SERVICE_ROLE_KEY` (for test account cleanup)
   - `SENTRY_AUTH_TOKEN` (optional)
 - **Caching:**
-  - npm dependencies
+  - pnpm dependencies
   - Playwright browsers (`~/.cache/ms-playwright`)
 - **Artifacts:** Test results uploaded on failure
 
@@ -66,7 +66,7 @@ Runs automatically after successful CI completion on `main` branch.
   - Determines version bump based on commit types
   - Generates release notes grouped by commit type (Features, Bug Fixes, etc.)
   - Updates `docs/CHANGELOG.md` with new release notes
-  - Updates version in `package.json` and `package-lock.json`
+  - Updates version in `package.json` and `pnpm-lock.yaml`
   - Commits changes back to main with `[skip ci]` flag
   - Creates GitHub Release with generated notes
   - Does NOT publish to npm (`npmPublish: false`)
@@ -123,7 +123,7 @@ semantic-release uses Conventional Commits to determine version bumps:
 
 **Dry-run (local):**
 ```bash
-npx semantic-release --dry-run --no-ci
+pnpm exec semantic-release --dry-run --no-ci
 ```
 
 This command:
@@ -178,9 +178,9 @@ Vercel deployment is handled by the **Vercel GitHub App** (not GitHub Actions).
 
 **Build Settings:**
 - Framework: Next.js (auto-detected)
-- Build Command: `npm run build`
+- Build Command: `pnpm build`
 - Output Directory: `.next`
-- Install Command: `npm ci`
+- Install Command: `pnpm install --frozen-lockfile`
 - Node Version: v20 (from `.nvmrc`)
 
 **Environment Variables in Vercel:**
@@ -197,14 +197,14 @@ Set separately for Production, Preview, and Development:
 
 ### Current Optimizations
 
-1. **npm Caching:**
+1. **pnpm Caching:**
    - Handled by `actions/setup-node@v4`
-   - Cache key based on `package-lock.json`
-   - Uses `npm ci --prefer-offline --no-audit`
+   - Cache key based on `pnpm-lock.yaml`
+   - Uses `pnpm install --frozen-lockfile --prefer-offline --no-audit`
 
 2. **Playwright Browser Caching:**
    - Cache path: `~/.cache/ms-playwright`
-   - Cache key: `playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}`
+   - Cache key: `playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}`
    - Only installs browsers on cache miss
 
 3. **Parallel Job Execution:**
@@ -232,22 +232,22 @@ Run the same checks that CI runs:
 
 ```bash
 # Lint check
-npm run lint
+pnpm lint
 
 # Type check
-npm run check-types
+pnpm check-types
 
 # Unit tests
-npm test
+pnpm test
 
 # Unit tests with coverage
-npm test -- --coverage
+pnpm test -- --coverage
 
 # Production build
-npm run build
+pnpm build
 
 # E2E tests (requires build first)
-npm run test:e2e
+pnpm test:e2e
 ```
 
 ## Common Workflows
@@ -266,25 +266,25 @@ npm run test:e2e
 
 1. **Lint Failures:**
    ```bash
-   npm run lint:fix  # Auto-fix issues
-   npm run lint      # Verify
+   pnpm lint:fix  # Auto-fix issues
+   pnpm lint      # Verify
    ```
 
 2. **Type Failures:**
    ```bash
-   npm run check-types  # See errors
+   pnpm check-types  # See errors
    # Fix type issues manually
    ```
 
 3. **Test Failures:**
    ```bash
-   npm test              # Run locally
-   npm test -- --watch   # Debug specific test
+   pnpm test              # Run locally
+   pnpm test -- --watch   # Debug specific test
    ```
 
 4. **Build Failures:**
    ```bash
-   npm run build         # Reproduce locally
+   pnpm build         # Reproduce locally
    # Check build logs for errors
    ```
 
@@ -402,8 +402,8 @@ https://vercel.com/USER/PROJECT
 
 When updating dependencies that affect CI:
 
-1. Update `package.json` and run `npm install`
-2. Test locally: `npm run lint && npm run check-types && npm test && npm run build`
+1. Update `package.json` and run `pnpm install`
+2. Test locally: `pnpm lint && pnpm check-types && pnpm test && pnpm build`
 3. Push to feature branch and verify CI passes
 4. Merge if all green
 

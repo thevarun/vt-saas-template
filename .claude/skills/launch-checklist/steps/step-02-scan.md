@@ -167,7 +167,7 @@ Some checks require special handling:
 
 **Check 6 — App builds successfully:**
 
-- Run `npm run build` using the Bash tool
+- Run `pnpm build` using the Bash tool
 - PASS if exit code 0, FAIL otherwise
 - Capture any error output as details
 - NOTE: This is a blocking check — it takes time. Run via sub-agent.

@@ -39,7 +39,7 @@ Experience log from production deploys of vt-saas-template forks. Each entry is 
 
 ### TypeScript 6 `baseUrl` deprecation breaks Vercel build while local passes
 - **First seen**: a fork's first deploy
-- **Symptom**: `vercel build` fails with TS6504 "baseUrl is deprecated". Local `npm run build` passes fine.
+- **Symptom**: `vercel build` fails with TS6504 "baseUrl is deprecated". Local `pnpm build` passes fine.
 - **Cause**: Vercel's build uses a newer TS version than the locally pinned one; the deprecation is now a hard error.
 - **Fix**: In `tsconfig.json`, add `"ignoreDeprecations": "6.0"`. Also pin the TS version in `package.json` to reduce future drift.
 - **Upstream**: Track TS version in `package.json` alongside Vercel's current default (check context7 `/reference/nextjs/typescript`).
@@ -47,7 +47,7 @@ Experience log from production deploys of vt-saas-template forks. Each entry is 
 ### Module resolution failures on first Vercel build
 - **First seen**: a fork's first deploy
 - **Symptom**: First Vercel build fails with "Cannot find module @/libs/..." or similar.
-- **Fix**: Confirm `tsconfig.json` paths and `next.config.*` are committed. Run `npm run build` locally first — treat a green local build as the gate before creating the Vercel project.
+- **Fix**: Confirm `tsconfig.json` paths and `next.config.*` are committed. Run `pnpm build` locally first — treat a green local build as the gate before creating the Vercel project.
 
 ---
 

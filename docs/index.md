@@ -100,10 +100,10 @@
 
 ### For New Developers
 1. Read [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md)
-2. Install Node.js 20.x+, run `npm install`
+2. Install Node.js 20.x+, run `pnpm install`
 3. Copy `.env.example` to `.env.local` and configure
-4. Start with `npm run dev`
-5. Run tests: `npm test` and `npm run test:e2e`
+4. Start with `pnpm dev`
+5. Run tests: `pnpm test` and `pnpm test:e2e`
 
 ### For AI-Assisted Development
 - Primary: [CLAUDE.md](../CLAUDE.md)

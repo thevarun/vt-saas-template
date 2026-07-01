@@ -30,11 +30,11 @@ This guide provides step-by-step instructions for removing the Dify chat impleme
 
 1. **Back up your data**: If you have Dify conversations you want to keep, export them from the database
 2. **Commit pending changes**: Ensure your git working directory is clean
-3. **Close development servers**: Stop any running `npm run dev` processes
+3. **Close development servers**: Stop any running `pnpm dev` processes
 
 **Prerequisites:**
 - Git repository with committed changes
-- Node.js and npm installed
+- Node.js and pnpm installed (pnpm via `corepack enable`)
 - Database access for schema modifications
 
 ---
@@ -165,7 +165,7 @@ export const threads = vtSaasSchema.table(
 
 **Generate and apply migration:**
 ```bash
-npm run db:generate
+pnpm db:generate
 ```
 
 This creates a migration file to drop the `vt_saas.threads` table. The migration will auto-apply on next database interaction.
@@ -188,7 +188,7 @@ All current dependencies are either:
 - Shared across the template (Next.js, React, Drizzle)
 - Used by Vercel AI SDK implementation
 
-**No `npm uninstall` commands needed.**
+**No `pnpm remove` commands needed.**
 
 ---
 
@@ -198,16 +198,16 @@ Run these commands to ensure clean removal:
 
 ```bash
 # Type checking
-npm run check-types
+pnpm check-types
 
 # Linting
-npm run lint
+pnpm lint
 
 # Build verification
-npm run build
+pnpm build
 
 # Run development server
-npm run dev
+pnpm dev
 ```
 
 **Manual verification:**
@@ -226,10 +226,10 @@ npm run dev
 - [ ] Navigation component cleaned (optional - auto-hides when env vars missing)
 - [ ] Environment variables removed from `.env.example` and `.env.local`
 - [ ] Database schema updated (threads table removed)
-- [ ] Migration generated with `npm run db:generate`
-- [ ] `npm run check-types` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run build` completes successfully
+- [ ] Migration generated with `pnpm db:generate`
+- [ ] `pnpm check-types` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm build` completes successfully
 - [ ] Development server runs without errors
 - [ ] `/chat/dify` returns 404 or redirects
 - [ ] `/chat/vercel` works correctly
@@ -282,8 +282,8 @@ rm -rf .next/
 rm -rf node_modules/.cache/
 
 # Reinstall and rebuild
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
 ---

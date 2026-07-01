@@ -32,11 +32,11 @@ This guide provides step-by-step instructions for removing the Vercel AI SDK cha
 
 1. **Back up your data**: If you have Vercel conversations, messages, or memories you want to keep, export them from the database
 2. **Commit pending changes**: Ensure your git working directory is clean
-3. **Close development servers**: Stop any running `npm run dev` processes
+3. **Close development servers**: Stop any running `pnpm dev` processes
 
 **Prerequisites:**
 - Git repository with committed changes
-- Node.js and npm installed
+- Node.js and pnpm installed (pnpm via `corepack enable`)
 - Database access for schema modifications
 
 ---
@@ -195,7 +195,7 @@ export const memoryExtractionJobs = vtSaasSchema.table(/* ... */);
 
 **Generate and apply migration:**
 ```bash
-npm run db:generate
+pnpm db:generate
 ```
 
 This creates a migration to drop these four tables. The migration will auto-apply on next database interaction.
@@ -219,13 +219,13 @@ Uninstall Vercel AI SDK, LangFuse, and Mem0 packages:
 
 ```bash
 # Remove Vercel AI SDK packages
-npm uninstall ai @ai-sdk/openai
+pnpm remove ai @ai-sdk/openai
 
 # Remove LangFuse packages
-npm uninstall langfuse langfuse-vercel
+pnpm remove langfuse langfuse-vercel
 
 # Remove Mem0 package
-npm uninstall mem0ai
+pnpm remove mem0ai
 
 # Clean up unused dependencies
 npm prune
@@ -241,7 +241,7 @@ npm dedupe
 
 **Note:** If you installed `@ai-sdk/anthropic` or other providers, remove those too:
 ```bash
-npm uninstall @ai-sdk/anthropic
+pnpm remove @ai-sdk/anthropic
 ```
 
 **Packages to keep** (used by other parts of the template):
@@ -252,7 +252,7 @@ npm uninstall @ai-sdk/anthropic
 
 If you're certain these Assistant UI packages are only used for Vercel chat:
 ```bash
-npm uninstall @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
+pnpm remove @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
 ```
 
 ---
@@ -276,19 +276,19 @@ Run these commands to ensure clean removal:
 
 ```bash
 # Type checking
-npm run check-types
+pnpm check-types
 
 # Linting
-npm run lint
+pnpm lint
 
 # Build verification
-npm run build
+pnpm build
 
 # Run tests (if available)
-npm test
+pnpm test
 
 # Run development server
-npm run dev
+pnpm dev
 ```
 
 **Manual verification:**
@@ -310,14 +310,14 @@ npm run dev
 - [ ] Navigation component cleaned (optional - auto-hides when env vars missing)
 - [ ] Environment variables removed from `.env.example` and `.env.local`
 - [ ] Database schema updated (4 tables removed)
-- [ ] Migration generated with `npm run db:generate`
+- [ ] Migration generated with `pnpm db:generate`
 - [ ] Vercel AI SDK packages uninstalled
 - [ ] LangFuse packages uninstalled
 - [ ] Mem0 packages uninstalled
 - [ ] `npm prune` executed
-- [ ] `npm run check-types` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run build` completes successfully
+- [ ] `pnpm check-types` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm build` completes successfully
 - [ ] Development server runs without errors
 - [ ] `/chat/vercel` returns 404 or redirects
 - [ ] `/chat/dify` works correctly
@@ -370,15 +370,15 @@ grep -r "from '@/libs/vercel-ai" src/
 **Solution:**
 ```bash
 # If Assistant UI was Vercel-only, remove it
-npm uninstall @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
+pnpm remove @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
 
 # Clear caches
 rm -rf .next/
 rm -rf node_modules/.cache/
 
 # Reinstall
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
 ### Leftover API routes cause 500 errors
@@ -388,7 +388,7 @@ npm run build
 **Solution:**
 - Verify you deleted `src/app/api/chat/vercel/` completely
 - Check for symlinks or hidden files
-- Clear build: `rm -rf .next/ && npm run build`
+- Clear build: `rm -rf .next/ && pnpm build`
 
 ---
 

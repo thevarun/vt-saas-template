@@ -3,4 +3,4 @@
 # `git rev-parse --show-toplevel` returns the active worktree's working tree,
 # so this cd is correct for both the main repo and any linked worktree —
 # avoids tsc resolving types from two `node_modules` trees at once.
-cd "$(git rev-parse --show-toplevel)" && npx --no lint-staged --concurrent false
+cd "$(git rev-parse --show-toplevel)" && pnpm exec lint-staged --concurrent false

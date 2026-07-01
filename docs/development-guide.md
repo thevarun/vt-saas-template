@@ -18,15 +18,15 @@
 ```bash
 # Clone and install
 git clone <repo-url>
-npm install
+pnpm install
 
 # Configure environment
 cp .env.example .env.local
 # Edit .env.local with your keys (see Environment Variables below)
 
 # Start development
-npm run dev          # Next.js + Sentry Spotlight
-npm run dev:next     # Next.js only (faster)
+pnpm dev          # Next.js + Sentry Spotlight
+pnpm dev:next     # Next.js only (faster)
 ```
 
 The app starts at `http://localhost:3000`.
@@ -70,21 +70,21 @@ NEXT_PUBLIC_SITE_URL=            # SEO (auto on Vercel)
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Start dev server + Sentry Spotlight |
-| `npm run dev:next` | Start Next.js only |
-| `npm run build` | Production build |
-| `npm start` | Start production server |
-| `npm run lint` | ESLint check |
-| `npm run lint:fix` | ESLint auto-fix |
-| `npm run check-types` | TypeScript type check |
-| `npm test` | Run unit tests (Vitest) |
-| `npm run test:e2e` | Run E2E tests (Playwright) |
-| `npm run commit` | Interactive conventional commit |
-| `npm run db:generate` | Generate migration from schema |
-| `npm run db:migrate` | Apply migrations |
-| `npm run db:studio` | Open Drizzle Studio |
-| `npm run email:dev` | Email template preview (port 3001) |
-| `npm run storybook` | Storybook dev server (port 6006) |
+| `pnpm dev` | Start dev server + Sentry Spotlight |
+| `pnpm dev:next` | Start Next.js only |
+| `pnpm build` | Production build |
+| `pnpm start` | Start production server |
+| `pnpm lint` | ESLint check |
+| `pnpm lint:fix` | ESLint auto-fix |
+| `pnpm check-types` | TypeScript type check |
+| `pnpm test` | Run unit tests (Vitest) |
+| `pnpm test:e2e` | Run E2E tests (Playwright) |
+| `pnpm commit` | Interactive conventional commit |
+| `pnpm db:generate` | Generate migration from schema |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm email:dev` | Email template preview (port 3001) |
+| `pnpm storybook` | Storybook dev server (port 6006) |
 
 ---
 
@@ -95,16 +95,16 @@ No PostgreSQL needed locally. PGlite runs in-memory with auto-migration.
 
 ### Schema Changes
 1. Edit `src/models/Schema.ts`
-2. Run `npm run db:generate`
+2. Run `pnpm db:generate`
 3. Migration auto-applies on next DB interaction
 
 ### Production Database
 ```bash
 # Apply migrations manually
-npm run db:migrate
+pnpm db:migrate
 
 # Visual database browser
-npm run db:studio
+pnpm db:studio
 ```
 
 ---
@@ -113,9 +113,9 @@ npm run db:studio
 
 ### Unit Tests (Vitest)
 ```bash
-npm test                    # Run all
-npm test -- --watch         # Watch mode
-npm test -- --coverage      # With coverage
+pnpm test                    # Run all
+pnpm test -- --watch         # Watch mode
+pnpm test -- --coverage      # With coverage
 ```
 - Co-located with source: `Component.test.tsx`
 - Environment: jsdom for components, node for utilities
@@ -123,8 +123,8 @@ npm test -- --coverage      # With coverage
 
 ### E2E Tests (Playwright)
 ```bash
-npm run test:e2e            # Run all
-npx playwright test --ui    # Interactive UI
+pnpm test:e2e            # Run all
+pnpm exec playwright test --ui    # Interactive UI
 ```
 - Location: `tests/` directory
 - Test credentials: `test@test.com` / `password`
@@ -171,5 +171,5 @@ Under Next 16 + Turbopack, always use static `import` for local modules. Never r
 
 ### Adding Email Templates
 1. Create in `src/libs/email/templates/`
-2. Preview with `npm run email:dev`
+2. Preview with `pnpm email:dev`
 3. Send with `sendEmail()` or `sendEmailAsync()`

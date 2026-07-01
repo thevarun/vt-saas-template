@@ -14,7 +14,7 @@ This document covers the transactional email system built with [Resend](https://
 Emails are logged to the console in development - no configuration needed:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Console output shows email details:
@@ -27,14 +27,14 @@ From:     VT SaaS Template <noreply@example.com>
 To:       user@example.com
 Subject:  Welcome to VT SaaS Template!
 ------------------------------------------------------------
-CONTENT: React Email template (render with npm run email:dev)
+CONTENT: React Email template (render with pnpm email:dev)
 ============================================================
 ```
 
 ### Preview Templates
 
 ```bash
-npm run email:dev
+pnpm email:dev
 ```
 
 Opens React Email dev server with hot-reload for template development.
@@ -110,7 +110,7 @@ curl -X POST http://localhost:3000/api/email/welcome \
 
 ### Admin test-send catalog (`/api/admin/email/test`)
 
-`POST /api/admin/email/test` (admin-only, via `withAdminAuth`) sends any template through the real pipeline using its `PreviewProps`, so a real inbox renders identically to `npm run email:dev`. The admin UI (`EmailTestForm`) exposes the same catalog as a dropdown.
+`POST /api/admin/email/test` (admin-only, via `withAdminAuth`) sends any template through the real pipeline using its `PreviewProps`, so a real inbox renders identically to `pnpm email:dev`. The admin UI (`EmailTestForm`) exposes the same catalog as a dropdown.
 
 | `template` value      | Sender              | Helper              |
 | --------------------- | ------------------- | ------------------- |
@@ -127,8 +127,8 @@ curl -X POST http://localhost:3000/api/email/welcome \
 Supabase Auth (not this app) sends the confirmation / magic-link / password-reset / email-change / reauthentication / invite emails. To make them on-brand, this template ships React Email templates in `src/libs/email/templates/` and a render script that turns them into static HTML for the Supabase Dashboard.
 
 ```bash
-npm run email:render
-# or: npx tsx scripts/render-supabase-templates.ts
+pnpm email:render
+# or: pnpm exec tsx scripts/render-supabase-templates.ts
 ```
 
 This writes `email-templates/*.html` (git-ignored). Paste each into Supabase Dashboard → Authentication → Email Templates. Supabase placeholders (`{{ .ConfirmationURL }}`, `{{ .TokenHash }}`, `{{ .Token }}`, `{{ .NewEmail }}`) pass through React Email unescaped and are substituted by Supabase at send time.
@@ -150,7 +150,7 @@ Branded templates compose via `src/libs/email/templates/EmailLayout.tsx`, which 
 
 Every template exports `PreviewProps` (typed via `satisfies`). This powers two things at once:
 
-1. `npm run email:dev` renders realistic data without crashing on `undefined`.
+1. `pnpm email:dev` renders realistic data without crashing on `undefined`.
 2. The admin test-send route spreads `PreviewProps` into the template, so test inboxes match the preview.
 
 When adding a template, export `PreviewProps` and use the `EmailLayout` primitives.
@@ -324,7 +324,7 @@ export async function sendReceiptEmail(
 export { sendReceiptEmail } from './sendReceiptEmail';
 ```
 
-4. Preview with `npm run email:dev`
+4. Preview with `pnpm email:dev`
 
 ## Logging
 
@@ -367,6 +367,6 @@ Emails are logged with structured JSON:
 
 ### Template Not Rendering
 
-- Run `npm run email:dev` to debug
+- Run `pnpm email:dev` to debug
 - Check for missing props
 - Verify imports from `@react-email/components`

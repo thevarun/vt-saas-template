@@ -47,10 +47,10 @@ _(populated if user chose `[P] Proceed as-is` in step-01-plan#1b — risk review
 ## Phase 2 — Readiness
 
 ### Mechanical
-- [ ] `npm run build` passes locally
-- [ ] `npm run check-types` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run test` passes
+- [ ] `pnpm build` passes locally
+- [ ] `pnpm check-types` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm test` passes
 - [ ] Git state clean
 - [ ] Open PRs triaged
 
