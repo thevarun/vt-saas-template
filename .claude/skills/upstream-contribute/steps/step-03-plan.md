@@ -1,11 +1,11 @@
 ---
-name: 'step-03-plan'
-description: 'Turn tagged candidates into a dependency-ordered wave schedule; write the plan sidecar in the product'
-workflow_path: '${CLAUDE_SKILL_DIR}'
-thisStepFile: '{workflow_path}/steps/step-03-plan.md'
-nextStepFile: '{workflow_path}/steps/step-04-produce.md'
-workflowFile: '{workflow_path}/SKILL.md'
-planTemplate: '{workflow_path}/templates/contribution-plan.template.md'
+name: "step-03-plan"
+description: "Turn tagged candidates into a dependency-ordered wave schedule; write the plan sidecar in the product"
+workflow_path: "${CLAUDE_SKILL_DIR}"
+thisStepFile: "{workflow_path}/steps/step-03-plan.md"
+nextStepFile: "{workflow_path}/steps/step-04-produce.md"
+workflowFile: "{workflow_path}/SKILL.md"
+planTemplate: "{workflow_path}/templates/contribution-plan.template.md"
 ---
 
 # Phase 03 — Plan: candidates → wave schedule
@@ -18,9 +18,9 @@ A wave is the unit the engine runs (step 04). Get the waves right here and produ
 
 ## Constraints
 
-- **The plan sidecar lives in the PRODUCT** (e.g. `_bmad-output/`), built from `{planTemplate}`. Never write it into the template engine — the template stays a scaffold, and this artifact is product state.
+- **The plan sidecar lives where you RUN the skill — assume the template** (the common case: this is the template's own tooling, run from the template against a downstream `SOURCE`). Put it in a **gitignored scratch area** (e.g. `_bmad-output/` or `.claude/tmp/` — whichever the template already gitignores) so it never pollutes the fork-synced tree. Only when a run is genuinely driven _from_ the downstream product does the sidecar live there instead. Built from `{planTemplate}`; it is transient run-state, never committed as template code.
 - **The migration journal is a serial spine, not a parallel field.** `migrations/meta/_journal.json` is an ordered, linear chain — two PRs that each append a migration cannot coexist in one wave. Cap **≤1 migration-bearer per wave**; chain the rest across waves. Most non-migration PRs hang off this spine as parallel leaves.
-- **Across waves is sequential by construction:** the next wave is produced *off the updated `main`* (deps + prior migrations already merged), so produce sees zero reconciliation. Within a wave is parallel. Don't serialize leaves that don't collide.
+- **Across waves is sequential by construction:** the next wave is produced _off the updated `main`_ (deps + prior migrations already merged), so produce sees zero reconciliation. Within a wave is parallel. Don't serialize leaves that don't collide.
 - **Engine batch cap ~3–4 per wave.** Bigger batches dilute the byte-gate and risk a half-run you can't resume (HARD RULE 2). Prefer more, smaller waves.
 - Planning only — no branches, no PRs, no engine. Skip anything tagged `skip`; it never enters a wave (but record the deferral so step 07 files a tracking issue).
 
@@ -28,14 +28,14 @@ A wave is the unit the engine runs (step 04). Get the waves right here and produ
 
 ### 1. Build the dependency DAG (what needs what ON MAIN first)
 
-For each candidate, ask: does this build on a seam another candidate introduces? An opt-in feature that imports a config helper, a route that needs a middleware wrapper, a second migration that assumes the first table — these are edges. The dependent can't be produced until its dependency is *merged to main*. Resolve cycles by splitting or merging candidates; a real cycle is a planning bug.
+For each candidate, ask: does this build on a seam another candidate introduces? An opt-in feature that imports a config helper, a route that needs a middleware wrapper, a second migration that assumes the first table — these are edges. The dependent can't be produced until its dependency is _merged to main_. Resolve cycles by splitting or merging candidates; a real cycle is a planning bug.
 
 ### 2. Build the collision graph over shared hot files
 
 Two PRs collide when they both touch a file `main` will see at merge time. Classify each shared file — the treatment differs:
 
 - **SERIALIZING — migration journal** (`migrations/meta/_journal.json` + snapshots): the linear chain. ≤1 migration-bearer per wave; the rest become a dependency chain across waves.
-- **SERIALIZING — overlapping infra:** two candidates building the *same* table / the *same* subsystem seam. Dependency-order them; never parallel, even if files look additive — the second must be produced against the first.
+- **SERIALIZING — overlapping infra:** two candidates building the _same_ table / the _same_ subsystem seam. Dependency-order them; never parallel, even if files look additive — the second must be produced against the first.
 - **ADDITIVE — cheap union** (schema barrel/`index.ts`, prod-setup, locale JSON, `package.json`): append-only edits that union trivially. Parallel within a wave is fine; reconcile the union at merge.
 
 When unsure whether two PRs are additive or overlapping, treat as overlapping (serialize) — fail-closed, matching the engine's selector posture.
@@ -53,7 +53,7 @@ Pack waves greedily against four gates. A candidate is eligible for wave N when:
 3. wave N holds **≤1 migration-bearer**, and
 4. wave N is **within the batch cap (~3–4)**.
 
-Within a wave: parallel. Across waves: sequential, each produced off the updated main. The result is a serial migration chain with parallel leaves fanning off each wave. State for each candidate: tier, deps, the hot files it touches, and which collision class triggered its placement — so the user can see *why* it landed where it did.
+Within a wave: parallel. Across waves: sequential, each produced off the updated main. The result is a serial migration chain with parallel leaves fanning off each wave. State for each candidate: tier, deps, the hot files it touches, and which collision class triggered its placement — so the user can see _why_ it landed where it did.
 
 ### 5. Write the sidecar, present, gate
 
