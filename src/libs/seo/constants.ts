@@ -5,7 +5,9 @@
  * Centralized for consistency across the application.
  */
 
-export const SITE_NAME = 'VT SaaS Template';
+import { SITE_CONFIG } from '@/config/site-config';
+
+export const SITE_NAME = SITE_CONFIG.brand.name;
 
 export const DEFAULT_OG_IMAGE = '/og-image.png';
 
