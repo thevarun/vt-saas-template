@@ -113,7 +113,7 @@ Layer boundary and rationale: [docs/testing-strategy.md](docs/testing-strategy.m
 
 - Unit (Vitest): co-located; `node` is the default env, `jsdom` for `.tsx` (opt a `.ts` in with a `// @vitest-environment jsdom` pragma). Hermetic — no shared DB (in-memory PGlite).
 - E2E (Playwright): `tests/`, `*.spec.ts` / `*.e2e.ts`; auth/middleware/persistence/SEO only. Prefer the `request` fixture (no browser) when there's no DOM — see `tests/seo.spec.ts`.
-- Storybook: stories for shared `components/ui/*` primitives; the build runs in CI as a smoke test.
+- Storybook: stories for shared `components/ui/*` primitives run as Vitest browser tests via `npm run test:stories` (Storybook Vitest addon); also gated in CI.
 - After a frontend change, do a quick visual check (Playwright/Chrome MCP) and save screenshots to `_bmad-output/implementation-artifacts/screenshots`.
 
 ## Commits & CI

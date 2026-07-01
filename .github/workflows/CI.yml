@@ -273,16 +273,12 @@ jobs:
           retention-days: 14
 
   # ============================================
-  # Storybook — build the shared UI catalog as a smoke test
-  # A successful `storybook build` compiles every story, so a broken/renamed
-  # component import or malformed story fails CI. Needs no secrets or browser, so
-  # unlike E2E it also runs on Dependabot PRs to catch dependency-driven breakage.
-  # Skipped only for docs-only changes.
-  #
-  # NOTE: the browser-level runner (`test-storybook:ci`) is intentionally NOT used
-  # here — @storybook/test-runner@0.24.x pulls in `nyc`, which crashes on Node 22
-  # (ERR_INVALID_ARG_TYPE). Revisit once the runner is compatible; the build smoke
-  # is the meaningful gate for a catalog whose stories have no play functions.
+  # Storybook — run the shared UI catalog as Vitest browser tests
+  # `test:stories` renders every *.stories.tsx in headless Chromium via the
+  # Storybook Vitest addon, so a broken import, a render error, or a failing play
+  # function fails CI. Needs no secrets (env placeholders are set in
+  # vitest.config.mts), so unlike E2E it also runs on Dependabot PRs to catch
+  # dependency-driven breakage. Skipped only for docs-only changes.
   # ============================================
   storybook:
     name: Storybook
@@ -305,8 +301,23 @@ jobs:
             .next
           key: build-${{ github.sha }}
 
-      - name: Build Storybook
-        run: npm run storybook:build
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run story tests
+        run: npm run test:stories
 
   # ============================================
   # CI Gate — aggregate status check (additive)

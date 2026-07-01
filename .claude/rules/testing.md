@@ -32,4 +32,4 @@ An E2E test is justified **only** if it exercises one of: auth/session flow, mid
 
 - **Tests must not touch a shared database.** `vitest.config.mts` blanks `DATABASE_URL` so `src/libs/DB.ts` uses in-memory PGlite; never re-introduce a real `DATABASE_URL` into the test env or migrate against a live Postgres.
 - **`node` is the default Vitest environment.** A `.ts` test that needs the DOM must opt in with a top-of-file `// @vitest-environment jsdom` pragma (the pragma overrides the project env).
-- **Stories smoke-test the UI catalog.** Every shared primitive with a `*.stories.tsx` is compiled by the Storybook CI build; a broken import fails CI. Keep stories rendering-only unless a play function earns its keep.
+- **Stories are tests.** Every `*.stories.tsx` runs as a Vitest browser test via `npm run test:stories` (Storybook Vitest addon, headless Chromium) — a broken import, render error, or failing play function fails CI. It's a separate opt-in project (`VITEST_STORYBOOK=1`); keep it out of the default `npm test` so that run stays browser-free. Add a story when you add a shared `components/ui/*` primitive.
