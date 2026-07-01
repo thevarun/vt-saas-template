@@ -1,6 +1,10 @@
 import type { MetadataRoute } from 'next';
 
-import { getAllCategoryParams, getAllPageParams, getPageBySlug } from '@/libs/pseo/data';
+import {
+  getAllCategoryParams,
+  getAllPageParams,
+  getPageBySlug,
+} from '@/libs/pseo/data';
 import { getSiteUrl } from '@/libs/seo/config';
 import { AllLocales, AppConfig } from '@/utils/AppConfig';
 
@@ -13,6 +17,7 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
  * - /blog (pSEO index)
  * - /blog/[category] (pSEO category pages)
  * - /blog/[category]/[slug] (pSEO article pages)
+ * - /terms, /privacy (legal scaffolds — default locale only)
  * - Future: /pricing, /blog/[slug], /docs/[...path]
  *
  * PRIVATE ROUTES (excluded from sitemap, disallowed in robots.txt):
@@ -48,7 +53,8 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
 function generateLocalizedUrls(
   path: string,
   options: {
-    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    changeFrequency?:
+      'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
     priority?: number;
   } = {},
 ): MetadataRoute.Sitemap {
@@ -92,6 +98,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
   }
 
+  // Legal scaffolds — default-locale only. The pages canonicalize to the
+  // unprefixed URL and legal copy isn't translated, so we don't emit hi/bn
+  // variants to avoid indexing near-duplicate localized URLs.
+  const siteUrl = getSiteUrl();
+  for (const path of ['/terms', '/privacy']) {
+    entries.push({
+      url: `${siteUrl}${path}`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    });
+  }
+
   // Articles index and category pages (pSEO)
   const categoryParams = await getAllCategoryParams();
   for (const param of categoryParams) {
@@ -113,7 +132,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // pSEO article pages
   const pseoParams = await getAllPageParams();
-  const siteUrl = getSiteUrl();
 
   for (const param of pseoParams) {
     const page = await getPageBySlug(param.category, param.slug);
