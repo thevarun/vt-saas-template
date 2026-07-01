@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +9,9 @@ import { UserIdentifier } from '../UserIdentifier';
 
 vi.mock('@/libs/analytics');
 vi.mock('@/libs/supabase/client');
+vi.mock('@sentry/nextjs', () => ({
+  setUser: vi.fn(),
+}));
 
 describe('UserIdentifier', () => {
   const mockUser = {
@@ -25,7 +29,9 @@ describe('UserIdentifier', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(supabaseClient, 'createClient').mockReturnValue(mockSupabase as any);
+    vi.spyOn(supabaseClient, 'createClient').mockReturnValue(
+      mockSupabase as any,
+    );
   });
 
   it('identifies user when user exists on mount', async () => {
@@ -48,6 +54,8 @@ describe('UserIdentifier', () => {
         createdAt: new Date(mockUser.created_at),
       });
     });
+
+    expect(Sentry.setUser).toHaveBeenCalledWith({ id: mockUser.id });
   });
 
   it('does not identify when no user exists', async () => {
@@ -98,6 +106,8 @@ describe('UserIdentifier', () => {
         createdAt: new Date(mockUser.created_at),
       });
     });
+
+    expect(Sentry.setUser).toHaveBeenCalledWith({ id: mockUser.id });
   });
 
   it('resets user on SIGNED_OUT event', async () => {
@@ -124,6 +134,8 @@ describe('UserIdentifier', () => {
     await waitFor(() => {
       expect(resetSpy).toHaveBeenCalled();
     });
+
+    expect(Sentry.setUser).toHaveBeenCalledWith(null);
   });
 
   it('unsubscribes from auth changes on unmount', () => {
