@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { useAuthDialog } from '@/components/marketing/auth-dialog';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -17,7 +18,12 @@ import {
 import { SITE_CONFIG } from '@/config/site-config';
 import { useUser } from '@/hooks/useUser';
 
-import { flatNavLinks, leadingNavLinks, resourcesLinks, trailingNavLinks } from './nav-config';
+import {
+  flatNavLinks,
+  leadingNavLinks,
+  resourcesLinks,
+  trailingNavLinks,
+} from './nav-config';
 
 /**
  * Marketing shell Navbar (opt-in).
@@ -27,8 +33,9 @@ import { flatNavLinks, leadingNavLinks, resourcesLinks, trailingNavLinks } from 
  * and links come from `SITE_CONFIG` + `nav-config` so a fork rebrands in one
  * place. This is ADDITIVE — it does not replace `src/templates/Navbar.tsx`.
  *
- * Auth CTAs use page-based `/sign-in` + `/sign-up` links (a deliberate template
- * decision — no client auth dialog).
+ * Auth CTAs open the overlay `AuthDialog` (via `useAuthDialog`) so visitors can
+ * sign in/up without leaving the page. The dedicated `/sign-in` + `/sign-up`
+ * pages remain as fallbacks for direct URLs, password managers, and email links.
  *
  * TODO(i18n seam): labels are English-only literals via `nav-config`; swap to
  * next-intl there when localisation is needed.
@@ -45,13 +52,23 @@ const dropdownItemClass
 export const MarketingNavbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useUser();
+  const { openSignIn, openSignUp } = useAuthDialog();
   const { brand } = SITE_CONFIG;
 
   return (
     <nav className="fixed top-0 right-0 left-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-foreground">
-          <Image src={brand.logo.nav} alt="" width={32} height={32} className="size-8" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-2xl font-bold text-foreground"
+        >
+          <Image
+            src={brand.logo.nav}
+            alt=""
+            width={32}
+            height={32}
+            className="size-8"
+          />
           {brand.name}
         </Link>
 
@@ -114,16 +131,21 @@ export const MarketingNavbar = () => {
                 )
               : (
                   <>
-                    <Link href="/sign-in">
-                      <Button variant="outline" size="sm" className="rounded-full px-5">
-                        Log in
-                      </Button>
-                    </Link>
-                    <Link href="/sign-up">
-                      <Button size="sm" className="rounded-full px-5">
-                        Get started
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full px-5"
+                      onClick={() => openSignIn()}
+                    >
+                      Log in
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded-full px-5"
+                      onClick={() => openSignUp()}
+                    >
+                      Get started
+                    </Button>
                   </>
                 )}
           </div>
@@ -132,11 +154,13 @@ export const MarketingNavbar = () => {
         {/* Mobile CTA + toggle */}
         <div className="flex items-center gap-2 md:hidden">
           {!user && (
-            <Link href="/sign-up">
-              <Button size="sm" className="rounded-full px-4 text-xs">
-                Get started
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              className="rounded-full px-4 text-xs"
+              onClick={() => openSignUp()}
+            >
+              Get started
+            </Button>
           )}
           <button
             type="button"
@@ -173,16 +197,27 @@ export const MarketingNavbar = () => {
                 )
               : (
                   <>
-                    <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
-                      <Button variant="outline" size="sm" className="rounded-full px-5">
-                        Log in
-                      </Button>
-                    </Link>
-                    <Link href="/sign-up" onClick={() => setMobileOpen(false)}>
-                      <Button size="sm" className="rounded-full px-5">
-                        Get started
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full px-5"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        openSignIn();
+                      }}
+                    >
+                      Log in
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded-full px-5"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        openSignUp();
+                      }}
+                    >
+                      Get started
+                    </Button>
                   </>
                 )}
           </div>

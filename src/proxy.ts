@@ -1,13 +1,11 @@
 /* eslint-disable simple-import-sort/imports */
 import type { NextFetchEvent, NextRequest } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
-import {
-
-  NextResponse,
-} from 'next/server';
+import { NextResponse } from 'next/server';
 /* eslint-enable simple-import-sort/imports */
 
 import { isAdmin } from '@/libs/auth/isAdmin';
+import { buildLandingAuthUrl } from '@/libs/auth/landing-auth-url';
 import { updateSession } from '@/libs/supabase/middleware';
 import { AllLocales, AppConfig } from './utils/AppConfig';
 
@@ -57,7 +55,9 @@ function getLocalePrefix(pathname: string): string {
  */
 function containsSegment(pathname: string, segment: string): boolean {
   const localePrefix = getLocalePrefix(pathname);
-  const stripped = localePrefix ? pathname.slice(localePrefix.length) : pathname;
+  const stripped = localePrefix
+    ? pathname.slice(localePrefix.length)
+    : pathname;
   return stripped.endsWith(segment) || stripped.includes(`${segment}/`);
 }
 
@@ -73,10 +73,7 @@ function isAdminRoute(pathname: string): boolean {
   return adminPaths.some(path => containsSegment(pathname, path));
 }
 
-export async function proxy(
-  request: NextRequest,
-  _event: NextFetchEvent,
-) {
+export async function proxy(request: NextRequest, _event: NextFetchEvent) {
   // Apply internationalization middleware first
   const response = intlMiddleware(request);
 
@@ -96,14 +93,25 @@ export async function proxy(
       }
 
       const localePrefix = getLocalePrefix(request.nextUrl.pathname);
-      const signInUrl = new URL(`${localePrefix}/sign-in`, request.url);
-      // Store intended destination for redirect after sign-in
-      signInUrl.searchParams.set('redirect', request.nextUrl.pathname);
-      return NextResponse.redirect(signInUrl);
+      const locale = localePrefix
+        ? localePrefix.slice(1)
+        : AppConfig.defaultLocale;
+      // Send unauthenticated users to the landing page with the overlay auth
+      // dialog auto-opened (?auth=signin&redirect=<path>), preserving their
+      // intended destination for after sign-in.
+      const landingUrl = new URL(
+        buildLandingAuthUrl({ locale, redirect: request.nextUrl.pathname }),
+        request.url,
+      );
+      return NextResponse.redirect(landingUrl);
     }
 
     // Check email verification for protected routes
-    if (user && !user.email_confirmed_at && requiresVerification(request.nextUrl.pathname)) {
+    if (
+      user
+      && !user.email_confirmed_at
+      && requiresVerification(request.nextUrl.pathname)
+    ) {
       const localePrefix = getLocalePrefix(request.nextUrl.pathname);
       const verifyUrl = new URL(`${localePrefix}/verify-email`, request.url);
       verifyUrl.searchParams.set('email', user.email || '');
@@ -114,7 +122,10 @@ export async function proxy(
     if (user && isAdminRoute(request.nextUrl.pathname)) {
       if (!isAdmin(user)) {
         const localePrefix = getLocalePrefix(request.nextUrl.pathname);
-        const dashboardUrl = new URL(`${localePrefix}/dashboard?error=access_denied`, request.url);
+        const dashboardUrl = new URL(
+          `${localePrefix}/dashboard?error=access_denied`,
+          request.url,
+        );
         return NextResponse.redirect(dashboardUrl);
       }
     }
