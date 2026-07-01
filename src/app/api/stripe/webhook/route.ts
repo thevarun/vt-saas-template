@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer';
 
 import * as Sentry from '@sentry/nextjs';
-import { eq, or } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
@@ -442,6 +442,16 @@ async function handleCheckoutCompleted(
 // ---------------------------------------------------------------------------
 
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
+  // A subscription created with subscription_data.trial_end (deferred checkout)
+  // emits an immediate $0 trial invoice whose invoice.paid can arrive after
+  // checkout.session.completed. Skip zero-dollar invoices so we don't
+  // prematurely flip local status to 'active' during the deferred trial — the
+  // real first charge (amount_paid > 0) plus customer.subscription.updated drive
+  // the trial→active conversion (period-anchor reset + analytics).
+  if (invoice.amount_paid === 0) {
+    return;
+  }
+
   const subRef = invoice.parent?.subscription_details?.subscription;
   const stripeSubscriptionId = typeof subRef === 'string' ? subRef : subRef?.id;
 
@@ -470,26 +480,44 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
 
   // Order-independent trial→active conversion. The anchor reset + the
   // trial_upgrade conversion event must fire exactly once, regardless of whether
-  // invoice.paid or customer.subscription.updated arrives first. We key the
-  // transition on the LOCAL status: whichever event observes status==='trial'
-  // performs it and flips the row to 'active'; the later event sees 'active' and
-  // skips. (Previously this lived ONLY in handleSubscriptionUpdated, so an
-  // invoice.paid arriving first silently dropped both.)
-  const isTrialUpgrade = sub.currentStatus === 'trial';
-
-  await db
+  // invoice.paid or customer.subscription.updated arrives first (or Stripe
+  // redelivers either). We make the transition ATOMIC: flip 'trial'→'active'
+  // guarded on the current status IN THE SAME UPDATE and only treat it as a
+  // conversion when a row was actually mutated. The loser of a concurrent race
+  // (or the later-arriving event) mutates 0 rows and fires no side effects,
+  // closing the double-fire window. Non-conversion invoice.paid deliveries
+  // (already active) still refresh updated_at unconditionally below.
+  const converted = await db
     .update(userSubscriptions)
     .set({
       status: 'active',
       // Reset the rolling quota window to start at conversion.
-      ...(isTrialUpgrade ? { currentPeriodAnchorAt: new Date() } : {}),
+      currentPeriodAnchorAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+    .where(
+      and(
+        eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId),
+        eq(userSubscriptions.status, 'trial'),
+      ),
+    )
+    .returning();
+
+  const isTrialUpgrade = converted.length > 0;
+
+  if (!isTrialUpgrade) {
+    // Not a trial conversion (already active, or another delivery won the race).
+    // Keep updated_at fresh but touch nothing else and fire no side effects.
+    await db
+      .update(userSubscriptions)
+      .set({ updatedAt: new Date() })
+      .where(eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+    return;
+  }
 
   await invalidateAllQuotaCaches(sub.userId);
 
-  if (isTrialUpgrade && sub.billingInterval) {
+  if (sub.billingInterval) {
     const tierName = await getTierName(sub.tierId);
     trackEventServer(
       'subscription_converted',
@@ -563,9 +591,12 @@ async function handleSubscriptionUpdated(
     }
   }
 
+  const isTrialUpgrade
+    = sub.currentStatus === 'trial' && localStatus === 'active';
+
   // Trial → active conversion: reset the period anchor so the user gets a fresh
   // quota window starting at conversion.
-  if (sub.currentStatus === 'trial' && localStatus === 'active') {
+  if (isTrialUpgrade) {
     updates.currentPeriodAnchorAt = new Date();
   }
 
@@ -582,19 +613,33 @@ async function handleSubscriptionUpdated(
     updates.trialExpiresAt = new Date(subscription.trial_end * 1000);
   }
 
-  await db
-    .update(userSubscriptions)
-    .set(updates)
-    .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id));
+  // Atomic + idempotent conversion. On a trial→active transition, guard the
+  // write on the row still being 'trial' so exactly one delivery wins the race
+  // (this event vs. invoice.paid, or a Stripe redelivery); the loser mutates 0
+  // rows and fires no conversion side-effects. Non-conversion updates apply
+  // unconditionally (the status guard would wrongly no-op them).
+  const written = isTrialUpgrade
+    ? await db
+        .update(userSubscriptions)
+        .set(updates)
+        .where(
+          and(
+            eq(userSubscriptions.stripeSubscriptionId, subscription.id),
+            eq(userSubscriptions.status, 'trial'),
+          ),
+        )
+        .returning()
+    : await db
+        .update(userSubscriptions)
+        .set(updates)
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id))
+        .returning();
 
   await invalidateAllQuotaCaches(sub.userId);
 
-  // Track trial → active conversion.
-  if (
-    sub.currentStatus === 'trial'
-    && localStatus === 'active'
-    && updates.billingInterval
-  ) {
+  // Track trial → active conversion — only when THIS delivery actually flipped
+  // the row (written.length > 0), so a concurrent double-delivery fires once.
+  if (isTrialUpgrade && written.length > 0 && updates.billingInterval) {
     trackEventServer(
       'subscription_converted',
       {
