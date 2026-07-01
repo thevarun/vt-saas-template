@@ -7,6 +7,8 @@ export type AuditAction
     | 'unsuspend_user'
     | 'delete_user'
     | 'reset_password'
+    | 'assign_tier'
+    | 'bulk_assign_tier'
     | 'feedback_mark_reviewed'
     | 'feedback_delete'
     | 'feedback_archive'
@@ -30,7 +32,9 @@ export type LogAdminActionParams = {
  * Uses graceful error handling - returns boolean, never throws.
  * Designed for fire-and-forget usage in API routes.
  */
-export async function logAdminAction(params: LogAdminActionParams): Promise<boolean> {
+export async function logAdminAction(
+  params: LogAdminActionParams,
+): Promise<boolean> {
   try {
     await db.insert(adminAuditLog).values({
       adminId: params.adminId,
