@@ -4,15 +4,20 @@ import { NextResponse } from 'next/server';
 import { getLocale } from 'next-intl/server';
 
 import { getCachedUser } from '@/libs/supabase/cached-user';
-import { AllLocales, AppConfig } from '@/utils/AppConfig';
+import { AppConfig } from '@/utils/AppConfig';
 
-import { buildLandingAuthUrl } from './landing-auth-url';
+import { resolveLocaleFromCookie } from './landing-auth-url';
 
 // Re-export the pure open-redirect guards so server callers that already import
 // from this module don't have to reach into `safe-path.ts` directly. The
 // sanitizer itself lives in `safe-path.ts` (no `next/headers` / server-only
 // imports) so it stays importable from client components.
 export { isSafeInternalPath, toSafeInternalPath } from './safe-path';
+
+// `resolveLocaleFromCookie` now has a single source of truth in
+// `landing-auth-url.ts`; re-export it here so existing server callers (and this
+// module's own guards) keep importing it from `auth-redirects`.
+export { resolveLocaleFromCookie };
 
 /**
  * Build a locale-aware URL to the sign-in page.
@@ -41,23 +46,6 @@ export function buildSignInUrl({
   const localePrefix = locale === AppConfig.defaultLocale ? '' : `/${locale}`;
   const params = new URLSearchParams({ redirect });
   return `${localePrefix}/sign-in?${params.toString()}`;
-}
-
-/**
- * Resolve a user's locale from the `NEXT_LOCALE` cookie, falling back to the
- * default locale. Used in API routes / request guards where `getLocale()` from
- * `next-intl/server` isn't available.
- */
-export function resolveLocaleFromCookie(
-  cookieValue: string | undefined,
-): string {
-  if (
-    cookieValue
-    && AllLocales.includes(cookieValue as (typeof AllLocales)[number])
-  ) {
-    return cookieValue;
-  }
-  return AppConfig.defaultLocale;
 }
 
 /**
@@ -110,39 +98,6 @@ export async function requireAuthOrRedirect(returnPath: string) {
       : `/${returnPath}`;
     nextRedirect(
       buildSignInUrl({
-        locale,
-        redirect: `/${locale}${cleanReturnPath}`,
-      }),
-    );
-  }
-
-  const locale = await getLocale();
-  return { user, supabase, locale };
-}
-
-/**
- * Landing-dialog counterpart to {@link requireAuthOrRedirect}. For server
- * components — returns the authenticated user (plus Supabase client + locale)
- * if signed in; otherwise redirects to the marketing landing page with the
- * overlay sign-in dialog auto-opened and `returnPath` preserved.
- *
- * Use this instead of {@link requireAuthOrRedirect} when the product routes
- * unauthenticated users through the landing overlay rather than the dedicated
- * `/sign-in` page.
- *
- * @example
- *   const { user, supabase } = await requireAuthOrRedirectToLanding('/settings');
- */
-export async function requireAuthOrRedirectToLanding(returnPath: string) {
-  const { user, supabase } = await getCachedUser();
-
-  if (!user) {
-    const locale = await getLocale();
-    const cleanReturnPath = returnPath.startsWith('/')
-      ? returnPath
-      : `/${returnPath}`;
-    nextRedirect(
-      buildLandingAuthUrl({
         locale,
         redirect: `/${locale}${cleanReturnPath}`,
       }),

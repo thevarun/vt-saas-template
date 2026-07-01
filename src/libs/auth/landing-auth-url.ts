@@ -9,9 +9,9 @@ import { AllLocales, AppConfig } from '@/utils/AppConfig';
  * Deliberately imports NO server-only module (`next/headers`, `next-intl/server`,
  * `@/libs/supabase/*`) so this file stays safe to import from middleware
  * (`src/proxy.ts`) and API route handlers without dragging the Supabase server
- * client into those bundles. The server-component variant that needs the cached
- * user lives in `auth-redirects.ts` (`requireAuthOrRedirectToLanding`) — keep it
- * that way, mirroring the pure `safe-path.ts` ↔ server `auth-redirects.ts` split.
+ * client into those bundles. Server-component variants that need the cached user
+ * live in `auth-redirects.ts` — keep it that way, mirroring the pure
+ * `safe-path.ts` ↔ server `auth-redirects.ts` split.
  */
 
 /**
@@ -43,33 +43,52 @@ export function buildLandingAuthUrl({
  * Resolve a user's locale from the `NEXT_LOCALE` cookie, falling back to the
  * default locale. Used in API routes where `getLocale()` isn't available.
  */
-export function resolveLocaleFromCookie(cookieValue: string | undefined): string {
-  if (cookieValue && AllLocales.includes(cookieValue as (typeof AllLocales)[number])) {
+export function resolveLocaleFromCookie(
+  cookieValue: string | undefined,
+): string {
+  if (
+    cookieValue
+    && AllLocales.includes(cookieValue as (typeof AllLocales)[number])
+  ) {
     return cookieValue;
   }
   return AppConfig.defaultLocale;
 }
 
 /**
- * For API routes (NextRequest) — redirect an unauthenticated user back to the
- * marketing landing page with the auth dialog open. `backTo` is the unprefixed
- * path the user should return to after signing in (e.g. `'dashboard'`,
- * `'settings'`); the locale prefix is added automatically.
+ * Resolve the request's locale from the URL path prefix (e.g. `/hi/…`), falling
+ * back to the `NEXT_LOCALE` cookie and then the default locale. Page requests
+ * carry the locale in the path; API routes carry it only in the cookie.
+ */
+function resolveRequestLocale(request: NextRequest): string {
+  const segment = request.nextUrl.pathname.match(/^\/([^/]+)/)?.[1];
+  if (segment && AllLocales.includes(segment as (typeof AllLocales)[number])) {
+    return segment;
+  }
+  return resolveLocaleFromCookie(request.cookies.get('NEXT_LOCALE')?.value);
+}
+
+/**
+ * For request handlers (middleware / NextRequest) — redirect an unauthenticated
+ * user back to the marketing landing page with the overlay auth dialog open.
+ *
+ * `backTo` is the full intended path to return to after signing in, INCLUDING
+ * any query string (e.g. `/settings?tab=billing`). It is preserved verbatim in
+ * the `redirect` param (URL-encoded by {@link buildLandingAuthUrl}) so a deep
+ * link's query survives the round-trip — the landing page's read-side guard
+ * (`toSafeInternalPath`) accepts a same-origin path that carries a `?query`.
+ * The landing URL's locale prefix is derived from the request (path prefix,
+ * falling back to the `NEXT_LOCALE` cookie).
  *
  * @example
- *   if (!user) return redirectUnauthToLanding(request, 'settings');
+ *   if (!user) return redirectUnauthToLanding(request, "/settings?tab=billing");
  */
 export function redirectUnauthToLanding(
   request: NextRequest,
   backTo: string,
   tab: 'signin' | 'signup' = 'signin',
 ): NextResponse {
-  const locale = resolveLocaleFromCookie(request.cookies.get('NEXT_LOCALE')?.value);
-  const cleanBackTo = backTo.startsWith('/') ? backTo : `/${backTo}`;
-  const landingPath = buildLandingAuthUrl({
-    locale,
-    redirect: `/${locale}${cleanBackTo}`,
-    tab,
-  });
+  const locale = resolveRequestLocale(request);
+  const landingPath = buildLandingAuthUrl({ locale, redirect: backTo, tab });
   return NextResponse.redirect(new URL(landingPath, request.url));
 }

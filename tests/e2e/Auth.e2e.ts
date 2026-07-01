@@ -16,14 +16,20 @@ test.describe('Authentication', () => {
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
   });
 
-  test('should redirect unauthenticated user from dashboard to sign-in', async ({ page }) => {
+  test('should redirect unauthenticated user from dashboard to the landing auth dialog', async ({
+    page,
+  }) => {
     await page.goto('/dashboard');
 
-    // Should be redirected to sign-in page
-    await expect(page).toHaveURL(/\/sign-in/);
+    // Protected-route access now redirects to the landing with dialog-intent
+    // params (?auth=signin&redirect=…), not the dedicated /sign-in page.
+    await expect(page).toHaveURL(/[?&]auth=signin/);
+    await expect(page).toHaveURL(/redirect=%2Fdashboard/);
   });
 
-  test('should sign in with valid credentials and redirect to dashboard', async ({ page }) => {
+  test('should sign in with valid credentials and redirect to dashboard', async ({
+    page,
+  }) => {
     const authPage = new AuthPage(page);
 
     const testEmail = process.env.TEST_USER_EMAIL;
@@ -31,7 +37,10 @@ test.describe('Authentication', () => {
 
     // Skip test if credentials not available
     // eslint-disable-next-line playwright/no-skipped-test -- conditional skip when CI creds unavailable
-    test.skip(!testEmail || !testPassword, 'Test credentials not found. Ensure setup.ts ran successfully.');
+    test.skip(
+      !testEmail || !testPassword,
+      'Test credentials not found. Ensure setup.ts ran successfully.',
+    );
 
     await authPage.signIn(testEmail!, testPassword!);
 

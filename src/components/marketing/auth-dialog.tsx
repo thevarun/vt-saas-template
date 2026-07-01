@@ -10,7 +10,14 @@ import {
   useSearchParams,
 } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createContext, use, useCallback, useEffect, useState } from 'react';
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -27,6 +34,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Separator } from '@/components/ui/separator';
+import { useOAuth } from '@/hooks/useOAuth';
 import { fetchPostAuthDestination } from '@/libs/auth/fetch-post-auth-destination';
 import { toSafeInternalPath } from '@/libs/auth/safe-path';
 import { createClient } from '@/libs/supabase/client';
@@ -87,7 +95,9 @@ const AuthDialog = ({
   const router = useRouter();
   const locale = params.locale as string;
 
-  const [oauthLoading, setOauthLoading] = useState(false);
+  const { oauthLoading, handleGoogle, handleGitHub } = useOAuth({
+    next: redirectPath,
+  });
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -101,7 +111,6 @@ const AuthDialog = ({
       setMagicLinkSent(false);
       setMagicLinkEmail('');
       setSubmitting(false);
-      setOauthLoading(false);
       setResendStatus('idle');
       setCooldownSeconds(0);
       setShowPassword(false);
@@ -158,24 +167,6 @@ const AuthDialog = ({
     return undefined;
   }, [resendStatus, cooldownSeconds, magicLinkEmail]);
 
-  const handleOAuth = async (provider: 'google' | 'github') => {
-    setOauthLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectPath)}`,
-        ...(provider === 'google'
-          ? { queryParams: { access_type: 'offline', prompt: 'consent' } }
-          : {}),
-      },
-    });
-    if (error) {
-      toast.error(t('error_title'), { description: t('error_oauth') });
-      setOauthLoading(false);
-    }
-  };
-
   const sendMagicLink = async (emailAddress: string) => {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
@@ -199,9 +190,20 @@ const AuthDialog = ({
           password: data.password,
         });
         if (error) {
-          toast.error(t('error_title'), {
-            description: t('error_invalid_credentials'),
-          });
+          // Mirror SignInFormClient's branching: surface rate-limit and
+          // network failures distinctly instead of collapsing every error
+          // into "invalid credentials".
+          const isRateLimit
+            = error.message.includes('Too many requests')
+              || error.message.includes('rate limit')
+              || error.status === 429;
+          const isNetwork = error.message.includes('Network');
+          const description = isRateLimit
+            ? t('error_rate_limit')
+            : isNetwork
+              ? t('error_network')
+              : t('error_invalid_credentials');
+          toast.error(t('error_title'), { description });
           setSubmitting(false);
           return;
         }
@@ -343,8 +345,8 @@ const AuthDialog = ({
         {!magicLinkSent && (
           <div className="space-y-4 pt-2" data-auth-dialog>
             <SocialAuthButtons
-              onGoogleClick={() => handleOAuth('google')}
-              onGitHubClick={() => handleOAuth('github')}
+              onGoogleClick={() => handleGoogle(t('error_oauth'))}
+              onGitHubClick={() => handleGitHub(t('error_oauth'))}
               loading={oauthLoading}
               disabled={submitting}
             />
@@ -541,8 +543,13 @@ export const AuthDialogProvider = ({
     [defaultRedirect],
   );
 
+  const contextValue = useMemo(
+    () => ({ openSignIn, openSignUp }),
+    [openSignIn, openSignUp],
+  );
+
   return (
-    <AuthDialogContext value={{ openSignIn, openSignUp }}>
+    <AuthDialogContext value={contextValue}>
       {children}
       <AuthDialog
         open={open}

@@ -970,6 +970,7 @@
     "error_title": "Something went wrong",
     "error_oauth": "Could not start sign-in. Please try again.",
     "error_invalid_credentials": "Invalid email or password. Please try again.",
+    "error_rate_limit": "Too many attempts. Please wait a moment and try again.",
     "error_network": "Network error. Please check your connection and try again.",
     "terms_text": "By continuing, you agree to our",
     "terms_link": "Terms",

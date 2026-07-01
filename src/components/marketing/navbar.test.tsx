@@ -6,7 +6,6 @@ import { SITE_CONFIG } from '@/config/site-config';
 
 // next/image renders a plain <img> in tests.
 vi.mock('next/image', () => ({
-
   default: ({ src, alt }: { src: string; alt: string }) => (
     <img src={src} alt={alt} />
   ),
@@ -22,6 +21,12 @@ const openSignIn = vi.fn();
 const openSignUp = vi.fn();
 vi.mock('@/components/marketing/auth-dialog', () => ({
   useAuthDialog: () => ({ openSignIn, openSignUp }),
+}));
+
+// LocaleSwitcher pulls in next-intl navigation context; stub it so the navbar
+// tests stay focused on the shell's own behaviour.
+vi.mock('@/components/LocaleSwitcher', () => ({
+  LocaleSwitcher: () => <div data-testid="locale-switcher" />,
 }));
 
 // eslint-disable-next-line import/first -- mock must be hoisted above the import under test
