@@ -17,6 +17,27 @@ const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+// CSP in Report-Only mode: it collects violations in the browser console
+// WITHOUT enforcing, so nothing in the UI can break. Inline scripts/eval from
+// your integrations require a soak before enforcing — watch the console (and
+// Sentry) for report-only violations, tighten the allowlist below, then flip to
+// an enforcing `Content-Security-Policy` header in a follow-up. Only the
+// template's actual integrations are allowlisted; add hosts as you adopt them.
+const cspReportOnly = [
+  'default-src \'self\'',
+  // 'unsafe-inline'/'unsafe-eval' are broad on purpose during the soak — narrow
+  // (e.g. to nonces/hashes) before you enforce.
+  'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://*.stripe.com https://js.stripe.com https://*.posthog.com https://*.sentry.io',
+  'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com',
+  'img-src \'self\' data: blob: https:',
+  'font-src \'self\' data: https://fonts.gstatic.com',
+  'connect-src \'self\' https://*.supabase.co wss://*.supabase.co https://*.stripe.com https://*.posthog.com https://*.sentry.io',
+  'frame-src \'self\' https://*.stripe.com https://js.stripe.com',
+  'frame-ancestors \'none\'',
+  'base-uri \'self\'',
+  'form-action \'self\' https://*.stripe.com',
+].join('; ');
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -26,6 +47,10 @@ const securityHeaders = [
   {
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload',
+  },
+  {
+    key: 'Content-Security-Policy-Report-Only',
+    value: cspReportOnly,
   },
 ];
 
