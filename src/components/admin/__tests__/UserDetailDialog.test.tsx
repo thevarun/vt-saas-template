@@ -1,6 +1,8 @@
 import type { User } from '@supabase/supabase-js';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UserDetailDialog } from '../UserDetailDialog';
@@ -49,6 +51,16 @@ vi.mock('../ResetPasswordDialog', () => ({
   ResetPasswordDialog: vi.fn(() => null),
 }));
 
+vi.mock('../AssignTierDialog', () => ({
+  AssignTierDialog: vi.fn(() => null),
+}));
+
+// Subscription-detail hook seam — the Subscription section reads from it.
+const useUserSubscriptionDetail = vi.fn();
+vi.mock('@/libs/hooks/use-user-subscription-detail', () => ({
+  useUserSubscriptionDetail: (...a: unknown[]) => useUserSubscriptionDetail(...a),
+}));
+
 // Create mock user
 const createMockUser = (overrides: Partial<User> = {}): User => ({
   id: 'user-1',
@@ -80,33 +92,56 @@ const defaultProps = {
   onUserUpdated: mockOnUserUpdated,
 };
 
+function renderDialog(props: Partial<Omit<typeof defaultProps, 'user'>> & { user?: User | null } = {}) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  return render(<UserDetailDialog {...defaultProps} {...props} />, { wrapper });
+}
+
 describe('UserDetailDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUserSubscriptionDetail.mockReturnValue({
+      data: {
+        id: 'sub-1',
+        tierId: 'tier-1',
+        tierName: 'free',
+        displayName: 'Free',
+        status: 'active',
+        trialExpiresAt: null,
+        expiresAt: null,
+        startedAt: '2024-01-15T00:00:00Z',
+      },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
   describe('rendering', () => {
     it('does not render when user is null', () => {
-      render(<UserDetailDialog {...defaultProps} user={null} />);
+      renderDialog({ user: null });
 
       expect(screen.queryByTestId('user-detail-dialog')).not.toBeInTheDocument();
     });
 
     it('renders dialog when open with user', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       // Dialog content should be rendered
       expect(screen.getByTestId('user-detail-dialog')).toBeInTheDocument();
     });
 
     it('displays user email', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
 
     it('displays user display name if available', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       // Display name appears in header (h3) and in info section
       const displayNameElements = screen.getAllByText('Test User');
@@ -115,15 +150,25 @@ describe('UserDetailDialog', () => {
     });
 
     it('displays username with @ prefix', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       expect(screen.getByText('@testuser')).toBeInTheDocument();
     });
   });
 
+  describe('subscription section', () => {
+    it('renders the Assign Tier trigger and the current tier', () => {
+      renderDialog();
+
+      expect(screen.getByTestId('open-assign-tier')).toBeInTheDocument();
+      expect(screen.getByText('fields.currentTier')).toBeInTheDocument();
+      expect(screen.getByText('Free')).toBeInTheDocument();
+    });
+  });
+
   describe('action buttons', () => {
     it('renders all action buttons', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       expect(screen.getByText('actions.resetPassword')).toBeInTheDocument();
       expect(screen.getByText('actions.suspend')).toBeInTheDocument();
@@ -135,7 +180,7 @@ describe('UserDetailDialog', () => {
         banned_until: '2099-12-31T00:00:00Z',
       });
 
-      render(<UserDetailDialog {...defaultProps} user={suspendedUser} />);
+      renderDialog({ user: suspendedUser });
 
       expect(screen.getByText('actions.unsuspend')).toBeInTheDocument();
     });
@@ -145,13 +190,7 @@ describe('UserDetailDialog', () => {
     it('disables action buttons for own account', () => {
       const ownUser = createMockUser({ id: 'current-admin-user-id' });
 
-      render(
-        <UserDetailDialog
-          {...defaultProps}
-          user={ownUser}
-          currentUserId="current-admin-user-id"
-        />,
-      );
+      renderDialog({ user: ownUser, currentUserId: 'current-admin-user-id' });
 
       // Find action buttons - they should be disabled
       const resetButton = screen.getByTestId('action-actions.resetpassword');
@@ -166,19 +205,13 @@ describe('UserDetailDialog', () => {
     it('shows warning message for own account', () => {
       const ownUser = createMockUser({ id: 'current-admin-user-id' });
 
-      render(
-        <UserDetailDialog
-          {...defaultProps}
-          user={ownUser}
-          currentUserId="current-admin-user-id"
-        />,
-      );
+      renderDialog({ user: ownUser, currentUserId: 'current-admin-user-id' });
 
       expect(screen.getByText('ownAccountWarning')).toBeInTheDocument();
     });
 
     it('does not show warning for other users', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       expect(screen.queryByText('ownAccountWarning')).not.toBeInTheDocument();
     });
@@ -188,7 +221,7 @@ describe('UserDetailDialog', () => {
     it('calls onOpenChange when close button is clicked', async () => {
       const user = userEvent.setup();
 
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       const closeButton = screen.getByRole('button', { name: 'close' });
       await user.click(closeButton);
@@ -199,7 +232,7 @@ describe('UserDetailDialog', () => {
 
   describe('user info display', () => {
     it('displays signup date', () => {
-      render(<UserDetailDialog {...defaultProps} />);
+      renderDialog();
 
       expect(screen.getByText('fields.signupDate')).toBeInTheDocument();
       // Date formatted as "January 15, 2024"
@@ -211,7 +244,7 @@ describe('UserDetailDialog', () => {
         last_sign_in_at: undefined,
       });
 
-      render(<UserDetailDialog {...defaultProps} user={neverLoggedInUser} />);
+      renderDialog({ user: neverLoggedInUser });
 
       expect(screen.getByText('never')).toBeInTheDocument();
     });

@@ -1,15 +1,19 @@
 'use client';
 
 import type { User } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   AlertTriangle,
   Ban,
   CheckCircle,
+  CreditCard,
   Key,
+  RefreshCw,
   Settings,
   Trash2,
   User as UserIcon,
+  UserCog,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -26,11 +30,21 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useUserSubscriptionDetail } from '@/libs/hooks/use-user-subscription-detail';
 import { getUserInitials, getUserStatus } from '@/libs/queries/userUtils';
 
+import { AssignTierDialog } from './AssignTierDialog';
 import { DeleteUserDialog } from './DeleteUserDialog';
 import { ResetPasswordDialog } from './ResetPasswordDialog';
 import { SuspendUserDialog } from './SuspendUserDialog';
+
+// Promotion tier slug — matches the server action's PROMO_TIER_NAME so the tier
+// badge highlights promo grants without hardcoding product-specific copy.
+const PROMO_TIER_NAME = 'promotion';
+
+// Moved to module scope to satisfy e18e/prefer-static-regex.
+const WHITESPACE_REGEX = /\s+/g;
 
 type UserDetailDialogProps = {
   user: User | null;
@@ -48,14 +62,16 @@ export function UserDetailDialog({
   onUserUpdated,
 }: UserDetailDialogProps) {
   const t = useTranslations('Admin.UserDetail');
+  const queryClient = useQueryClient();
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showAssignTierDialog, setShowAssignTierDialog] = useState(false);
 
-  // Internal state to track user data after actions
+  // Internal state to track user data after actions.
   const [localUser, setLocalUser] = useState<User | null>(null);
 
-  // Use localUser if available (after an action), otherwise use prop
+  // Use localUser if available (after an action), otherwise use prop.
   const displayUser = localUser ?? user;
 
   if (!displayUser) {
@@ -66,7 +82,7 @@ export function UserDetailDialog({
   const userStatus = getUserStatus(displayUser);
   const isSuspended = userStatus === 'suspended';
 
-  // Reset local state when dialog closes
+  // Reset local state when dialog closes.
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setLocalUser(null);
@@ -74,7 +90,7 @@ export function UserDetailDialog({
     onOpenChange(newOpen);
   };
 
-  // Handle user updated from child dialogs
+  // Handle user updated from child dialogs.
   const handleUserUpdated = (updatedUser?: User) => {
     if (updatedUser) {
       setLocalUser(updatedUser);
@@ -82,7 +98,7 @@ export function UserDetailDialog({
     onUserUpdated();
   };
 
-  // Handle user deleted - close dialog and notify parent
+  // Handle user deleted - close dialog and notify parent.
   const handleUserDeleted = () => {
     handleOpenChange(false);
     onUserUpdated();
@@ -91,7 +107,7 @@ export function UserDetailDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[500px]" data-testid="user-detail-dialog">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]" data-testid="user-detail-dialog">
           <DialogHeader>
             <DialogTitle>{t('title')}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -186,6 +202,30 @@ export function UserDetailDialog({
 
             <Separator />
 
+            {/* Subscription Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <CreditCard className="size-4" />
+                  {t('sections.subscription')}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAssignTierDialog(true)}
+                  className="gap-1"
+                  data-testid="open-assign-tier"
+                >
+                  <UserCog className="size-3.5" />
+                  {t('actions.assignTier')}
+                </Button>
+              </div>
+
+              <SubscriptionDetailGrid userId={displayUser.id} />
+            </div>
+
+            <Separator />
+
             {/* Actions Section */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -266,11 +306,122 @@ export function UserDetailDialog({
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
       />
+
+      <AssignTierDialog
+        userId={displayUser.id}
+        userEmail={displayUser.email ?? ''}
+        open={showAssignTierDialog}
+        onOpenChange={setShowAssignTierDialog}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['user-subscription-detail', displayUser.id] });
+          handleUserUpdated();
+        }}
+      />
     </>
   );
 }
 
-// Info row component for displaying key-value pairs
+// --- Subscription Detail Grid Sub-Component ---
+
+function SubscriptionDetailGrid({ userId }: { userId: string }) {
+  const t = useTranslations('Admin.UserDetail');
+  const { data, isLoading, error, refetch } = useUserSubscriptionDetail(userId);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-destructive">
+        <span>{t('subscription.loadError')}</span>
+        <Button variant="ghost" size="sm" onClick={() => refetch()} className="gap-1">
+          <RefreshCw className="size-3" />
+          {t('subscription.retry')}
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <p className="text-sm text-muted-foreground">{t('subscription.noRecord')}</p>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {/* Current Tier */}
+      <InfoRow
+        label={t('fields.currentTier')}
+        value={<TierBadge tierName={data.tierName} displayName={data.displayName} />}
+      />
+
+      {/* Status */}
+      <InfoRow
+        label={t('fields.subscriptionStatus')}
+        value={<StatusBadge status={data.status} />}
+      />
+
+      {/* Trial Expires */}
+      <InfoRow
+        label={t('fields.trialExpires')}
+        value={
+          data.trialExpiresAt
+            ? format(new Date(data.trialExpiresAt), 'MMM d, yyyy')
+            : '–'
+        }
+      />
+
+      {/* Plan Expires (promotion / paid window) */}
+      <InfoRow
+        label={t('fields.expiresAt')}
+        value={
+          data.expiresAt
+            ? format(new Date(data.expiresAt), 'MMM d, yyyy')
+            : '–'
+        }
+      />
+    </div>
+  );
+}
+
+// --- Badge Helper Components ---
+
+function TierBadge({ tierName, displayName }: { tierName: string; displayName: string }) {
+  if (tierName === PROMO_TIER_NAME) {
+    return <Badge variant="pending">{displayName}</Badge>;
+  }
+  if (tierName === 'free') {
+    return <Badge variant="secondary">{displayName}</Badge>;
+  }
+  // Any paid tier ('pro', etc.).
+  return <Badge variant="default">{displayName}</Badge>;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case 'active':
+      return <Badge variant="active">{status}</Badge>;
+    case 'trial':
+      return <Badge variant="pending">{status}</Badge>;
+    case 'expired':
+      return <Badge variant="destructive">{status}</Badge>;
+    default:
+      return <Badge variant="secondary">{status}</Badge>;
+  }
+}
+
+// Info row component for displaying key-value pairs.
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
@@ -286,7 +437,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-// Action button component for user actions
+// Action button component for user actions.
 type ActionButtonProps = {
   icon: React.ReactNode;
   iconBgClassName: string;
@@ -316,7 +467,7 @@ function ActionButton({
         ${variant === 'danger' ? 'border-destructive hover:bg-destructive/10' : 'hover:bg-muted'}
         ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
       `}
-      data-testid={`action-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      data-testid={`action-${title.toLowerCase().replace(WHITESPACE_REGEX, '-')}`}
     >
       <div className={`flex size-9 items-center justify-center rounded-md ${iconBgClassName}`}>
         {icon}

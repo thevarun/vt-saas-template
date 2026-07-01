@@ -178,7 +178,8 @@
       "sections": {
         "accountInfo": "Account Information",
         "actions": "Actions",
-        "dangerZone": "Danger Zone"
+        "dangerZone": "Danger Zone",
+        "subscription": "Subscription"
       },
       "fields": {
         "username": "Username",
@@ -186,7 +187,11 @@
         "signupDate": "Signed Up",
         "lastLogin": "Last Login",
         "emailVerified": "Email Verified",
-        "userId": "User ID"
+        "userId": "User ID",
+        "currentTier": "Current Tier",
+        "subscriptionStatus": "Status",
+        "trialExpires": "Trial Expires",
+        "expiresAt": "Plan Expires"
       },
       "status": {
         "active": "Active",
@@ -201,7 +206,8 @@
         "unsuspend": "Unsuspend User",
         "unsuspendDesc": "Restore account access",
         "delete": "Delete User",
-        "deleteDesc": "Permanently remove user and all their data"
+        "deleteDesc": "Permanently remove user and all their data",
+        "assignTier": "Assign Tier"
       },
       "suspend": {
         "title": "Suspend {email}?",
@@ -246,7 +252,12 @@
         "successNote": "The user should receive the email shortly. Ask them to check spam if not received.",
         "error": "Failed to Send Reset Email"
       },
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "subscription": {
+        "noRecord": "No subscription record found",
+        "loadError": "Failed to load subscription data",
+        "retry": "Retry"
+      }
     },
     "Feedback": {
       "title": "Feedback Management",
@@ -327,6 +338,61 @@
         "next": "Next",
         "page": "Page {current} of {total}"
       }
+    },
+    "AssignTier": {
+      "title": "Assign Tier — {email}",
+      "description": "Assign a subscription tier to this user",
+      "fields": {
+        "tier": "Tier",
+        "status": "Status",
+        "trialExpiry": "Trial Expiry Date",
+        "promotionEnd": "Promotion End Date",
+        "reason": "Reason",
+        "reasonHint": "(optional)"
+      },
+      "placeholders": {
+        "tier": "Select a tier",
+        "status": "Select status",
+        "reason": "Reason for tier change (audit log)"
+      },
+      "statuses": {
+        "active": "Active",
+        "trial": "Trial",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      },
+      "promotionEligibilityWarning": "Promotion can only be granted to free or trial users — not active paid users.",
+      "success": "Tier assigned",
+      "cancel": "Cancel",
+      "assign": "Assign"
+    },
+    "BulkAssign": {
+      "title": "Bulk Assign Tier",
+      "description": "Assign a subscription tier to multiple users by email",
+      "fields": {
+        "emails": "Emails",
+        "tier": "Tier",
+        "status": "Status",
+        "trialExpiry": "Trial Expiry Date",
+        "promotionEnd": "Promotion End Date"
+      },
+      "placeholders": {
+        "emails": "Paste one email per line",
+        "tier": "Select a tier",
+        "status": "Select status"
+      },
+      "statuses": {
+        "active": "Active",
+        "trial": "Trial"
+      },
+      "notFoundHint": "Users not found in the system will be listed in the results and skipped.",
+      "results": {
+        "updated": "{count} Updated",
+        "notFound": "{count} Not Found"
+      },
+      "cancel": "Cancel",
+      "assign": "Assign",
+      "done": "Done"
     }
   },
   "Index": {
