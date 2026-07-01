@@ -99,6 +99,9 @@ export async function trackEventServer<T extends EventName>(
     ...properties,
     timestamp: new Date().toISOString(),
     source: 'server' as const,
+    // posthog-node reads $set/$set_once from INSIDE properties (unlike posthog-js).
+    ...(options?.personSet && { $set: options.personSet }),
+    ...(options?.personSetOnce && { $set_once: options.personSetOnce }),
   };
 
   try {
@@ -106,8 +109,6 @@ export async function trackEventServer<T extends EventName>(
       distinctId: userId || 'anonymous',
       event: eventName,
       properties: enrichedProperties,
-      ...(options?.personSet && { $set: options.personSet }),
-      ...(options?.personSetOnce && { $set_once: options.personSetOnce }),
     });
 
     // Important: Flush events in serverless environments

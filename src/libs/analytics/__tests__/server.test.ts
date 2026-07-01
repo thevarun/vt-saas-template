@@ -179,7 +179,7 @@ describe('trackEventServer', () => {
     expect(mockCapture).toHaveBeenCalledWith(
       expect.objectContaining({
         distinctId: 'user-123',
-        $set: { plan: 'pro' },
+        properties: expect.objectContaining({ $set: { plan: 'pro' } }),
       }),
     );
   });
@@ -197,7 +197,7 @@ describe('trackEventServer', () => {
 
     expect(mockCapture).toHaveBeenCalledWith(
       expect.objectContaining({
-        $set_once: { first_seen: '2026-01-01' },
+        properties: expect.objectContaining({ $set_once: { first_seen: '2026-01-01' } }),
       }),
     );
   });
@@ -210,8 +210,8 @@ describe('trackEventServer', () => {
 
     const payload = mockCapture.mock.calls[0]?.[0];
 
-    expect(payload).not.toHaveProperty('$set');
-    expect(payload).not.toHaveProperty('$set_once');
+    expect(payload?.properties).not.toHaveProperty('$set');
+    expect(payload?.properties).not.toHaveProperty('$set_once');
   });
 
   it('tracks error events with correct properties', async () => {
