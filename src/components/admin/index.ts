@@ -1,8 +1,10 @@
 export { AdminHeader } from './AdminHeader';
 export { AdminLayoutClient } from './AdminLayoutClient';
 export { AdminSidebar } from './AdminSidebar';
+export { AssignTierDialog } from './AssignTierDialog';
 export { AuditLogFilters } from './AuditLogFilters';
 export { AuditLogTable } from './AuditLogTable';
+export { BulkPromotionInviteDialog } from './BulkPromotionInviteDialog';
 export { EmailTestForm } from './EmailTestForm';
 export { ExportCsvButton } from './ExportCsvButton';
 export { FeedbackCard } from './FeedbackCard';
