@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { logger } from '@/libs/Logger';
 import { createAdminClient } from '@/libs/supabase/admin';
 
 import { claimDueTasks, STALE_TASK_THRESHOLD_MS } from './claim';
@@ -18,9 +19,14 @@ vi.mock('@/libs/supabase/admin', () => ({
   createAdminClient: vi.fn(),
 }));
 
+vi.mock('@/libs/Logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+}));
+
 type SupabaseMockOptions = {
   tasksData?: unknown;
   tasksError?: unknown;
+  staleError?: unknown;
 };
 
 /**
@@ -33,10 +39,14 @@ function buildSupabaseMock(options: SupabaseMockOptions = {}) {
     data: options.tasksData ?? [],
     error: options.tasksError ?? null,
   });
-  const lteOnClaimMock = vi.fn().mockReturnValue({ select: selectAfterUpdateMock });
+  const lteOnClaimMock = vi
+    .fn()
+    .mockReturnValue({ select: selectAfterUpdateMock });
   const eqOnClaimMock = vi.fn().mockReturnValue({ lte: lteOnClaimMock });
 
-  const lteOnStaleMock = vi.fn().mockResolvedValue({ data: null, error: null });
+  const lteOnStaleMock = vi
+    .fn()
+    .mockResolvedValue({ data: null, error: options.staleError ?? null });
   const inOnStaleMock = vi.fn().mockReturnValue({ lte: lteOnStaleMock });
 
   let updateCallCount = 0;
@@ -81,7 +91,10 @@ describe('claimDueTasks', () => {
     const after = new Date().toISOString();
 
     expect(mockSupabase.from).toHaveBeenCalledWith('scheduled_tasks');
-    expect(mockSupabase._eqOnClaimMock).toHaveBeenCalledWith('status', 'scheduled');
+    expect(mockSupabase._eqOnClaimMock).toHaveBeenCalledWith(
+      'status',
+      'scheduled',
+    );
     expect(mockSupabase._selectAfterUpdateMock).toHaveBeenCalledWith('id');
     expect(mockSupabase._lteOnClaimMock).toHaveBeenCalledOnce();
 
@@ -132,7 +145,8 @@ describe('claimDueTasks', () => {
     ]);
     expect(mockSupabase._lteOnStaleMock).toHaveBeenCalledOnce();
 
-    const [staleField, staleValue] = mockSupabase._lteOnStaleMock.mock.calls[0]!;
+    const [staleField, staleValue]
+      = mockSupabase._lteOnStaleMock.mock.calls[0]!;
 
     expect(staleField).toBe('updated_at');
     expect(STALE_TASK_THRESHOLD_MS).toBe(30 * 60 * 1000);
@@ -150,5 +164,25 @@ describe('claimDueTasks', () => {
     );
 
     await expect(claimDueTasks()).rejects.toThrow(/connection lost/);
+  });
+
+  it('logs but does not throw when the stale-reset UPDATE errors', async () => {
+    const mockSupabase = buildSupabaseMock({
+      tasksData: [{ id: 't-1' }],
+      staleError: { message: 'stale-reset write failed' },
+    });
+    vi.mocked(createAdminClient).mockReturnValue(
+      mockSupabase as unknown as ReturnType<typeof createAdminClient>,
+    );
+
+    // The atomic claim already succeeded, so a failed best-effort stale-reset
+    // must not fail the tick — it returns the claimed IDs and logs the error.
+    const result = await claimDueTasks();
+
+    expect(result).toEqual(['t-1']);
+    expect(logger.error).toHaveBeenCalledWith(
+      { error: 'stale-reset write failed' },
+      expect.stringContaining('stale-reset failed'),
+    );
   });
 });
