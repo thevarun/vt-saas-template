@@ -4,7 +4,11 @@ import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { getCurrentPeriod, toDateString } from '@/libs/subscriptions/period';
 import { getUsageBatch } from '@/libs/subscriptions/usage';
-import { subscriptionTiers, tierQuotas, userSubscriptions } from '@/models/Schema';
+import {
+  subscriptionTiers,
+  tierQuotas,
+  userSubscriptions,
+} from '@/models/Schema';
 
 /** Per-(tier, resource) quota config — the two-pool shape from `tier_quotas`. */
 export type QuotaInfo = {
@@ -50,6 +54,13 @@ export type SubscriptionUsageResponse = {
     expiresAt: string | null;
     hasTrialed: boolean;
     billingInterval: 'monthly' | 'yearly' | null;
+    /**
+     * True when the subscription is backed by a live Stripe subscription
+     * (`stripe_subscription_id` is set) — i.e. the user manages billing through
+     * Stripe rather than a free/promo/manually-granted tier. Lets the UI route
+     * to the billing portal vs. a plain upgrade CTA.
+     */
+    isStripeManaged: boolean;
   };
   /**
    * Per-resource quota + usage for the user's current tier, keyed by
@@ -101,13 +112,17 @@ export async function getSubscriptionUsage(
       expiresAt: userSubscriptions.expiresAt,
       hasTrialed: userSubscriptions.hasTrialed,
       billingInterval: userSubscriptions.billingInterval,
+      stripeSubscriptionId: userSubscriptions.stripeSubscriptionId,
       tierName: subscriptionTiers.name,
       tierDisplayName: subscriptionTiers.displayName,
       tierDescription: subscriptionTiers.description,
       tierPriceCents: subscriptionTiers.priceCents,
     })
     .from(userSubscriptions)
-    .innerJoin(subscriptionTiers, eq(userSubscriptions.tierId, subscriptionTiers.id))
+    .innerJoin(
+      subscriptionTiers,
+      eq(userSubscriptions.tierId, subscriptionTiers.id),
+    )
     .where(eq(userSubscriptions.userId, userId))
     .limit(1);
 
@@ -174,6 +189,7 @@ export async function getSubscriptionUsage(
     expiresAt: Date | null;
     hasTrialed: boolean;
     billingInterval: 'monthly' | 'yearly' | null;
+    stripeSubscriptionId: string | null;
     tierName: string;
     tierDisplayName: string;
     tierDescription: string | null;
@@ -196,6 +212,7 @@ export async function getSubscriptionUsage(
       expiresAt: null,
       hasTrialed: false,
       billingInterval: null,
+      stripeSubscriptionId: null,
       tierName: freeTier.name,
       tierDisplayName: freeTier.displayName,
       tierDescription: freeTier.description,
@@ -255,11 +272,13 @@ export async function getSubscriptionUsage(
       priceCents: tierData.tierPriceCents,
     },
     subscription: {
-      status: tierData.status as SubscriptionUsageResponse['subscription']['status'],
+      status:
+        tierData.status as SubscriptionUsageResponse['subscription']['status'],
       trialExpiresAt: tierData.trialExpiresAt?.toISOString() ?? null,
       expiresAt: tierData.expiresAt?.toISOString() ?? null,
       hasTrialed: tierData.hasTrialed,
       billingInterval: tierData.billingInterval,
+      isStripeManaged: tierData.stripeSubscriptionId !== null,
     },
     resources,
     period: {

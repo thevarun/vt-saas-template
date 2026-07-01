@@ -85,9 +85,19 @@ const selectChain = {
   where: vi.fn(() => selectChain),
   limit: vi.fn(() => nextSelect()),
 };
+// update(...).set(...).where(...) is awaited directly in some paths and
+// followed by .returning() in the atomic trial→active paths. `where` therefore
+// returns a thenable that ALSO exposes .returning(). `returningRows` is the
+// queue of rows the guarded UPDATE ... RETURNING yields (length > 0 ⇒ this
+// delivery won the trial→active race).
+let returningRows: unknown[] = [];
+const updateWhereResult = {
+  then: (resolve: (v: unknown) => unknown) => resolve(undefined),
+  returning: vi.fn(() => Promise.resolve(returningRows)),
+};
 const updateChain = {
   set: vi.fn(() => updateChain),
-  where: vi.fn().mockResolvedValue(undefined),
+  where: vi.fn(() => updateWhereResult),
 };
 
 vi.mock('@/libs/DB', () => ({
@@ -131,7 +141,11 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     selectChain.where.mockReturnValue(selectChain);
     selectChain.limit.mockImplementation(() => nextSelect());
     updateChain.set.mockReturnValue(updateChain);
-    updateChain.where.mockResolvedValue(undefined);
+    updateChain.where.mockReturnValue(updateWhereResult);
+    updateWhereResult.returning.mockImplementation(() =>
+      Promise.resolve(returningRows),
+    );
+    returningRows = [];
     selectIdx = 0;
     // Handler reads for customer.subscription.deleted:
     //   1. user_subscriptions row → { userId, tierId }
@@ -228,7 +242,15 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     insertReturning.mockResolvedValueOnce([{ eventId: 'evt_dup_1' }]); // first-seen claim
     // Make a handler DB write throw. The mark-processed update must NOT run, and
     // the claim row must be left in place (processed_at NULL) for Stripe's retry.
-    updateChain.where.mockRejectedValueOnce(new Error('db down'));
+    // The deleted handler awaits update(...).set(...).where(...) directly, so a
+    // rejecting thenable from `where` propagates as a handler error.
+    updateChain.where.mockReturnValueOnce({
+      then: (
+        _resolve: (v: unknown) => unknown,
+        reject: (e: unknown) => unknown,
+      ) => reject(new Error('db down')),
+      returning: () => Promise.reject(new Error('db down')),
+    } as never);
 
     const res = await POST(makeRequest() as never);
 
@@ -254,19 +276,20 @@ describe('POST /api/stripe/webhook — idempotency', () => {
   });
 });
 
-function invoicePaidEvent(id: string): Stripe.Event {
+function invoicePaidEvent(id: string, amountPaid = 999): Stripe.Event {
   return {
     id,
     type: 'invoice.paid',
     data: {
       object: {
+        amount_paid: amountPaid,
         parent: { subscription_details: { subscription: 'sub_777' } },
       },
     },
   } as unknown as Stripe.Event;
 }
 
-describe('POST /api/stripe/webhook — order-independent trial→active conversion', () => {
+describe('POST /api/stripe/webhook — atomic trial→active conversion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     selectChain.select.mockReturnValue(selectChain);
@@ -274,12 +297,16 @@ describe('POST /api/stripe/webhook — order-independent trial→active conversi
     selectChain.where.mockReturnValue(selectChain);
     selectChain.limit.mockImplementation(() => nextSelect());
     updateChain.set.mockReturnValue(updateChain);
-    updateChain.where.mockResolvedValue(undefined);
+    updateChain.where.mockReturnValue(updateWhereResult);
+    updateWhereResult.returning.mockImplementation(() =>
+      Promise.resolve(returningRows),
+    );
+    returningRows = [];
     selectIdx = 0;
     insertReturning.mockResolvedValue([{ eventId: 'evt_x' }]); // always first-seen
   });
 
-  it('invoice.paid arriving FIRST on a trial sub resets anchor + fires trial_upgrade once', async () => {
+  it('invoice.paid arriving FIRST on a trial sub (winner) resets anchor + fires trial_upgrade once', async () => {
     // Reads: 1. sub row (status=trial) ; 2. getTierName
     selectResults = [
       [
@@ -292,12 +319,15 @@ describe('POST /api/stripe/webhook — order-independent trial→active conversi
       ],
       [{ displayName: 'Pro', name: 'pro' }],
     ];
+    // The guarded UPDATE ... WHERE status='trial' RETURNING mutated one row →
+    // this delivery won the race.
+    returningRows = [{ userId: 'user-9' }];
     mockConstructEvent.mockReturnValue(invoicePaidEvent('evt_inv_1'));
 
     const res = await POST(makeRequest() as never);
 
     expect(res.status).toBe(200);
-    // Anchor reset is in the update set.
+    // The atomic conversion update sets active + resets the anchor.
     expect(updateChain.set).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'active',
@@ -305,6 +335,7 @@ describe('POST /api/stripe/webhook — order-independent trial→active conversi
       }),
     );
     // Conversion fired exactly once with trial_upgrade source.
+    expect(mockTrackEventServer).toHaveBeenCalledTimes(1);
     expect(mockTrackEventServer).toHaveBeenCalledWith(
       'subscription_converted',
       expect.objectContaining({
@@ -316,8 +347,66 @@ describe('POST /api/stripe/webhook — order-independent trial→active conversi
     );
   });
 
-  it('invoice.paid on an already-active sub does NOT reset anchor or re-fire conversion', async () => {
-    // The later event (status already active): no anchor reset, no conversion.
+  it('$0 trial-create invoice is skipped (no status flip, no conversion)', async () => {
+    // A deferred-checkout subscription emits an immediate $0 invoice; it must be
+    // ignored so we don't prematurely leave the trial or fire a conversion.
+    selectResults = [
+      [
+        {
+          userId: 'user-9',
+          currentStatus: 'trial',
+          billingInterval: 'monthly',
+          tierId: 'tier-pro',
+        },
+      ],
+    ];
+    mockConstructEvent.mockReturnValue(invoicePaidEvent('evt_inv_zero', 0));
+
+    const res = await POST(makeRequest() as never);
+
+    expect(res.status).toBe(200);
+
+    // Early return before any subscription write. (The ledger mark-processed
+    // update still runs, so we assert no SUBSCRIPTION write happened rather than
+    // "never wrote": no update ever set status/anchor, and no conversion fired.)
+    const setArgs = (updateChain.set.mock.calls as unknown[][]).map(
+      c => c[0] as Record<string, unknown>,
+    );
+
+    expect(
+      setArgs.some(a => 'status' in a || 'currentPeriodAnchorAt' in a),
+    ).toBe(false);
+    expect(mockTrackEventServer).not.toHaveBeenCalled();
+  });
+
+  it('concurrent double-delivery: the loser (0 rows returned) fires no conversion', async () => {
+    // Both deliveries read status='trial', but the guarded UPDATE only mutates a
+    // row for the winner. This delivery is the LOSER: returning() yields [].
+    selectResults = [
+      [
+        {
+          userId: 'user-9',
+          currentStatus: 'trial',
+          billingInterval: 'monthly',
+          tierId: 'tier-pro',
+        },
+      ],
+    ];
+    returningRows = []; // lost the race — 0 rows mutated
+    mockConstructEvent.mockReturnValue(invoicePaidEvent('evt_inv_loser'));
+
+    const res = await POST(makeRequest() as never);
+
+    expect(res.status).toBe(200);
+    // No conversion side effects — this delivery mutated no row. (The guarded
+    // UPDATE still carries the anchor in its .set(); the dedupe is that it
+    // RETURNs 0 rows, so the conversion analytics never fire.)
+    expect(mockTrackEventServer).not.toHaveBeenCalled();
+  });
+
+  it('invoice.paid on an already-active sub does NOT re-fire conversion', async () => {
+    // The later event (status already active): the guarded conversion update
+    // matches nothing (RETURNs 0 rows), so no conversion side effects fire.
     selectResults = [
       [
         {
@@ -328,21 +417,12 @@ describe('POST /api/stripe/webhook — order-independent trial→active conversi
         },
       ],
     ];
+    returningRows = []; // guard on status='trial' matched nothing
     mockConstructEvent.mockReturnValue(invoicePaidEvent('evt_inv_2'));
 
     const res = await POST(makeRequest() as never);
 
     expect(res.status).toBe(200);
-    expect(updateChain.set).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'active' }),
-    );
-
-    // No anchor reset on the active-path update.
-    const setArg = (
-      updateChain.set.mock.calls as unknown[][]
-    )[0]?.[0] as Record<string, unknown>;
-
-    expect(setArg).not.toHaveProperty('currentPeriodAnchorAt');
     expect(mockTrackEventServer).not.toHaveBeenCalled();
   });
 });
