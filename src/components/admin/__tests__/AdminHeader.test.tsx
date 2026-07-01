@@ -147,8 +147,8 @@ describe('AdminHeader', () => {
     it('renders theme toggle', () => {
       render(<AdminHeader {...defaultProps} />);
 
-      // ThemeToggle with compact mode
-      const themeButton = screen.getByRole('button', { name: /switch to/i });
+      // ThemeToggle (grouped picker) with compact mode
+      const themeButton = screen.getByRole('button', { name: /select theme/i });
 
       expect(themeButton).toBeInTheDocument();
     });
