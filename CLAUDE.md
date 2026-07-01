@@ -35,10 +35,11 @@ Full dependency inventory: `package.json`.
 | SEO (hreflang, OG, sitemap, robots) | [docs/seo.md](docs/seo.md)                                                                        |
 | SSE streaming                       | [docs/patterns/sse-streaming.md](docs/patterns/sse-streaming.md)                                  |
 | CI/CD                               | [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md)                                                  |
+| Testing strategy                    | [docs/testing-strategy.md](docs/testing-strategy.md)                                              |
 | Admin setup                         | [docs/admin-setup.md](docs/admin-setup.md)                                                        |
 | Upstream sync                       | [docs/upstream-sync-guide.md](docs/upstream-sync-guide.md)                                        |
 
-Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO authoring).
+Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (schema/migration safety), `platforms.md` (third-party OAuth & token security), `blog.md` (pSEO authoring), `testing.md` (test-layer boundary & hermeticity).
 
 ## Architecture Rules (mandatory)
 
@@ -108,8 +109,11 @@ Environment variables: copy and fill `.env.example` (the canonical, annotated li
 
 ## Testing notes
 
-- Unit (Vitest): co-located, `jsdom` for components / `node` for utilities.
-- E2E (Playwright): `tests/`, `*.spec.ts` / `*.e2e.ts`; setup/teardown create the test account.
+Layer boundary and rationale: [docs/testing-strategy.md](docs/testing-strategy.md) (enforced by `.claude/rules/testing.md`). In short: **test at the lowest layer that proves the behavior; E2E only for boundary-crossing journeys.**
+
+- Unit (Vitest): co-located; `node` is the default env, `jsdom` for `.tsx` (opt a `.ts` in with a `// @vitest-environment jsdom` pragma). Hermetic — no shared DB (in-memory PGlite).
+- E2E (Playwright): `tests/`, `*.spec.ts` / `*.e2e.ts`; auth/middleware/persistence/SEO only. Prefer the `request` fixture (no browser) when there's no DOM — see `tests/seo.spec.ts`.
+- Storybook: stories for shared `components/ui/*` primitives; the build runs in CI as a smoke test.
 - After a frontend change, do a quick visual check (Playwright/Chrome MCP) and save screenshots to `_bmad-output/implementation-artifacts/screenshots`.
 
 ## Commits & CI
