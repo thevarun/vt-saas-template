@@ -26,8 +26,8 @@ Gmail/Apple Mail show the display name prominently and the address in smaller ty
 Templates live in this repo and are pasted into the Supabase Dashboard by hand. Render locally first:
 
 ```bash
-npm run email:render
-# or: npx tsx scripts/render-supabase-templates.ts
+pnpm email:render
+# or: pnpm exec tsx scripts/render-supabase-templates.ts
 ```
 
 Outputs to top-level `email-templates/*.html` (git-ignored). Supabase variables like `{{ .ConfirmationURL }}`, `{{ .TokenHash }}`, `{{ .Token }}`, `{{ .NewEmail }}` pass through React Email unescaped.
@@ -58,7 +58,7 @@ The rendered links point at the app's own `/auth/confirm` route (`src/app/auth/c
 
 Without `RESEND_API_KEY`, emails log to console (dev). With a key, they go through Resend.
 
-## React Email preview server (`npm run email:dev`)
+## React Email preview server (`pnpm email:dev`)
 
 Runs at http://localhost:3001 and renders every template from `src/libs/email/templates/`.
 

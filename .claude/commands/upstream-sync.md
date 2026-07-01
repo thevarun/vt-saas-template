@@ -87,10 +87,10 @@ Pull new features and fixes from the VT SaaS Template into your downstream proje
       - Core (Review Carefully): layout.tsx, package.json, tsconfig.json, workflows
       - Branding (Keep Yours): global.css, public/*, AppConfig.ts, seo/constants.ts
       - Content (Keep Yours): Navbar, Footer, locales, README.md
-      - Infrastructure: package-lock.json
+      - Infrastructure: pnpm-lock.yaml
    c. Show classification to user with recommended resolution per file
-   d. For package-lock.json conflicts:
-      - Auto-resolve: git checkout --theirs package-lock.json && npm install && git add package-lock.json
+   d. For pnpm-lock.yaml conflicts:
+      - Auto-resolve: git checkout --theirs pnpm-lock.yaml && pnpm install && git add pnpm-lock.yaml
    e. For other conflicts:
       - Help user resolve interactively, reading conflict markers and suggesting resolutions
       - Apply the classification strategy as default recommendation
@@ -117,10 +117,10 @@ Pull new features and fixes from the VT SaaS Template into your downstream proje
 
 ```
 1. Run the full CI check suite:
-   - npm run lint
-   - npm run check-types
-   - npm test
-   - npm run build
+   - pnpm lint
+   - pnpm check-types
+   - pnpm test
+   - pnpm build
 
 2. Report results for each check:
    - If all pass → OUTPUT: "All checks passed!"

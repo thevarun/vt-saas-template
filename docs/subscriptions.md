@@ -226,7 +226,7 @@ the primitives, compose the page per product.
 Fresh-environment order (see [`database-workflow.md`](./database-workflow.md) for
 the three-home model):
 
-1. `npm run db:migrate` — creates the 5 tables (journal-driven migration).
+1. `pnpm db:migrate` — creates the 5 tables (journal-driven migration).
 2. `psql -f supabase/seed.sql` — seeds the tiers + quota rows. **Required before
    step 3** if you enable the trial trigger (it RAISEs without the tiers), and
    the quota free-tier safety net throws without the seeded free tier.

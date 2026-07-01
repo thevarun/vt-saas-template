@@ -67,7 +67,7 @@ publish/write path **dual-wrote** old + new during the transition.
    - Regenerate `src/libs/supabase/types.ts` (`db:gen-types`) so the runtime
      query types drop the column too
 
-5. Run `npm run db:generate` on `main` to materialize the drop migration, then
+5. Run `pnpm db:generate` on `main` to materialize the drop migration, then
    ship it through a **preview deploy first** (smoke-check the affected screen)
    before prod applies it via `db:migrate:ci`. Route destructive DDL through a
    deploy — never hand-drop a prod column ahead of the matching app deploy (see

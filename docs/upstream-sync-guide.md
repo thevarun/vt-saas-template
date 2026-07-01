@@ -43,8 +43,8 @@ A template is a **scaffold, not a library** — downstream products are *expecte
 git remote add upstream https://github.com/thevarun/vt-saas-template.git
 git fetch upstream --tags
 git merge v3.2.0
-npm install
-npm run lint && npm run check-types && npm test && npm run build
+pnpm install
+pnpm lint && pnpm check-types && pnpm test && pnpm build
 ```
 
 ## Downstream Project Setup
@@ -75,7 +75,7 @@ If you're not using Claude Code, here's the manual setup:
 
 ```bash
 # 1. Rename schema: update .env.example, delete migrations/*, regenerate
-DB_SCHEMA=my_app npm run db:generate
+DB_SCHEMA=my_app pnpm db:generate
 
 # 2. Configure merge strategies
 git config merge.ours.driver true
@@ -105,8 +105,8 @@ git merge v3.3.0 --allow-unrelated-histories
 The `--allow-unrelated-histories` flag is required because the two repos have no common ancestor. This initial merge will be the largest — expect many files to appear as additions. Resolve conflicts carefully using the file classification table below, then verify:
 
 ```bash
-npm install
-npm run lint && npm run check-types && npm test && npm run build
+pnpm install
+pnpm lint && pnpm check-types && pnpm test && pnpm build
 ```
 
 After this first merge, future syncs follow the normal workflow below (no `--allow-unrelated-histories` needed).
@@ -147,8 +147,8 @@ Or run `/upstream-sync` which shows releases, new commits, and release notes.
 
 4. **Update dependencies and verify:**
    ```bash
-   npm install
-   npm run lint && npm run check-types && npm test && npm run build
+   pnpm install
+   pnpm lint && pnpm check-types && pnpm test && pnpm build
    ```
 
 5. **Commit** (if you merged manually):
@@ -167,31 +167,49 @@ Use this table to decide how to resolve merge conflicts:
 | **Branding — Keep Yours** | `src/styles/global.css`, `public/*` (logo, favicon, og-image), `src/utils/AppConfig.ts`, `src/libs/seo/constants.ts` | Keep your version. Cherry-pick upstream changes if needed. |
 | **Content — Keep Yours** | `src/templates/Navbar.tsx`, `src/templates/Footer.tsx`, `src/locales/*`, `README.md` | Keep your version. These are fully customized for your product. |
 | **Your Product Code** | `src/app/[locale]/(auth)/dashboard/*`, `src/features/*`, your custom routes | No conflict expected — upstream won't have these files. |
-| **Infrastructure** | `package-lock.json` | See "Common Conflicts" below. |
+| **Infrastructure** | `pnpm-lock.yaml` | See "Common Conflicts" below. |
 
 ## Common Conflicts
 
-### package-lock.json
+### pnpm-lock.yaml
 
 This will conflict on almost every sync. The easiest approach:
 
 ```bash
-git checkout --theirs package-lock.json
-npm install
-git add package-lock.json
+git checkout --theirs pnpm-lock.yaml
+pnpm install
+git add pnpm-lock.yaml
 ```
+
+### First sync onto pnpm (one-time)
+
+The release that switches the template from npm to pnpm is a one-time special case: your fork still has `package-lock.json` and no `pnpm-lock.yaml`, so the recurring lock-conflict flow above doesn't apply. Resolve it once:
+
+```bash
+git rm package-lock.json          # drop the npm lockfile — don't try to merge it
+corepack enable                   # activate the pinned pnpm (packageManager field)
+pnpm install                      # generates pnpm-lock.yaml for your dependency set
+pnpm lint && pnpm check-types && pnpm build
+```
+
+Then a few one-time cleanups on the same sync:
+
+- **`.npmrc`** — take upstream's version. A `legacy-peer-deps=true` line is replaced by `strict-peer-dependencies=false` + `auto-install-peers=true` (same permissive behaviour).
+- **Your own `package.json` `overrides`** — move them under `pnpm.overrides`; pnpm ignores npm's top-level `overrides` field.
+- **A native dep of yours fails to build** — add it to `pnpm.onlyBuiltDependencies` (pnpm prints an "Ignored build scripts" hint naming it), then `pnpm rebuild`.
+- **`Cannot find module 'X'`** at build/test time — a phantom dependency you'd been getting via npm's flat hoisting; declare it with `pnpm add X`.
 
 ### package.json
 
-If upstream added new dependencies, accept both sides: keep your additions and take theirs. Then run `npm install` to regenerate the lock file.
+If upstream added new dependencies, accept both sides: keep your additions and take theirs. Then run `pnpm install` to regenerate the lock file.
 
 ### Database Schema (src/models/Schema.ts)
 
 If upstream added new tables and you also modified the schema:
 
 1. Accept both sets of changes (your tables + upstream's new tables)
-2. Run `npm run db:generate` to create a clean migration
-3. Test with `npm run dev`
+2. Run `pnpm db:generate` to create a clean migration
+3. Test with `pnpm dev`
 
 ### Migrations / migration history (`migrations/`, `drizzle/meta/*`)
 
@@ -206,7 +224,7 @@ Accept upstream changes to get new environment variable documentation, then re-a
 - **Sync to tagged releases**, not `upstream/main` — tags are tested and stable
 - **Sync periodically, and selectively once you've diverged** — small frequent merges are easiest *early*; mature, heavily-diverged products sync selectively (see "How (and how often) to sync") instead of merging whole tags
 - **Read the changelog first** — understand what changed before merging
-- **Run the full CI check after every sync**: `npm run lint && npm run check-types && npm test && npm run build`
+- **Run the full CI check after every sync**: `pnpm lint && pnpm check-types && pnpm test && pnpm build`
 - **Minimize edits to core files** — the less you modify template infrastructure, the fewer conflicts you'll encounter
 - **Use a dedicated branch** for the sync if you're nervous:
   ```bash
@@ -227,11 +245,11 @@ If a large version jump causes overwhelming conflicts:
   git cherry-pick <commit-hash>       # pick specific fixes
   ```
 
-### npm install fails after merge
+### pnpm add fails after merge
 
 ```bash
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
 ```
 
 ### Upstream remote not working

@@ -20,9 +20,9 @@ The database state lives in **three** homes — pick the right one and most pitf
 
 ## Not the Supabase CLI
 
-Schema and migrations here are **Drizzle's**: migration files live in `./migrations/` (set by `drizzle.config.ts`) and apply via `npm run db:migrate`. The Supabase CLI's own migration system (`supabase/migrations/`) is **not** used, and that directory is empty.
+Schema and migrations here are **Drizzle's**: migration files live in `./migrations/` (set by `drizzle.config.ts`) and apply via `pnpm db:migrate`. The Supabase CLI's own migration system (`supabase/migrations/`) is **not** used, and that directory is empty.
 
-⚠️ **`supabase db push` will silently report "up to date".** It only reads `supabase/migrations/` (empty), so it never sees the Drizzle migrations in `./migrations/` — it cannot apply your schema. Use `npm run db:migrate` (prod / build-time) or the Supabase MCP / SQL editor (dev) instead. The `supabase/` directory here holds only `prod-setup.sql` and `pending-migrations/`, both applied by hand/MCP — never by `supabase db push`.
+⚠️ **`supabase db push` will silently report "up to date".** It only reads `supabase/migrations/` (empty), so it never sees the Drizzle migrations in `./migrations/` — it cannot apply your schema. Use `pnpm db:migrate` (prod / build-time) or the Supabase MCP / SQL editor (dev) instead. The `supabase/` directory here holds only `prod-setup.sql` and `pending-migrations/`, both applied by hand/MCP — never by `supabase db push`.
 
 ---
 
@@ -75,13 +75,13 @@ A pre-commit hook (`.husky/pre-commit`) enforces step 3. If you trip it, you're 
 
 ## Main-branch / production workflow
 
-1. **After the feature PR merges to `main`**, run `npm run db:generate` once on main locally. Interactively confirm any rename prompts (see Gotchas).
+1. **After the feature PR merges to `main`**, run `pnpm db:generate` once on main locally. Interactively confirm any rename prompts (see Gotchas).
 2. **Inspect the generated SQL carefully.** It should contain only the schema diff (columns/indexes/FKs/UNIQUE/expressible CHECKs). Red flags: `DROP POLICY`, `DROP TRIGGER`, `DROP CONSTRAINT fk_*_auth_users` → abort; `Schema.ts` and the committed snapshot have drifted, or you're missing changes that belong in `prod-setup.sql`.
 3. **Commit** the migration `.sql` file + the updated `migrations/meta/_journal.json` + the new `migrations/meta/NNNN_snapshot.json` together.
 4. **Deploy.** Vercel's build script runs `db:migrate:ci` against prod *before* `next build`:
    ```jsonc
    // package.json
-   "build": "if [ \"$VERCEL_ENV\" = 'production' ]; then ... && npm run db:migrate:ci; fi && next build"
+   "build": "if [ \"$VERCEL_ENV\" = 'production' ]; then ... && pnpm db:migrate:ci; fi && next build"
    ```
    This guarantees schema is in place before the new app code is live — solving the "atomic deploy" concern without hand-written migrations.
 

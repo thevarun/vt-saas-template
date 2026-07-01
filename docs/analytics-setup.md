@@ -81,7 +81,7 @@ export default function AuthLayout({ children }) {
 ### Step 1: Install Amplitude SDK
 
 ```bash
-npm install @amplitude/analytics-browser
+pnpm add @amplitude/analytics-browser
 ```
 
 ### Step 2: Create Amplitude Provider
@@ -201,7 +201,7 @@ That's it! No changes needed to components or tracking code.
 ### Step 1: Install Mixpanel SDK
 
 ```bash
-npm install mixpanel-browser
+pnpm add mixpanel-browser
 ```
 
 ### Step 2: Create Mixpanel Provider

@@ -22,7 +22,7 @@
 ### Sub-steps (track each in state file)
 
 1. **Tool audit**: `vercel --version` + `vercel whoami` succeed.
-2. **Green local build gate**: `npm ci && npm run build && npm run check-types && npm run lint` all pass. Do NOT create Vercel project on a red local build.
+2. **Green local build gate**: `pnpm install --frozen-lockfile && pnpm build && pnpm check-types && pnpm lint` all pass. Do NOT create Vercel project on a red local build.
 3. **Node/TS version alignment**: compare `package.json` engines + `typescript` version to Vercel's current default (via context7 `/vercel/next.js` or WebFetch of [Node.js versions on Vercel](https://vercel.com/docs/functions/runtimes/node-js)). Pin both.
 4. **Domain ownership check**: confirm with user. If fresh domain, run Google Safe Browsing lookup before OAuth work.
 5. **Link project**: `vercel link --yes` from repo root.
@@ -49,7 +49,7 @@
 
 ## Gotchas
 
-- **2026-04-15**: First build can fail on module resolution if `tsconfig.json` paths or `next.config.*` are not committed. Run `npm run build` locally first — this is the gate.
+- **2026-04-15**: First build can fail on module resolution if `tsconfig.json` paths or `next.config.*` are not committed. Run `pnpm build` locally first — this is the gate.
 - **2026-04-16**: TypeScript 6 `baseUrl` deprecation fires on Vercel's newer TS even when local build passes. Fix: `"ignoreDeprecations": "6.0"` in `tsconfig.json`. Pin TS in `package.json` to slow future drift.
 - **2026-04-15**: Deployment Protection is on by default. Breaks Inngest sync, webhook integrations, and anything external that calls your app's API. Configure a bypass key in Project Settings → Deployment Protection → Protection Bypass for Automation.
 - **Ongoing**: `vercel env add` reads from stdin. Piping avoids leaving the value in shell history: `echo -n "$VALUE" | vercel env add NAME production`.

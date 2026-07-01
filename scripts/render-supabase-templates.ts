@@ -2,7 +2,7 @@
  * Renders React Email templates to static HTML files that can be pasted into
  * the Supabase Dashboard → Authentication → Email Templates.
  *
- * Re-run with: `npx tsx scripts/render-supabase-templates.ts`
+ * Re-run with: `pnpm exec tsx scripts/render-supabase-templates.ts`
  * Regenerate after any template content or layout changes, then paste the
  * resulting HTML into the Supabase Dashboard.
  *

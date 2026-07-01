@@ -38,15 +38,15 @@ Remote CI now runs ~once per tier, not ~once per candidate. Cross-tier deps stil
 
 Local-first only saves time if local checks match CI; otherwise you churn on red remote CI. Before opening any PR, on the assembled tier branch run the full parity — and mind the template's gotchas that silently pass a naive local check:
 
-- **Lint by EXIT CODE, not by grepping output.** eslint colorizes with ANSI codes, so `grep '  error  '` misses real errors → false "0 errors." Use `npm run lint` and check `$?`.
+- **Lint by EXIT CODE, not by grepping output.** eslint colorizes with ANSI codes, so `grep '  error  '` misses real errors → false "0 errors." Use `pnpm lint` and check `$?`.
 - **eslint lints workflow YAML too** — a `.yml` quote-style error fails `Lint & Types`.
 - **Run the FULL test suite**, not a subset. A change to a shared component breaks its *consumers'* tests (e.g. a `ThemeToggle` change broke `AdminHeader.test.tsx`), which a scoped `vitest run src/components/theme` never sees.
 - **commitlint**: subject ≤100 chars **and** lowercase-first-word after the type (`subject-case`). Cap produce commit subjects ≤70 to be safe.
-- **`package-lock.json` sync**: if a candidate adds a dep to `package.json`, regenerate the lock (`npm install --package-lock-only`) and commit it, or CI's `npm ci` fails.
+- **`pnpm-lock.yaml` sync**: if a candidate adds a dep to `package.json`, regenerate the lock (`pnpm install --lockfile-only`) and commit it, or CI's `pnpm install --frozen-lockfile` fails.
 - **Required env vars**: set `DB_SCHEMA=vt_saas NEXT_PUBLIC_DB_SCHEMA=vt_saas` for any command that loads `Env` (both are required post-guardrails; a missing one throws at import → build/test fail).
 - **A new required env var** must be added to the CI job env blocks AND flagged as a Vercel-env action for the maintainer (Vercel env is separate from GitHub CI).
 - **Pre-existing local failures ≠ your regression**: the PGlite integration tests (`tests/integration/api/*`) fail locally with `type "…" already exists` (leftover local DB state) but pass in CI's fresh DB — confirm the same set fails on `origin/main` before worrying.
-- **Contributing a fail-on-X gate** (e.g. `npm audit --audit-level=high`) to a repo with pre-existing debt: ship it **advisory** (`continue-on-error: true`) first + a tracked remediation, so it doesn't block on debt it didn't introduce.
+- **Contributing a fail-on-X gate** (e.g. `pnpm audit --audit-level high`) to a repo with pre-existing debt: ship it **advisory** (`continue-on-error: true`) first + a tracked remediation, so it doesn't block on debt it didn't introduce.
 
 ## 6. Batch the human gates
 

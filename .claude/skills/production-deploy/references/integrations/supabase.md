@@ -24,7 +24,7 @@
 3. **Expose the schema** in Data API. Dashboard → Project Settings → Data API → Exposed Schemas. Add your `DB_SCHEMA`. Confirm `drizzle` and other internal schemas are NOT exposed.
 4. **Run migrations** against prod DB:
    ```bash
-   DATABASE_URL="<prod-pooler>" DB_SCHEMA="<schema>" npx drizzle-kit migrate
+   DATABASE_URL="<prod-pooler>" DB_SCHEMA="<schema>" pnpm exec drizzle-kit migrate
    ```
 5. **Seed** — `supabase/seed.sql` via SQL Editor. Preview SQL → confirm → execute.
 6. **Prod-setup** — `supabase/prod-setup.sql` via SQL Editor. Handles triggers, cross-schema FKs, RLS policies, GRANTs. **Depends on seed data**. Preview → fresh-eyes review → confirm → execute.

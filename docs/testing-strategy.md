@@ -46,18 +46,18 @@ This repo is a template. Don't couple a core-journey E2E to an optional feature 
 
 ## Storybook
 
-Storybook is the living catalog of shared UI primitives (`src/components/ui/*`) that forks inherit, built on the **Vite** framework (`@storybook/nextjs-vite`). Stories double as tests: `npm run test:stories` runs every `*.stories.tsx` as a **Vitest browser test** (headless Chromium via `@storybook/addon-vitest`), so a broken import, a render error, or a failing play function fails CI. It's kept as a separate Vitest project (opt-in via `VITEST_STORYBOOK=1`) so the default `npm test` stays fast and browser-free. Add a story when you add a reusable primitive — it's documentation _and_ a render test in one.
+Storybook is the living catalog of shared UI primitives (`src/components/ui/*`) that forks inherit, built on the **Vite** framework (`@storybook/nextjs-vite`). Stories double as tests: `pnpm test:stories` runs every `*.stories.tsx` as a **Vitest browser test** (headless Chromium via `@storybook/addon-vitest`), so a broken import, a render error, or a failing play function fails CI. It's kept as a separate Vitest project (opt-in via `VITEST_STORYBOOK=1`) so the default `pnpm test` stays fast and browser-free. Add a story when you add a reusable primitive — it's documentation _and_ a render test in one.
 
 > This replaced `@storybook/test-runner`, which crashed on Node 22 (`nyc`/`ERR_INVALID_ARG_TYPE`) and is being superseded upstream by the Vitest addon.
 
 ## Commands
 
 ```bash
-npm run test                              # Vitest (node + jsdom projects, browser-free)
-npx vitest run path/to/file.test.ts       # single file
-npm run test -- --coverage                # coverage on demand (not gated in CI)
-npm run test:stories                      # stories as Vitest browser tests (Chromium)
-npm run test:e2e                          # Playwright E2E
+pnpm test                                  # Vitest (node + jsdom projects, browser-free)
+pnpm exec vitest run path/to/file.test.ts  # single file
+pnpm test --coverage                       # coverage on demand (not gated in CI)
+pnpm test:stories                          # stories as Vitest browser tests (Chromium)
+pnpm test:e2e                              # Playwright E2E
 ```
 
 ## CI shape

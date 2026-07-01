@@ -133,7 +133,7 @@ Total: 18 static pages (6 pages × 3 locales)
    ```
    Without it, the loader title-cases the folder slug and uses an empty description.
 
-3. **Rebuild** the project: `npm run build`
+3. **Rebuild** the project: `pnpm build`
 4. Pages are automatically generated and added to sitemap
 
 ## Scaling Considerations

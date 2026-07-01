@@ -36,14 +36,14 @@ This guide provides step-by-step instructions for completely removing all chat f
 
 1. **Back up your data**: Export all conversations, messages, and memories from the database if you want to keep them
 2. **Commit pending changes**: Ensure your git working directory is clean
-3. **Close development servers**: Stop any running `npm run dev` processes
+3. **Close development servers**: Stop any running `pnpm dev` processes
 4. **Consider alternatives**: If you only want to remove one implementation, see the specific removal guides:
    - [Removing Dify Chat Only](./removing-dify-chat.md)
    - [Removing Vercel AI SDK Chat Only](./removing-vercel-chat.md)
 
 **Prerequisites:**
 - Git repository with committed changes
-- Node.js and npm installed
+- Node.js and pnpm installed (pnpm via `corepack enable`)
 - Database access for schema modifications
 
 ---
@@ -223,7 +223,7 @@ export const memoryExtractionJobs = vtSaasSchema.table(
 
 **Generate and apply migration:**
 ```bash
-npm run db:generate
+pnpm db:generate
 ```
 
 This creates a migration to drop all five chat-related tables. The migration will auto-apply on next database interaction.
@@ -252,19 +252,19 @@ Uninstall all chat-related packages:
 
 ```bash
 # Remove Vercel AI SDK packages
-npm uninstall ai @ai-sdk/openai
+pnpm remove ai @ai-sdk/openai
 
 # Remove Assistant UI packages (if chat-only)
-npm uninstall @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
+pnpm remove @assistant-ui/react @assistant-ui/react-ai-sdk @assistant-ui/react-devtools @assistant-ui/react-markdown
 
 # Remove LangFuse packages
-npm uninstall langfuse langfuse-vercel
+pnpm remove langfuse langfuse-vercel
 
 # Remove Mem0 package
-npm uninstall mem0ai
+pnpm remove mem0ai
 
 # If you installed Anthropic provider
-npm uninstall @ai-sdk/anthropic
+pnpm remove @ai-sdk/anthropic
 
 # Clean up unused dependencies
 npm prune
@@ -338,19 +338,19 @@ Run these commands to ensure complete clean removal:
 
 ```bash
 # Type checking
-npm run check-types
+pnpm check-types
 
 # Linting
-npm run lint
+pnpm lint
 
 # Build verification
-npm run build
+pnpm build
 
 # Run tests
-npm test
+pnpm test
 
 # Run development server
-npm run dev
+pnpm dev
 ```
 
 **Manual verification:**
@@ -386,7 +386,7 @@ npm run dev
 
 **Database:**
 - [ ] Database schema updated (5 tables removed)
-- [ ] Migration generated with `npm run db:generate`
+- [ ] Migration generated with `pnpm db:generate`
 - [ ] Optional: Data exported for backup
 
 **Dependencies:**
@@ -403,10 +403,10 @@ npm run dev
 - [ ] Other docs updated if they reference chat
 
 **Verification:**
-- [ ] `npm run check-types` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run build` completes successfully
-- [ ] `npm test` passes (if tests exist)
+- [ ] `pnpm check-types` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm build` completes successfully
+- [ ] `pnpm test` passes (if tests exist)
 - [ ] Development server runs without errors
 - [ ] All `/chat/*` routes return 404
 - [ ] Navigation shows no chat links
@@ -447,7 +447,7 @@ grep -r "from '@assistant-ui" src/
 - Ensure you removed the `chatConfig` variable declaration
 - Remove `getPublicChatConfig` import
 - Remove unused icon imports (`MessageSquare`, `Sparkles`)
-- Clear build: `rm -rf .next/ && npm run build`
+- Clear build: `rm -rf .next/ && pnpm build`
 
 ### Database migration fails
 
@@ -457,7 +457,7 @@ grep -r "from '@assistant-ui" src/
 - Verify you removed all five table definitions
 - Check for no dangling commas or syntax errors
 - Ensure no other code references the removed tables
-- Try: `rm -rf drizzle/` and regenerate: `npm run db:generate`
+- Try: `rm -rf drizzle/` and regenerate: `pnpm db:generate`
 
 ### Type errors persist after removal
 
@@ -471,8 +471,8 @@ rm -rf node_modules/.cache/
 rm -rf drizzle/
 
 # Fresh install and build
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
 ### Routes still accessible
@@ -485,7 +485,7 @@ npm run build
 - Clear build and restart:
 ```bash
 rm -rf .next/
-npm run dev
+pnpm dev
 ```
 
 ### Middleware errors

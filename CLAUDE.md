@@ -13,7 +13,7 @@ Ships: Supabase auth (SSR) · two interchangeable AI chat stacks (Dify proxy + V
 - **Framework:** Next.js 16 (App Router, RSC, Turbopack) · React 19 · TypeScript
 - **Auth + DB:** Supabase (Postgres + Auth + SSR). Tables live in the schema named by `DB_SCHEMA` (`vt_saas` in all environments, incl. prod) — never hardcode the schema
 - **Schema/ORM:** Drizzle — schema-as-code; apply to dev via Supabase MCP, generate + commit the migration on the feature branch alongside the schema edit, migrate-on-prod (see DB rules below). **No `db:push`** (drift-destructive; intentionally absent)
-- **Query client + types:** Supabase JS for runtime queries; `src/libs/supabase/types.ts` is **generated** (`npm run db:gen-types` after each migration) — that's what turns a dropped column into a `tsc` error instead of a prod 400
+- **Query client + types:** Supabase JS for runtime queries; `src/libs/supabase/types.ts` is **generated** (`pnpm db:gen-types` after each migration) — that's what turns a dropped column into a `tsc` error instead of a prod 400
 - **AI:** two stacks behind one `/chat` selector — see "Which chat to use." Vercel path uses AI SDK 6, provider-agnostic
 - **UI:** shadcn/ui + Tailwind 4. No other UI libraries without approval
 - **i18n:** next-intl — `en` (default), `hi`, `bn`. Strings in `src/locales/`
@@ -54,7 +54,7 @@ Subsystem rules in `.claude/rules/` (auto-load by path glob): `database.md` (sch
 
 ### TypeScript & lint
 
-Use `type`, not `interface` (`ts/consistent-type-definitions`). **Semicolons are required** and single quotes for JSX attributes (antfu `stylistic`). Imports are auto-sorted — let `npm run lint:fix` handle order, never hand-order.
+Use `type`, not `interface` (`ts/consistent-type-definitions`). **Semicolons are required** and single quotes for JSX attributes (antfu `stylistic`). Imports are auto-sorted — let `pnpm lint:fix` handle order, never hand-order.
 
 > **Never** use an `eslint-disable` to lazy-`require()` a local ESM module under Next 16 + Turbopack — the production bundle drops the named export under ESM↔CJS interop (this silently broke a provider module's named export in prod). Use static `import` for local modules. Every `eslint-disable` needs a `-- reason`.
 
@@ -69,38 +69,41 @@ API-error contract (`AUTH_REQUIRED` 401, `VALIDATION_ERROR` 400, `NOT_FOUND` 404
 
 ## Database — non-negotiables
 
-1. **Apply schema changes to dev manually on the feature branch.** Edit `src/models/Schema.ts`, then apply the equivalent SQL to the dev Supabase DB via **Supabase MCP `apply_migration`** or the SQL editor. Run `npm run db:gen-types` so `src/libs/supabase/types.ts` stays in sync.
-2. **Generate + commit the migration on the feature branch, alongside the `Schema.ts` change.** Rebase onto latest `main` first (concurrent schema PRs collide on `_journal.json` / the `NNNN` index), then `npm run db:generate` — it diffs `Schema.ts` against the snapshot JSON (no live DB), so it works on any branch. Inspect the SQL (red flags: `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`) and commit the `.sql` + `meta/_journal.json` + `NNNN_snapshot.json` together with the schema edit, so code + DB merge atomically. `db:migrate` is **journal-driven** — only `.sql` files listed in `_journal.json` run; a hand-written file not in the journal is silently skipped.
-3. **Prod applies at build time — there is no auto-apply.** Vercel runs `npm run db:migrate:ci` before `next build`, gated behind `RUN_PROD_MIGRATIONS=true`. Nothing applies migrations on first interaction. (`db:migrate` runs under `dotenv -c production` and targets prod by design — don't run it locally against shared dev.)
+1. **Apply schema changes to dev manually on the feature branch.** Edit `src/models/Schema.ts`, then apply the equivalent SQL to the dev Supabase DB via **Supabase MCP `apply_migration`** or the SQL editor. Run `pnpm db:gen-types` so `src/libs/supabase/types.ts` stays in sync.
+2. **Generate + commit the migration on the feature branch, alongside the `Schema.ts` change.** Rebase onto latest `main` first (concurrent schema PRs collide on `_journal.json` / the `NNNN` index), then `pnpm db:generate` — it diffs `Schema.ts` against the snapshot JSON (no live DB), so it works on any branch. Inspect the SQL (red flags: `DROP POLICY` / `DROP TRIGGER` / `DROP CONSTRAINT`) and commit the `.sql` + `meta/_journal.json` + `NNNN_snapshot.json` together with the schema edit, so code + DB merge atomically. `db:migrate` is **journal-driven** — only `.sql` files listed in `_journal.json` run; a hand-written file not in the journal is silently skipped.
+3. **Prod applies at build time — there is no auto-apply.** Vercel runs `pnpm db:migrate:ci` before `next build`, gated behind `RUN_PROD_MIGRATIONS=true`. Nothing applies migrations on first interaction. (`db:migrate` runs under `dotenv -c production` and targets prod by design — don't run it locally against shared dev.)
 
 Three-home model, dev→prod flow, destructive-change checklist: [`.claude/rules/database.md`](.claude/rules/database.md) → [docs/database-workflow.md](docs/database-workflow.md).
 
 ## Commands
 
 ```bash
+# Package manager: pnpm (pinned via the `packageManager` field; run `corepack enable` once).
+# `pnpm <script>` runs package.json scripts; `pnpm exec <bin>` runs a local binary.
+
 # Dev
-npm run dev              # Next.js + Sentry Spotlight (Turbopack)
-npm run dev:next         # Next.js only
+pnpm dev              # Next.js + Sentry Spotlight (Turbopack)
+pnpm dev:next         # Next.js only
 
 # Quality  (run all before pushing)
-npm run lint             # ESLint (antfu)            npm run lint:fix
-npm run check-types      # tsc --noEmit
-npm run build            # production build
+pnpm lint             # ESLint (antfu)            pnpm lint:fix
+pnpm check-types      # tsc --noEmit
+pnpm build            # production build
 
 # Test  (creds: test@test.com / password)
-npm run test                              # Vitest (unit, co-located)
-npx vitest run path/to/file.test.ts       # single file
-npm run test:e2e                          # Playwright
+pnpm test                              # Vitest (unit, co-located)
+pnpm exec vitest run path/to/file.test.ts       # single file
+pnpm test:e2e                          # Playwright
 
 # Database  (no db:push — see "Database" above)
-npm run db:generate      # migration from schema diff (on the feature branch, rebased onto main)
-npm run db:migrate       # apply migrations (journal-driven)
-npm run db:gen-types     # regenerate Supabase types after a migration
-npm run db:studio        # Drizzle Studio
+pnpm db:generate      # migration from schema diff (on the feature branch, rebased onto main)
+pnpm db:migrate       # apply migrations (journal-driven)
+pnpm db:gen-types     # regenerate Supabase types after a migration
+pnpm db:studio        # Drizzle Studio
 
-npm run email:dev        # React Email preview, port 3001
-npm run storybook        # port 6006
-npm run commit           # Commitizen
+pnpm email:dev        # React Email preview, port 3001
+pnpm storybook        # port 6006
+pnpm commit           # Commitizen
 ```
 
 Environment variables: copy and fill `.env.example` (the canonical, annotated list). Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DIFY_API_KEY`) stay in `.env.local` only.
@@ -113,12 +116,12 @@ Layer boundary and rationale: [docs/testing-strategy.md](docs/testing-strategy.m
 
 - Unit (Vitest): co-located; `node` is the default env, `jsdom` for `.tsx` (opt a `.ts` in with a `// @vitest-environment jsdom` pragma). Hermetic — no shared DB (in-memory PGlite).
 - E2E (Playwright): `tests/`, `*.spec.ts` / `*.e2e.ts`; auth/middleware/persistence/SEO only. Prefer the `request` fixture (no browser) when there's no DOM — see `tests/seo.spec.ts`.
-- Storybook: stories for shared `components/ui/*` primitives run as Vitest browser tests via `npm run test:stories` (Storybook Vitest addon); also gated in CI.
+- Storybook: stories for shared `components/ui/*` primitives run as Vitest browser tests via `pnpm test:stories` (Storybook Vitest addon); also gated in CI.
 - After a frontend change, do a quick visual check (Playwright/Chrome MCP) and save screenshots to `_bmad-output/implementation-artifacts/screenshots`.
 
 ## Commits & CI
 
-- **Remote `main` is protected** — always branch, then PR. Run `npm run lint && npm run check-types && npm test && npm run build` locally before pushing (faster feedback than CI).
+- **Remote `main` is protected** — always branch, then PR. Run `pnpm lint && pnpm check-types && pnpm test && pnpm build` locally before pushing (faster feedback than CI).
 - **Conventional Commits**, one-line, no "Co-Authored-By". semantic-release bumps version from commit type (`feat:`→minor, `fix:`→patch, `feat!:`→major) and writes `docs/CHANGELOG.md`.
 - Quality gates: ESLint · TypeScript · Vitest · Build · Playwright E2E. Preview deploy on PRs, production on merge. Required secrets + details: [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md).
 

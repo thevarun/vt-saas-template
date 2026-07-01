@@ -1,6 +1,6 @@
 /**
  * Script to apply RLS policies to Supabase
- * Run: npx tsx scripts/apply-rls-policies.ts
+ * Run: pnpm exec tsx scripts/apply-rls-policies.ts
  */
 
 import * as fs from 'node:fs';

@@ -87,7 +87,7 @@ Read from `.env.local`:
 
 ### Dev mode (`--dev`)
 
-- **Dev server** — running and reachable (`npm run dev`, default port 3000). Read the actual port from the running dev-server process rather than hard-coding it.
+- **Dev server** — running and reachable (`pnpm dev`, default port 3000). Read the actual port from the running dev-server process rather than hard-coding it.
 - **Supabase MCP** — connected to the dev project (project ID derived from `.env.local`).
 - **Gmail MCP** — connected. Same role as in prod mode.
 - **Playwright MCP (only if a runbook needs UI)** — many dev-mode steps don't need a browser at all (API-path invocations via `/api/auth/dev-login` + DB inspection cover most checkpoints).
@@ -150,8 +150,8 @@ Runbooks describe **user-observable outcomes**, not implementation. Examples of 
 
 Pre-flight has two purposes, in this order:
 
-1. **Capabilities check** — every runbook declares its `requires` (e.g. `gmail-mcp`, `supabase-mcp`, `dev-server`, `playwright-mcp`). Before starting, walk that list and confirm each is actually reachable in the current session. **If any required tool/MCP is missing or not connected, stop with a clear message naming the missing capability and how to bring it in** (e.g. "Dev server is not running — run `npm run dev`, then re-invoke `/qa`"). Do not partially run a runbook with missing dependencies — partial runs produce false negatives.
-2. **Baseline check** — run `npm run check-types` and `npm run test`, note the pass/fail counts as the baseline. Abort if either is broken in a way the runbook can't possibly cause. This catches "tests were already red" so you don't conflate pre-existing breakage with run findings. Skipping the baseline is OK if explicitly opted out (e.g. `/qa --skip-baseline`); skipping capabilities is never OK.
+1. **Capabilities check** — every runbook declares its `requires` (e.g. `gmail-mcp`, `supabase-mcp`, `dev-server`, `playwright-mcp`). Before starting, walk that list and confirm each is actually reachable in the current session. **If any required tool/MCP is missing or not connected, stop with a clear message naming the missing capability and how to bring it in** (e.g. "Dev server is not running — run `pnpm dev`, then re-invoke `/qa`"). Do not partially run a runbook with missing dependencies — partial runs produce false negatives.
+2. **Baseline check** — run `pnpm check-types` and `pnpm test`, note the pass/fail counts as the baseline. Abort if either is broken in a way the runbook can't possibly cause. This catches "tests were already red" so you don't conflate pre-existing breakage with run findings. Skipping the baseline is OK if explicitly opted out (e.g. `/qa --skip-baseline`); skipping capabilities is never OK.
 
 ### Real-send verification for any email-emitting step
 

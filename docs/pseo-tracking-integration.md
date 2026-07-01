@@ -282,7 +282,7 @@ export function PseoClientTracker({
 When `NEXT_PUBLIC_POSTHOG_KEY` is not set, events are logged to browser console.
 
 **Steps**:
-1. Start dev server: `npm run dev`
+1. Start dev server: `pnpm dev`
 2. Navigate to a pSEO page
 3. Open browser DevTools (F12) → Console tab
 4. Look for output like:

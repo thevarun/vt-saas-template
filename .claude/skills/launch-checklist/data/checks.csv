@@ -4,7 +4,7 @@ id,domain,name,tier,scan_method,description
 3,Auth & Infrastructure,Protected routes configured,alpha,"grep_file:src/proxy.ts:protectedPaths","Verify protectedPaths array exists in src/proxy.ts and contains route entries"
 4,Auth & Infrastructure,DATABASE_URL points to real Postgres,alpha,"grep_env:DATABASE_URL","Check DATABASE_URL is set and does not contain 'pglite' or 'localhost' placeholder patterns"
 5,Auth & Infrastructure,Migration files exist,alpha,"glob:migrations/**/*.sql OR src/migrations/**/*.sql OR drizzle/**/*.sql","Check that at least one SQL migration file exists"
-6,Auth & Infrastructure,App builds successfully,alpha,"command:npm run build","Run npm run build and check exit code (0 = PASS)"
+6,Auth & Infrastructure,App builds successfully,alpha,"command:pnpm build","Run pnpm build and check exit code (0 = PASS)"
 7,Auth & Infrastructure,Deployment configured,alpha,"glob:vercel.json OR check_framework_detection","Check for vercel.json or Vercel framework detection (Next.js auto-detected)"
 8,Security,No API keys in client code,alpha,"grep_source:DIFY_API_KEY|SUPABASE_SERVICE_ROLE_KEY|RESEND_API_KEY","Scan src/ for server-only env vars that should never appear in client code"
 9,Observability,Sentry DSN configured,alpha,"grep_env:SENTRY_DSN OR grep_config:sentry.*.config.ts","Check for SENTRY_DSN in env or Sentry config files with DSN value"

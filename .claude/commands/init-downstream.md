@@ -74,12 +74,12 @@ Set up a freshly forked/templated project as an independent downstream project.
    - If unsure, keep everything — extra tables are harmless; you can drop later.
 
 5. Generate fresh migration:
-   - Run: DB_SCHEMA=<new_schema> npm run db:generate
+   - Run: DB_SCHEMA=<new_schema> pnpm db:generate
    - This creates a single clean migration for the new schema name
    - NOTE: drizzle-kit generate does NOT need DATABASE_URL — it reads Schema.ts only
 
 6. Verify idempotency:
-   - Run: DB_SCHEMA=<new_schema> npm run db:generate
+   - Run: DB_SCHEMA=<new_schema> pnpm db:generate
    - Confirm output says "No schema changes, nothing to migrate"
    - If a second migration was generated → OUTPUT: "WARNING: Schema generation is not idempotent. Check Schema.ts."
 
@@ -225,10 +225,10 @@ checklist of what CI/deploy will need, so your first CI run doesn't fail on miss
 ## Step 8: Verify
 
 ```
-1. Run: DB_SCHEMA=<new_schema> npm run db:generate
+1. Run: DB_SCHEMA=<new_schema> pnpm db:generate
    - Confirm: "No schema changes, nothing to migrate"
 
-2. Run: npm run build
+2. Run: pnpm build
    - If build fails → OUTPUT: "WARNING: Build failed. Review errors above."
    - If build succeeds → OUTPUT: "Build passed."
 
@@ -247,7 +247,7 @@ checklist of what CI/deploy will need, so your first CI run doesn't fail on miss
 
    Next steps:
    1. Create .env.local with your DB_SCHEMA=<new_schema> and other secrets
-   2. Set up your database and run: npm run db:migrate
+   2. Set up your database and run: pnpm db:migrate
    3. Enable build-time migrations for production: set RUN_PROD_MIGRATIONS=true in your
       deploy environment (e.g. Vercel → Production env). The template ships with this OFF
       so a build never migrates an unintended DB; your downstream has its own dedicated DB,

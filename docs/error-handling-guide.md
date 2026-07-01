@@ -514,7 +514,7 @@ In development mode, error boundaries show detailed information:
 
 In development, Sentry Spotlight shows real-time errors:
 
-1. Run `npm run dev`
+1. Run `pnpm dev`
 2. Trigger an error
 3. Check the Spotlight overlay for error details
 

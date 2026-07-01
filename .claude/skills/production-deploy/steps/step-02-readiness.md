@@ -38,7 +38,7 @@ Checks to pass:
 - Nothing left in flight (`git log main..HEAD --oneline`)
 - Open PRs triaged (`gh pr list --state open`)
 
-_e.g. (npm):_ `npm ci && npm run build && npm run check-types && npm run lint && npm run test`
+_e.g. (npm):_ `pnpm install --frozen-lockfile && pnpm build && pnpm check-types && pnpm lint && pnpm test`
 
 Also verify:
 - Node version matches Vercel's current default (context7 fetch or `vercel.json` engines)

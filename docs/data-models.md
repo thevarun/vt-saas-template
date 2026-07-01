@@ -156,4 +156,4 @@ memoryExtractionJobs -> vercelConversations (conversationId)
 
 - **Dev:** PGlite (in-memory) with auto-migration
 - **Prod:** PostgreSQL with auto-migration on startup
-- **Commands:** `npm run db:generate` | `npm run db:migrate` | `npm run db:studio`
+- **Commands:** `pnpm db:generate` | `pnpm db:migrate` | `pnpm db:studio`

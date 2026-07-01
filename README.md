@@ -56,7 +56,7 @@ VT SaaS Template is a modern web application template that provides a solid foun
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -70,12 +70,12 @@ VT SaaS Template is a modern web application template that provides a solid foun
 
    Migrations are applied automatically on first database interaction. Alternatively, run manually:
    ```bash
-   npm run db:migrate
+   pnpm db:migrate
    ```
 
 5. **Start the development server**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
    The application will be available at `http://localhost:3000`
@@ -85,17 +85,17 @@ VT SaaS Template is a modern web application template that provides a solid foun
 ### Available Scripts
 
 ```bash
-npm run dev              # Start development server (with Sentry Spotlight)
-npm run dev:next         # Start Next.js dev server only (without Spotlight)
-npm run build            # Create production build
-npm start                # Start production server
-npm test                 # Run unit tests
-npm run test:e2e         # Run E2E tests
-npm run lint             # Run ESLint
-npm run lint:fix         # Fix auto-fixable issues
-npm run check-types      # TypeScript type checking
-npm run db:studio        # Open Drizzle Studio
-npm run db:generate      # Generate migration from schema
+pnpm dev              # Start development server (with Sentry Spotlight)
+pnpm dev:next         # Start Next.js dev server only (without Spotlight)
+pnpm build            # Create production build
+pnpm start                # Start production server
+pnpm test                 # Run unit tests
+pnpm test:e2e         # Run E2E tests
+pnpm lint             # Run ESLint
+pnpm lint:fix         # Fix auto-fixable issues
+pnpm check-types      # TypeScript type checking
+pnpm db:studio        # Open Drizzle Studio
+pnpm db:generate      # Generate migration from schema
 
 # Claude Code commands (run inside Claude Code):
 /init-downstream          # Post-fork project initialization
@@ -232,8 +232,8 @@ When new features or fixes are released in the template, pull them into your pro
 # Or manually:
 git fetch upstream --tags
 git merge v3.2.0
-npm install
-npm run lint && npm run check-types && npm test && npm run build
+pnpm install
+pnpm lint && pnpm check-types && pnpm test && pnpm build
 ```
 
 See [Upstream Sync Guide](docs/upstream-sync-guide.md) for detailed instructions and conflict resolution strategies.
@@ -287,7 +287,7 @@ Set it in `.env.local`:
 DB_SCHEMA=vt_saas
 ```
 
-When forking this template, run `/init-downstream` (Claude Code) to rename the schema and regenerate migrations automatically. Without Claude Code: update `DB_SCHEMA` in `.env.example` and `.env.local`, delete existing migrations, and run `npm run db:generate`.
+When forking this template, run `/init-downstream` (Claude Code) to rename the schema and regenerate migrations automatically. Without Claude Code: update `DB_SCHEMA` in `.env.example` and `.env.local`, delete existing migrations, and run `pnpm db:generate`.
 
 ### Making Schema Changes
 
@@ -295,14 +295,14 @@ This project uses **Drizzle** for migrations (files in `./migrations/`), **not**
 
 1. Edit `src/models/Schema.ts`.
 2. **On a feature branch:** apply the equivalent SQL to the dev DB via the Supabase MCP or SQL editor — don't commit migration files (a pre-commit hook blocks them off `main`). Locally, `src/libs/DB.ts` auto-applies committed migrations on startup (PGlite and dev Postgres).
-3. **On `main` after merge:** run `npm run db:generate`, inspect the SQL, and commit it. Production applies migrations at build time via `db:migrate:ci` (gated on `RUN_PROD_MIGRATIONS`).
+3. **On `main` after merge:** run `pnpm db:generate`, inspect the SQL, and commit it. Production applies migrations at build time via `db:migrate:ci` (gated on `RUN_PROD_MIGRATIONS`).
 
-> ⚠️ **Don't run `supabase db push`** — the Supabase CLI reads `supabase/migrations/` (empty here) and will silently report "up to date" while never applying the Drizzle migrations in `./migrations/`. Use `npm run db:migrate` or the Supabase MCP instead.
+> ⚠️ **Don't run `supabase db push`** — the Supabase CLI reads `supabase/migrations/` (empty here) and will silently report "up to date" while never applying the Drizzle migrations in `./migrations/`. Use `pnpm db:migrate` or the Supabase MCP instead.
 
 ### Viewing Database
 
 ```bash
-npm run db:studio
+pnpm db:studio
 ```
 
 Opens Drizzle Studio at `https://local.drizzle.studio`
@@ -335,7 +335,7 @@ The application is compatible with any platform that supports Next.js 16:
 - [ ] Supabase project configured with env vars
 - [ ] Vercel project connected to repo
 - [ ] `ADMIN_EMAILS` set to your email
-- [ ] CI passes: `npm run lint && npm run check-types && npm test && npm run build`
+- [ ] CI passes: `pnpm lint && pnpm check-types && pnpm test && pnpm build`
 - [ ] Sign up → onboarding → dashboard flow works end-to-end
 - [ ] See [Deployment Guide](docs/deployment-guide.md) for Vercel env vars and GitHub secrets
 
@@ -356,7 +356,7 @@ Everything from alpha, plus:
 
 - **Next.js 16 async params**: Route params are Promises — always `await props.params`. See [Next.js docs](https://nextjs.org/docs/app/building-your-application/routing/layouts-and-templates).
 - **Mem0 cron 404s**: If you see repeated 404s for `/api/cron/memory-extraction` in Vercel logs, remove the cron entry from `vercel.json` (Mem0 is disabled by default).
-- **PGlite vs production**: PGlite auto-migrates locally; production PostgreSQL needs `npm run db:migrate`.
+- **PGlite vs production**: PGlite auto-migrates locally; production PostgreSQL needs `pnpm db:migrate`.
 - **Email in dev**: Without `RESEND_API_KEY`, emails log to console — this is intentional, not a bug.
 - **Chat nav visibility**: Chat nav items auto-show/hide based on whether API keys are set in env vars.
 - **App name in multiple places**: Update in `src/utils/AppConfig.ts`, `src/libs/seo/constants.ts`, and `src/components/layout/MainAppShell.tsx` (3 hardcoded strings), plus `src/libs/Env.ts` default.
@@ -407,7 +407,7 @@ See `docs/architecture.md` for detailed architecture documentation.
 ### Unit Tests (Vitest)
 
 ```bash
-npm test
+pnpm test
 ```
 
 Tests are co-located with source files (`*.test.ts`, `*.test.tsx`)
@@ -415,7 +415,7 @@ Tests are co-located with source files (`*.test.ts`, `*.test.tsx`)
 ### E2E Tests (Playwright)
 
 ```bash
-npm run test:e2e
+pnpm test:e2e
 ```
 
 E2E tests are in the `tests/` directory
@@ -424,7 +424,7 @@ E2E tests are in the `tests/` directory
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`npm run commit` for conventional commits)
+3. Commit your changes (`pnpm commit` for conventional commits)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
@@ -432,7 +432,7 @@ E2E tests are in the `tests/` directory
 
 - ESLint: Enforced via pre-commit hooks
 - Prettier: Auto-formatting enabled
-- Conventional Commits: Required (use `npm run commit`)
+- Conventional Commits: Required (use `pnpm commit`)
 
 ## Documentation
 
