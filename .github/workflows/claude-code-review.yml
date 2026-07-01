@@ -66,7 +66,7 @@ jobs:
           # checks with the code under review).
           additional_permissions: |
             actions: read
-          plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: code-review@claude-code-plugins
           # `--comment` posts line-level findings live during the session. The
           # plugin's final *summary* rides the session's last result, which the
@@ -74,7 +74,7 @@ jobs:
           # call — so a clean diff can post NOTHING (upstream, still open:
           # anthropics/claude-code-action#1087 / #1054). The "Ensure review is
           # never silent" step below backstops that so a result always appears.
-          prompt: "/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
