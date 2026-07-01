@@ -9,7 +9,8 @@
 // Free-text provider id (single-provider today, extensible to many).
 export type PlatformType = string;
 
-export type PlatformConnectionStatus = 'connected' | 'expired' | 'disconnected';
+export type PlatformConnectionStatus
+  = 'connected' | 'expiring_soon' | 'expired' | 'disconnected';
 
 export type PlatformConnection = {
   id: string;
@@ -28,7 +29,10 @@ export type PlatformConnection = {
 };
 
 // Safe read model — never exposes tokens.
-export type PlatformConnectionSafe = Omit<PlatformConnection, 'accessToken' | 'refreshToken'>;
+export type PlatformConnectionSafe = Omit<
+  PlatformConnection,
+  'accessToken' | 'refreshToken'
+>;
 
 export type OAuthTokenResponse = {
   access_token: string;
