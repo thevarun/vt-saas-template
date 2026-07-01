@@ -8,36 +8,13 @@ import { useEffect, useState } from 'react';
 
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/libs/supabase/client';
+import {
+  COOLDOWN_DURATION,
+  getRemainingCooldown,
+  setCooldownExpiry,
+} from '@/libs/utils/auth-cooldown';
 
-const COOLDOWN_DURATION = 60; // 60 seconds
-
-function getCooldownKey(email: string): string {
-  return `email_resend_cooldown_${email}`;
-}
-
-function getCooldownExpiry(email: string): number | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  const stored = localStorage.getItem(getCooldownKey(email));
-  return stored ? Number.parseInt(stored, 10) : null;
-}
-
-function setCooldownExpiry(email: string, expiry: number): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  localStorage.setItem(getCooldownKey(email), expiry.toString());
-}
-
-function getRemainingCooldown(email: string): number {
-  const expiry = getCooldownExpiry(email);
-  if (!expiry) {
-    return 0;
-  }
-  const remaining = Math.ceil((expiry - Date.now()) / 1000);
-  return remaining > 0 ? remaining : 0;
-}
+const COOLDOWN_PREFIX = 'email_resend_cooldown';
 
 type ResendStatus = 'idle' | 'loading' | 'success' | 'cooldown';
 
@@ -59,7 +36,7 @@ export default function VerifyEmailPage() {
     const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
-      const remaining = getRemainingCooldown(emailParam);
+      const remaining = getRemainingCooldown(COOLDOWN_PREFIX, emailParam);
       if (remaining > 0) {
         setCooldownSeconds(remaining);
         setResendStatus('cooldown');
@@ -71,7 +48,7 @@ export default function VerifyEmailPage() {
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user?.email) {
           setEmail(user.email);
-          const remaining = getRemainingCooldown(user.email);
+          const remaining = getRemainingCooldown(COOLDOWN_PREFIX, user.email);
           if (remaining > 0) {
             setCooldownSeconds(remaining);
             setResendStatus('cooldown');
@@ -91,7 +68,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (resendStatus === 'cooldown' && cooldownSeconds > 0) {
       const interval = setInterval(() => {
-        const remaining = getRemainingCooldown(email);
+        const remaining = getRemainingCooldown(COOLDOWN_PREFIX, email);
         setCooldownSeconds(remaining);
         if (remaining <= 0) {
           setResendStatus('idle');
@@ -139,7 +116,7 @@ export default function VerifyEmailPage() {
       // After 2 seconds, switch to cooldown
       setTimeout(() => {
         const expiryTime = Date.now() + COOLDOWN_DURATION * 1000;
-        setCooldownExpiry(email, expiryTime);
+        setCooldownExpiry(COOLDOWN_PREFIX, email, expiryTime);
         setCooldownSeconds(COOLDOWN_DURATION);
         setResendStatus('cooldown');
       }, 2000);
