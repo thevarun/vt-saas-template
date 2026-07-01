@@ -6,6 +6,7 @@ import {
   processSingleTask,
   scheduledTasksCron,
 } from '@/libs/inngest/functions/scheduled-tasks';
+import { tokenRefreshFunction } from '@/libs/inngest/functions/token-refresh';
 import { trialPromotionExpiryWarningsFunction } from '@/libs/inngest/functions/trial-promotion-expiry-warnings';
 
 // Register functions in production (real cloud env) and local dev (Inngest Dev
@@ -28,6 +29,7 @@ export const { GET, POST, PUT } = serve({
         processSingleTask,
         forceExpireTrialsAndPromotionsFunction,
         trialPromotionExpiryWarningsFunction,
+        tokenRefreshFunction,
       ]
     : [],
 });
