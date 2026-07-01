@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { LandingPageTracker } from '@/components/analytics/LandingPageTracker';
+import { AuthDialogAutoOpener } from '@/components/marketing/auth-dialog';
 import { SITE_NAME } from '@/libs/seo/constants';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
 import { CTA } from '@/templates/CTA';
 import { FAQ } from '@/templates/FAQ';
 import { Features } from '@/templates/Features';
-import { Footer } from '@/templates/Footer';
 import { Hero } from '@/templates/Hero';
-import { Navbar } from '@/templates/Navbar';
 import { AppConfig } from '@/utils/AppConfig';
 
-// Force dynamic rendering to avoid RSC serialization issues during build
+// Force dynamic rendering to avoid RSC serialization issues during build.
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: {
@@ -33,26 +33,34 @@ export async function generateMetadata(props: {
     ...generateSocialMetadata({
       title,
       description,
-      // Default locale is unprefixed per localePrefix: 'as-needed'
+      // Default locale is unprefixed per localePrefix: 'as-needed'.
       path: locale === AppConfig.defaultLocale ? '/' : `/${locale}`,
     }),
   };
 }
 
+/**
+ * Primary marketing landing (`/`).
+ *
+ * Lives inside `(unauth)` so it inherits the `AuthDialogProvider` from
+ * `(unauth)/layout.tsx`, and inside `(marketing-v2)` so the `MarketingNavbar`
+ * + `MarketingFooter` come from that route group's layout (the CTAs there open
+ * the overlay auth dialog). The `AuthDialogAutoOpener` MUST live in the page
+ * (not a layout) inside `<Suspense>` because it reads `useSearchParams()`.
+ */
 const IndexPage = async (props: { params: Promise<{ locale: string }> }) => {
   const { locale: _locale } = await props.params;
 
-  // AC #4: Auth state is now checked client-side for better performance
-  // Landing page is statically generated for fast load times and SEO
   return (
     <>
-      <LandingPageTracker />
-      <Navbar />
+      <Suspense>
+        <LandingPageTracker />
+        <AuthDialogAutoOpener />
+      </Suspense>
       <Hero />
       <Features />
       <FAQ />
       <CTA />
-      <Footer />
     </>
   );
 };

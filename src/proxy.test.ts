@@ -71,7 +71,7 @@ describe('proxy middleware', () => {
     expect(mockUpdateSession).toHaveBeenCalled();
   });
 
-  it('redirects unauthenticated user from /en/dashboard to /en/sign-in', async () => {
+  it('redirects unauthenticated user from /en/dashboard to the landing dialog', async () => {
     mockUpdateSession.mockResolvedValue({
       user: null,
       response: NextResponse.next(),
@@ -84,8 +84,11 @@ describe('proxy middleware', () => {
 
     const location = response.headers.get('location');
 
-    expect(location).toContain('/en/sign-in');
+    // Default locale is unprefixed: landing is `/` with the sign-in dialog
+    // auto-opened and the intended destination preserved.
+    expect(location).toContain('auth=signin');
     expect(location).toContain('redirect=');
+    expect(location).not.toContain('/sign-in');
   });
 
   it('returns 401 JSON for unauthenticated request to /api/chat', async () => {
@@ -160,7 +163,7 @@ describe('proxy middleware', () => {
     }
   });
 
-  it('includes /hi locale prefix in sign-in redirect URL', async () => {
+  it('includes /hi locale prefix in the landing dialog redirect URL', async () => {
     mockUpdateSession.mockResolvedValue({
       user: null,
       response: NextResponse.next(),
@@ -173,7 +176,9 @@ describe('proxy middleware', () => {
 
     const location = response.headers.get('location');
 
-    expect(location).toContain('/hi/sign-in');
+    // Non-default locale keeps its prefix on the landing path: `/hi?auth=signin`.
+    expect(location).toContain('/hi?auth=signin');
+    expect(location).toContain('redirect=');
   });
 
   it('allows verified authenticated user to pass through protected routes', async () => {
