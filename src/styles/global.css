@@ -235,52 +235,15 @@
    overriding the near-white default `--sidebar`. To retint admin, edit these
    two blocks only — nowhere else.
 
-   NOTE ON THE `--color-*` RE-ALIAS BELOW: Tailwind's `@theme` emits
-   `--color-x: var(--x)` at `:root`, which is substituted once at `<html>` and
-   inherits down as a frozen value. Overriding a raw `--x` on a *descendant*
-   scope like `[data-admin]` therefore does NOT reach the Tailwind utilities
-   (`bg-sidebar`, `bg-card`, …) — they'd keep the html-level color. The
-   consumer multi-theme system dodges this only because next-themes sets the
-   theme class on `<html>` itself. A descendant scope must re-alias the
-   `--color-*` tokens so they recompute here against the admin raw tokens.
+   How the scope reaches Tailwind utilities: `@theme inline` (top of this file)
+   compiles color utilities to `var(--<raw-token>)` at the use-site, so
+   re-declaring the raw `--*` tokens on `[data-admin]` below is enough — the
+   utilities recompute against them here (this also covers `.dark [data-admin]`).
+   No `--color-*` re-alias is needed; that was only required before `@theme
+   inline`, when `--color-x` was resolved once at `:root` and frozen for
+   descendants.
    ============================================================================= */
 [data-admin] {
-  /* Re-alias Tailwind's theme colors so utilities recompute at this scope
-     (see NOTE above). Declared once here; it resolves against whichever raw
-     `--*` wins on this element, so it covers `.dark [data-admin]` too. */
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
   /* Content surface — default light neutrals (mirror of `:root`) */
   --border: hsl(214.3 31.8% 91.4%);
   --input: hsl(214.3 31.8% 91.4%);

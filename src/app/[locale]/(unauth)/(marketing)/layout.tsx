@@ -1,5 +1,6 @@
 import { AuthDialogProvider } from '@/components/marketing/auth-dialog';
 import { MarketingFooter } from '@/components/marketing/footer';
+import { MarketingThemeScope } from '@/components/marketing/marketing-theme-scope';
 import { MarketingNavbar } from '@/components/marketing/navbar';
 import { isDarkTheme } from '@/components/theme/theme-config';
 import { SITE_CONFIG } from '@/config/site-config';
@@ -25,18 +26,21 @@ import { cn } from '@/utils/Helpers';
  * marketing look from the signed-in user's theme (there is no visitor toggle),
  * so a fork can give the landing site its own brand palette. The class is
  * rendered server-side from static config, so there is NO FOUC. `isDarkTheme`
- * adds `.dark` for dark marketing themes so the few Tailwind `dark:` variant
- * utilities (currently only on /terms + /privacy) resolve to the marketing
- * theme's darkness rather than the app's.
+ * adds `.dark` for dark marketing themes so Tailwind `dark:` variant utilities
+ * resolve to the marketing theme's darkness.
  *
- * Known edges (narrow, documented rather than blocking):
- * - A returning visitor whose in-app theme is dark keeps a `.dark` class on
- *   `<html>`; under a LIGHT marketing theme those /terms + /privacy `dark:`
- *   utilities still fire off that ancestor. A fork expecting dark-preference
- *   traffic on a light marketing site should tokenize those two pages.
- * - The auth dialog is portaled to `document.body` (outside this wrapper), so
- *   it follows the app theme, not the marketing theme. Fine for the default
- *   (both light); revisit only if a fork's marketing theme diverges sharply.
+ * Two subtleties this handles:
+ * - `dark:` utilities are ANCESTOR-scoped (`.dark *`), so a subtree `.light`
+ *   can't cancel an OS-dark visitor's `<html class="dark">` (ThemeProvider uses
+ *   `defaultTheme="system"`). The only `dark:` utilities in the marketing tree
+ *   are on /terms + /privacy; those pages instead branch on
+ *   `isDarkTheme(SITE_CONFIG.marketingTheme)` so they follow the marketing
+ *   theme, not the visitor's OS. New marketing UI should do the same, not use
+ *   `dark:`.
+ * - Radix portals (the auth Dialog) mount to `document.body`, outside this
+ *   wrapper. `MarketingThemeScope` mirrors the theme class onto `body` (client
+ *   effect, like the admin panel) so portalled overlays inherit the marketing
+ *   palette too.
  */
 export default function MarketingLayout({
   children,
@@ -44,16 +48,12 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   const theme = SITE_CONFIG.marketingTheme;
+  const themeClass = cn(theme, isDarkTheme(theme) && 'dark');
 
   return (
     <AuthDialogProvider>
-      <div
-        className={cn(
-          'flex min-h-screen flex-col bg-background text-foreground',
-          theme,
-          isDarkTheme(theme) && 'dark',
-        )}
-      >
+      <MarketingThemeScope themeClass={themeClass} />
+      <div className={cn('flex min-h-screen flex-col bg-background text-foreground', themeClass)}>
         <MarketingNavbar />
         {/* pt-16 clears the fixed navbar (h-16); flex-1 makes content fill the
             viewport so the footer stays at the bottom on short/empty pages. */}
