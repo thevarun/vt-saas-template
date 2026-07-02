@@ -579,8 +579,70 @@
   --footer-foreground: oklch(0.9498 0.0046 78.2977);
 }
 
+/* =============================================================================
+   Brand gradient — per-theme accent gradient for the marketing surface
+   (hero title, section eyebrows, CTA band, feature-icon squares).
+
+   Consumed via `from-(--gradient-from) via-(--gradient-via) to-(--gradient-to)`.
+   Defined once per theme FAMILY here (light+dark share a gradient — these are
+   vibrant mid-tones that read on either background) rather than inside each
+   theme block. These MUST come after the theme blocks above and be unlayered,
+   so a family's gradient wins over the default block for `*-dark` themes (which
+   also carry `.dark`). The default `:root`/`.light`/`.dark` values are the exact
+   indigo-500 / purple-500 / pink-500 the template shipped — default look
+   unchanged. To rebrand, edit the raw `--gradient-*` per family here.
+   ============================================================================= */
+:root,
+.light,
+.dark {
+  --gradient-from: hsl(238.7 83.5% 66.7%); /* indigo-500 */
+  --gradient-via: hsl(270.7 91% 65.1%); /* purple-500 */
+  --gradient-to: hsl(330.4 81.2% 60.4%); /* pink-500 */
+}
+
+.modern-light,
+.modern-dark {
+  --gradient-from: hsl(217.2 91.2% 59.8%); /* blue */
+  --gradient-via: hsl(224.3 76.3% 58%); /* indigo-blue */
+  --gradient-to: hsl(198.6 88.7% 55%); /* sky */
+}
+
+.warm-light,
+.warm-dark {
+  --gradient-from: oklch(0.62 0.17 40); /* terracotta */
+  --gradient-via: oklch(0.72 0.15 65); /* amber */
+  --gradient-to: oklch(0.63 0.18 20); /* rose */
+}
+
+.sage-light,
+.sage-dark {
+  --gradient-from: oklch(0.6 0.11 150); /* sage */
+  --gradient-via: oklch(0.68 0.13 160); /* emerald */
+  --gradient-to: oklch(0.6 0.1 195); /* teal */
+}
+
 @layer base {
   * {
     @apply border-border;
   }
+
+  /* Keyboard-only focus ring for links and interactive elements that don't
+     ship their own. shadcn controls set `focus-visible:ring-*` + `outline-hidden`
+     in the utilities layer, which overrides this base rule — so no double ring;
+     this only fills the gap for plain links, summaries, and custom tabbables. */
+  a:focus-visible,
+  summary:focus-visible,
+  [tabindex]:not([tabindex='-1']):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Hide scrollbars while keeping scroll (e.g. horizontal nav/tab strips). */
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
