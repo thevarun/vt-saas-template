@@ -2,10 +2,12 @@ import { AlertTriangle } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import { LegalTableOfContents } from '@/components/legal/legal-toc';
+import { isDarkTheme } from '@/components/theme/theme-config';
 import { SITE_CONFIG } from '@/config/site-config';
 import { getSiteUrl } from '@/libs/seo/config';
 import { generateHreflangLinks } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
+import { cn } from '@/utils/Helpers';
 
 const PATH = '/terms';
 const TITLE = 'Terms of Service';
@@ -64,15 +66,21 @@ export default async function TermsPage(props: {
     day: 'numeric',
   });
 
+  // Marketing pages are theme-scoped by the (marketing) layout, INDEPENDENT of
+  // the app's `<html>` theme. Drive dark styling off the marketing theme config
+  // (not Tailwind's ancestor-based `dark:`), which would otherwise fire off an
+  // OS-dark visitor's `<html class="dark">` and invert this light page.
+  const marketingDark = isDarkTheme(SITE_CONFIG.marketingTheme);
+
   return (
     <section className="relative overflow-hidden pb-20 pt-12">
       <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
         {/* AI-drafted disclaimer banner */}
-        <div className="not-prose mb-10 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+        <div className={cn('not-prose mb-10 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900', marketingDark && 'text-amber-200')}>
           <AlertTriangle
-            className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400"
+            className={cn('mt-0.5 size-5 shrink-0 text-amber-600', marketingDark && 'text-amber-400')}
             aria-hidden
           />
           <p>
@@ -100,7 +108,7 @@ export default async function TermsPage(props: {
 
         <LegalTableOfContents sections={[...SECTIONS]} className="mb-12" />
 
-        <article className="prose prose-neutral max-w-none dark:prose-invert">
+        <article className={cn('prose prose-neutral max-w-none', marketingDark && 'prose-invert')}>
           <p>
             These Terms of Service (the &ldquo;Terms&rdquo;) govern your access
             to and use of the services, websites, and applications provided by
