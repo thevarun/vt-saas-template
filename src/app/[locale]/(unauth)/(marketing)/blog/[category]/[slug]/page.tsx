@@ -11,6 +11,7 @@ import {
 import { getSiteUrl } from '@/libs/seo/config';
 import { generateHreflangAlternates } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
+import { getI18nPath } from '@/utils/Helpers';
 
 type PseoPageProps = {
   params: Promise<{
@@ -27,7 +28,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: PseoPageProps): Promise<Metadata> {
   const params = await props.params;
-  const { category: categorySlug, slug } = params;
+  const { category: categorySlug, slug, locale } = params;
 
   const page = await getPageBySlug(categorySlug, slug);
   const category = await getCategoryBySlug(categorySlug);
@@ -38,9 +39,10 @@ export async function generateMetadata(props: PseoPageProps): Promise<Metadata> 
     };
   }
 
-  // Match the other marketing pages: shared OG/Twitter + og:image via
-  // generateSocialMetadata (with the article og:type + publishedTime), hreflang
-  // alternates via generateHreflangAlternates, single default-locale canonical.
+  // Shared OG/Twitter + og:image via generateSocialMetadata (with the article
+  // og:type + publishedTime + og:locale), hreflang alternates via
+  // generateHreflangAlternates, and a locale-prefixed self-canonical matching
+  // the blog index/category pages.
   const path = `/blog/${categorySlug}/${slug}`;
   const languages = generateHreflangAlternates(path);
 
@@ -54,9 +56,12 @@ export async function generateMetadata(props: PseoPageProps): Promise<Metadata> 
       path,
       type: 'article',
       publishedTime: page.lastModified,
+      locale,
     }),
     alternates: {
-      canonical: `${getSiteUrl()}${path}`,
+      // Locale-prefixed self-canonical, matching the blog index/category pages
+      // (getI18nPath); hreflang alternates declare the localized siblings.
+      canonical: `${getSiteUrl()}${getI18nPath(path, locale)}`,
       languages,
     },
     robots: {
