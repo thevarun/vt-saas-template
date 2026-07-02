@@ -26,6 +26,8 @@ export type SocialMetadataParams = {
   type?: 'website' | 'article';
   /** ISO date string for og:article:published_time. Only emitted when type === 'article'. */
   publishedTime?: string;
+  /** Locale code for og:locale (e.g. 'en', 'hi'). Omitted when unset. */
+  locale?: string;
 };
 
 /**
@@ -59,7 +61,7 @@ function withBrand(title: string): string {
 export function generateOpenGraphMetadata(
   params: SocialMetadataParams,
 ): Metadata['openGraph'] {
-  const { title, description, image, path = '', type = 'website', publishedTime } = params;
+  const { title, description, image, path = '', type = 'website', publishedTime, locale } = params;
   const siteUrl = getSiteUrl();
 
   // Use provided image, or generate dynamic OG image, or fallback to static
@@ -77,6 +79,7 @@ export function generateOpenGraphMetadata(
     title: withBrand(title),
     description,
     url: `${siteUrl}${path}`,
+    ...(locale ? { locale } : {}),
     images: [
       {
         url: imageUrl,

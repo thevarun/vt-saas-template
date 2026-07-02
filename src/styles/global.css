@@ -588,9 +588,12 @@
    vibrant mid-tones that read on either background) rather than inside each
    theme block. These MUST come after the theme blocks above and be unlayered,
    so a family's gradient wins over the default block for `*-dark` themes (which
-   also carry `.dark`). The default `:root`/`.light`/`.dark` values are the exact
-   indigo-500 / purple-500 / pink-500 the template shipped — default look
-   unchanged. To rebrand, edit the raw `--gradient-*` per family here.
+   also carry `.dark`). Two tiers preserve the template's EXACT shipped look: the
+   `--gradient-*` (500) tier drives the hero title + section eyebrows (which
+   shipped at 500), and the `--gradient-soft-*` (400) tier drives the softer CTA
+   band + feature-icon squares (which shipped at 400). Non-default themes reuse
+   their single family gradient for both tiers (soft = strong, set below). To
+   rebrand, edit the raw `--gradient-*` per family here.
    ============================================================================= */
 :root,
 .light,
@@ -598,6 +601,9 @@
   --gradient-from: hsl(238.7 83.5% 66.7%); /* indigo-500 */
   --gradient-via: hsl(270.7 91% 65.1%); /* purple-500 */
   --gradient-to: hsl(330.4 81.2% 60.4%); /* pink-500 */
+  --gradient-soft-from: hsl(234.5 89.5% 73.9%); /* indigo-400 */
+  --gradient-soft-via: hsl(269.7 96.8% 75.5%); /* purple-400 */
+  --gradient-soft-to: hsl(330.4 90.1% 70%); /* pink-400 */
 }
 
 .modern-light,
@@ -619,6 +625,18 @@
   --gradient-from: oklch(0.6 0.11 150); /* sage */
   --gradient-via: oklch(0.68 0.13 160); /* emerald */
   --gradient-to: oklch(0.6 0.1 195); /* teal */
+}
+
+/* Non-default themes only ship one gradient, so the soft tier reuses it. */
+.modern-light,
+.modern-dark,
+.warm-light,
+.warm-dark,
+.sage-light,
+.sage-dark {
+  --gradient-soft-from: var(--gradient-from);
+  --gradient-soft-via: var(--gradient-via);
+  --gradient-soft-to: var(--gradient-to);
 }
 
 @layer base {
