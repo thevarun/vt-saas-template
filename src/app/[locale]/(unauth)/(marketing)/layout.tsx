@@ -1,6 +1,9 @@
 import { AuthDialogProvider } from '@/components/marketing/auth-dialog';
 import { MarketingFooter } from '@/components/marketing/footer';
 import { MarketingNavbar } from '@/components/marketing/navbar';
+import { isDarkTheme } from '@/components/theme/theme-config';
+import { SITE_CONFIG } from '@/config/site-config';
+import { cn } from '@/utils/Helpers';
 
 /**
  * Shared chrome for every marketing page (`/`, `/about`, `/blog`, `/changelog`,
@@ -16,15 +19,41 @@ import { MarketingNavbar } from '@/components/marketing/navbar';
  * `MarketingNavbar` (whose CTAs call `openSignIn`/`openSignUp`) AND the page
  * `children` (which mount `AuthDialogAutoOpener`) so both stay descendants of
  * the provider — otherwise the dialog never opens.
+ *
+ * Theme scoping: the shell carries `SITE_CONFIG.marketingTheme` as a CSS class,
+ * which redefines the color tokens for this subtree ONLY. This decouples the
+ * marketing look from the signed-in user's theme (there is no visitor toggle),
+ * so a fork can give the landing site its own brand palette. The class is
+ * rendered server-side from static config, so there is NO FOUC. `isDarkTheme`
+ * adds `.dark` for dark marketing themes so the few Tailwind `dark:` variant
+ * utilities (currently only on /terms + /privacy) resolve to the marketing
+ * theme's darkness rather than the app's.
+ *
+ * Known edges (narrow, documented rather than blocking):
+ * - A returning visitor whose in-app theme is dark keeps a `.dark` class on
+ *   `<html>`; under a LIGHT marketing theme those /terms + /privacy `dark:`
+ *   utilities still fire off that ancestor. A fork expecting dark-preference
+ *   traffic on a light marketing site should tokenize those two pages.
+ * - The auth dialog is portaled to `document.body` (outside this wrapper), so
+ *   it follows the app theme, not the marketing theme. Fine for the default
+ *   (both light); revisit only if a fork's marketing theme diverges sharply.
  */
 export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const theme = SITE_CONFIG.marketingTheme;
+
   return (
     <AuthDialogProvider>
-      <div className="flex min-h-screen flex-col">
+      <div
+        className={cn(
+          'flex min-h-screen flex-col bg-background text-foreground',
+          theme,
+          isDarkTheme(theme) && 'dark',
+        )}
+      >
         <MarketingNavbar />
         {/* pt-16 clears the fixed navbar (h-16); flex-1 makes content fill the
             viewport so the footer stays at the bottom on short/empty pages. */}
