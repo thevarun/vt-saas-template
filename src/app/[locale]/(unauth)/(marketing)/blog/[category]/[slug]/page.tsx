@@ -8,8 +8,9 @@ import {
   getPageBySlug,
   getRelatedPages,
 } from '@/libs/pseo/data';
-import { SITE_NAME } from '@/libs/seo/constants';
-import { getBaseUrl } from '@/utils/Helpers';
+import { getSiteUrl } from '@/libs/seo/config';
+import { generateHreflangLinks } from '@/libs/seo/hreflang';
+import { generateSocialMetadata } from '@/libs/seo/opengraph';
 
 type PseoPageProps = {
   params: Promise<{
@@ -26,7 +27,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: PseoPageProps): Promise<Metadata> {
   const params = await props.params;
-  const { category: categorySlug, slug, locale } = params;
+  const { category: categorySlug, slug } = params;
 
   const page = await getPageBySlug(categorySlug, slug);
   const category = await getCategoryBySlug(categorySlug);
@@ -37,29 +38,36 @@ export async function generateMetadata(props: PseoPageProps): Promise<Metadata> 
     };
   }
 
-  const baseUrl = getBaseUrl();
-  const pageUrl = `${baseUrl}/${locale}/blog/${categorySlug}/${slug}`;
+  // Match the other marketing pages: shared OG/Twitter + og:image via
+  // generateSocialMetadata, hreflang alternates via generateHreflangLinks, and a
+  // single default-locale canonical. Article-specific og fields are layered on.
+  const path = `/blog/${categorySlug}/${slug}`;
+  const languages = generateHreflangLinks(path).reduce(
+    (acc, link) => {
+      acc[link.hreflang] = link.href;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+  const social = generateSocialMetadata({
+    title: page.title,
+    description: page.description,
+    path,
+  });
 
   return {
     title: page.title,
     description: page.description,
     keywords: page.keywords,
+    ...social,
     openGraph: {
-      title: page.title,
-      description: page.description,
-      url: pageUrl,
-      siteName: SITE_NAME,
-      locale,
+      ...social.openGraph,
       type: 'article',
       publishedTime: page.lastModified,
     },
-    twitter: {
-      card: 'summary_large_image',
-      title: page.title,
-      description: page.description,
-    },
     alternates: {
-      canonical: pageUrl,
+      canonical: `${getSiteUrl()}${path}`,
+      languages,
     },
     robots: {
       index: true,
