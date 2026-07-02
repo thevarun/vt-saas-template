@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { LegalTableOfContents } from '@/components/legal/legal-toc';
 import { isDarkTheme } from '@/components/theme/theme-config';
 import { SITE_CONFIG } from '@/config/site-config';
+import { Container } from '@/features/landing/Container';
 import { getSiteUrl } from '@/libs/seo/config';
 import { generateHreflangLinks } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
@@ -76,7 +77,7 @@ export default async function PrivacyPage(props: {
     <section className="relative overflow-hidden pb-20 pt-12">
       <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
-      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+      <Container size="md" className="relative">
         {/* AI-drafted disclaimer banner */}
         <div className={cn('not-prose mb-10 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900', marketingDark && 'text-amber-200')}>
           <AlertTriangle
@@ -208,7 +209,7 @@ export default async function PrivacyPage(props: {
             .
           </p>
         </article>
-      </div>
+      </Container>
     </section>
   );
 }

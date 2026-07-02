@@ -1,3 +1,4 @@
+import { SectionHeading } from '@/features/landing/SectionHeading';
 import { cn } from '@/utils/Helpers';
 
 export const Section = (props: {
@@ -9,25 +10,11 @@ export const Section = (props: {
   id?: string;
 }) => (
   <div id={props.id} className={cn('px-3 py-16', props.className)}>
-    {(props.title || props.subtitle || props.description) && (
-      <div className="mx-auto mb-12 max-w-(--breakpoint-md) text-center">
-        {props.subtitle && (
-          <div className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-sm font-bold text-transparent">
-            {props.subtitle}
-          </div>
-        )}
-
-        {props.title && (
-          <h2 className="mt-1 text-3xl font-bold">{props.title}</h2>
-        )}
-
-        {props.description && (
-          <div className="mt-2 text-lg text-muted-foreground">
-            {props.description}
-          </div>
-        )}
-      </div>
-    )}
+    <SectionHeading
+      eyebrow={props.subtitle}
+      title={props.title}
+      description={props.description}
+    />
 
     <div className="mx-auto max-w-(--breakpoint-lg)">{props.children}</div>
   </div>
