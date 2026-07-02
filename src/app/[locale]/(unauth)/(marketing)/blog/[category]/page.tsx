@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { BlogCard } from '@/components/blog/blog-card';
 import {
   getAllCategoryParams,
   getCategoryBySlug,
@@ -73,23 +74,12 @@ export default async function CategoryPage(props: CategoryPageProps) {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pages.map(page => (
-          <Link
+          <BlogCard
             key={page.id}
             href={`/${locale}/blog/${categorySlug}/${page.slug}`}
-            className="group block"
-          >
-            <article className="rounded-lg border border-border p-6 transition-all hover:border-foreground/20 hover:shadow-md">
-              <h3 className="mb-2 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
-                {page.title}
-              </h3>
-              <p className="line-clamp-3 text-sm text-muted-foreground">
-                {page.description}
-              </p>
-              <div className="mt-4 text-sm font-medium text-primary">
-                Read more &rarr;
-              </div>
-            </article>
-          </Link>
+            title={page.title}
+            description={page.description}
+          />
         ))}
       </div>
 
