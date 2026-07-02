@@ -2,23 +2,36 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 /**
- * Accessibility + canonical metadata — cross-boundary only.
+ * Accessibility — cross-boundary only.
  *
- * Structural assertions (exactly one h1, skip-to-content link present) were
- * dropped: they're component/layout structure better asserted in Vitest, and
- * the axe scans below catch real WCAG regressions across the rendered page.
- * The canonical-tag check stays because SEO metadata injection crosses the
- * server-render boundary.
+ * Two concerns, two layers:
+ *  - Document structure that must survive the server render (canonical tag, a
+ *    single h1, the skip-to-content link + its target) is asserted browserless
+ *    via the `request` fixture — axe does NOT reliably flag a missing/duplicate
+ *    h1 or a skip link pointing at a non-existent anchor, so these need explicit
+ *    checks. They live here (not Vitest) because they're properties of the fully
+ *    server-rendered app shell, not a single component.
+ *  - Broad WCAG regressions are caught by the axe-core scans (real browser).
  */
 
-test.describe('Accessibility & SEO metadata', () => {
-  test('landing page renders canonical tag', async ({ page }) => {
-    await page.goto('/en');
+test.describe('Accessibility', () => {
+  test('landing page server-renders canonical, a single h1, and a skip-to-content link', async ({ request }) => {
+    const html = await (await request.get('/en')).text();
 
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+    // Canonical tag present and absolute (SEO metadata survives the render).
+    const canonical = html.match(/<link [^>]*rel="canonical"[^>]*>/i)?.[0];
 
-    expect(canonical).not.toBeNull();
-    expect(canonical).toMatch(/^https?:\/\//);
+    expect(canonical).toBeTruthy();
+    expect(canonical).toMatch(/href="https?:\/\//);
+
+    // Exactly one h1 (SEO + a11y document outline).
+    const h1Count = (html.match(/<h1[\s/>]/gi) ?? []).length;
+
+    expect(h1Count).toBe(1);
+
+    // Skip link and its target both exist (keyboard/screen-reader navigation).
+    expect(html).toContain('href="#main-content"');
+    expect(html).toMatch(/id="main-content"/);
   });
 
   test('landing page has no critical accessibility violations', async ({ page }) => {
