@@ -6,7 +6,7 @@ import { Fragment } from 'react';
 import { Reveal } from '@/components/reveal';
 import { LinkedInIcon } from '@/components/share/platformIcons';
 import { getSiteUrl } from '@/libs/seo/config';
-import { generateHreflangLinks } from '@/libs/seo/hreflang';
+import { generateHreflangAlternates } from '@/libs/seo/hreflang';
 import { generateSocialMetadata } from '@/libs/seo/opengraph';
 
 import { ABOUT_CONTENT } from './about-content';
@@ -24,13 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // Single authoritative canonical (default-locale, unprefixed) for every
   // locale variant; hreflang alternates signal the multilingual relationship
   // without splitting canonical authority. Mirrors the root layout pattern.
-  const languages = generateHreflangLinks(PATH).reduce(
-    (acc, link) => {
-      acc[link.hreflang] = link.href;
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
+  const languages = generateHreflangAlternates(PATH);
 
   return {
     title: TITLE,

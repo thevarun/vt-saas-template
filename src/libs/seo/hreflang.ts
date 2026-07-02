@@ -76,3 +76,19 @@ export function generateHreflangLinks(pathname: string): HreflangLink[] {
 
   return links;
 }
+
+/**
+ * Hreflang links shaped for Next.js `Metadata.alternates.languages` — a
+ * `{ [hreflang]: href }` map. Thin wrapper over {@link generateHreflangLinks}
+ * so every page builds the same map the same way instead of copy-pasting the
+ * reduce into each `generateMetadata`.
+ */
+export function generateHreflangAlternates(pathname: string): Record<string, string> {
+  return generateHreflangLinks(pathname).reduce<Record<string, string>>(
+    (acc, link) => {
+      acc[link.hreflang] = link.href;
+      return acc;
+    },
+    {},
+  );
+}
