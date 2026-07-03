@@ -192,7 +192,9 @@ jobs:
 
       # Dependabot PRs don't have access to secrets, use placeholders
       # Integration tests requiring real credentials are skipped via test config
-      - run: npm run test -- --coverage
+      # No --coverage: the number was generated but never gated, so it only added
+      # v8 instrumentation cost. Run `npm run test -- --coverage` locally on demand.
+      - run: npm run test
         env:
           DB_SCHEMA: vt_saas
           NEXT_PUBLIC_DB_SCHEMA: vt_saas
@@ -271,6 +273,53 @@ jobs:
           retention-days: 14
 
   # ============================================
+  # Storybook — run the shared UI catalog as Vitest browser tests
+  # `test:stories` renders every *.stories.tsx in headless Chromium via the
+  # Storybook Vitest addon, so a broken import, a render error, or a failing play
+  # function fails CI. Needs no secrets (env placeholders are set in
+  # vitest.config.mts), so unlike E2E it also runs on Dependabot PRs to catch
+  # dependency-driven breakage. Skipped only for docs-only changes.
+  # ============================================
+  storybook:
+    name: Storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [changes, install]
+    if: needs.changes.outputs.docs_only != 'true'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/cache/restore@v6
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run story tests
+        run: npm run test:stories
+
+  # ============================================
   # CI Gate — aggregate status check (additive)
   # ============================================
   # Additive rollup: the three required contexts ("Lint & Types", "Unit Tests",
@@ -286,7 +335,7 @@ jobs:
   ci-gate:
     name: CI Gate
     if: always()
-    needs: [changes, install, lint, unit-tests, e2e]
+    needs: [changes, install, lint, unit-tests, e2e, storybook]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:

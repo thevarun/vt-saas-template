@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Tests for Referral Tracking Utilities
  */
@@ -22,7 +23,8 @@ describe('referral utilities', () => {
 
   describe('extractUtmParams', () => {
     it('extracts all UTM parameters', () => {
-      window.location.search = '?utm_source=google&utm_medium=cpc&utm_campaign=spring_sale&utm_content=ad1&utm_term=shoes';
+      window.location.search
+        = '?utm_source=google&utm_medium=cpc&utm_campaign=spring_sale&utm_content=ad1&utm_term=shoes';
 
       const params = extractUtmParams();
 

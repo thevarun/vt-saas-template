@@ -3,19 +3,15 @@ import { expect, test as base } from '@playwright/test';
 import { AuthPage } from './helpers/AuthPage';
 
 /**
- * E2E tests for Supabase authentication - Simplified for solo dev workflow
- * Tests core auth flows: sign-in display, protected routes, successful login
+ * E2E tests for Supabase authentication.
+ * Boundary-crossing flows only: middleware redirect + a real credentialed login.
  */
 
 const test = base;
 
 test.describe('Authentication', () => {
-  test('should display sign in page', async ({ page }) => {
-    await page.goto('/sign-in');
-
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
-  });
-
+  // Page-rendering assertions (heading/fields visible) live in the co-located
+  // Vitest test for sign-in/page. E2E keeps only boundary-crossing flows.
   test('should redirect unauthenticated user from dashboard to the landing auth dialog', async ({
     page,
   }) => {

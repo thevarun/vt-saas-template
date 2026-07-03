@@ -1,22 +1,37 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
-  test('landing page has exactly one h1', async ({ page }) => {
-    await page.goto('/en');
+/**
+ * Accessibility — cross-boundary only.
+ *
+ * Two concerns, two layers:
+ *  - Document structure that must survive the server render (canonical tag, a
+ *    single h1, the skip-to-content link + its target) is asserted browserless
+ *    via the `request` fixture — axe does NOT reliably flag a missing/duplicate
+ *    h1 or a skip link pointing at a non-existent anchor, so these need explicit
+ *    checks. They live here (not Vitest) because they're properties of the fully
+ *    server-rendered app shell, not a single component.
+ *  - Broad WCAG regressions are caught by the axe-core scans (real browser).
+ */
 
-    const h1Count = page.locator('h1');
+test.describe('Accessibility', () => {
+  test('landing page server-renders canonical, a single h1, and a skip-to-content link', async ({ request }) => {
+    const html = await (await request.get('/en')).text();
 
-    await expect(h1Count).toHaveCount(1);
-  });
+    // Canonical tag present and absolute (SEO metadata survives the render).
+    const canonical = html.match(/<link [^>]*rel="canonical"[^>]*>/i)?.[0];
 
-  test('landing page renders canonical tag', async ({ page }) => {
-    await page.goto('/en');
+    expect(canonical).toBeTruthy();
+    expect(canonical).toMatch(/href="https?:\/\//);
 
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+    // Exactly one h1 (SEO + a11y document outline).
+    const h1Count = (html.match(/<h1[\s/>]/gi) ?? []).length;
 
-    expect(canonical).not.toBeNull();
-    expect(canonical).toMatch(/^https?:\/\//);
+    expect(h1Count).toBe(1);
+
+    // Skip link and its target both exist (keyboard/screen-reader navigation).
+    expect(html).toContain('href="#main-content"');
+    expect(html).toMatch(/id="main-content"/);
   });
 
   test('landing page has no critical accessibility violations', async ({ page }) => {
@@ -37,17 +52,5 @@ test.describe('Accessibility - SEO and A11y Quick Fixes (T-006)', () => {
       .analyze();
 
     expect(results.violations).toEqual([]);
-  });
-
-  test('app shell renders skip-to-main-content link', async ({ page }) => {
-    await page.goto('/en');
-
-    const skipLink = page.locator('a[href="#main-content"]');
-
-    await expect(skipLink).toHaveCount(1);
-
-    const mainContent = page.locator('#main-content');
-
-    await expect(mainContent).toHaveCount(1);
   });
 });

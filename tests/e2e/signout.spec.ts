@@ -42,20 +42,6 @@ test.describe('Sign-Out', () => {
     await expect(authenticatedPage).toHaveURL(/[?&]auth=signin/);
   });
 
-  test('[P1] should show signing out loading state', async ({
-    authenticatedPage,
-  }) => {
-    // GIVEN: User is authenticated
-    await authenticatedPage.goto('/dashboard');
-
-    await expect(authenticatedPage).toHaveURL(/\/dashboard/);
-
-    // WHEN: User navigates to sign-out page
-    await authenticatedPage.goto('/sign-out');
-
-    // THEN: "Signing out..." heading appears briefly before redirect
-    await expect(
-      authenticatedPage.getByRole('heading', { name: /signing out/i }),
-    ).toBeVisible();
-  });
+  // The transient "Signing out…" loading heading is a UI implementation detail
+  // and is asserted (if needed) in a co-located Vitest test, not E2E.
 });
