@@ -1,122 +1,95 @@
-# VT SaaS Template - Project Documentation
+# VT SaaS Template — Project Documentation
 
-**Generated:** 2026-02-23 | **Scan Type:** Quick Rescan | **Version:** 1.8.0
-**Project Type:** Monolith - Full-stack Next.js 16 Web Application
+**Generated:** 2026-07-03 | **Scan Type:** Full Re-scan (Deep) | **Version:** 1.8.0
+**Project Type:** Monolith — Serverless full-stack Next.js 16 web application
 
 ---
 
 ## Project Overview
 
 - **Repository Type:** Monolith
-- **Primary Language:** TypeScript 5.9.3
-- **Framework:** Next.js 16 (App Router + Turbopack)
-- **Architecture:** Serverless Full-stack with SSR/SSG + API Routes
+- **Primary Language:** TypeScript ^6.0.3
+- **Framework:** Next.js ^16.2.6 (App Router + Turbopack) · React ^19.2.6
+- **Architecture:** Serverless full-stack (RSC/SSR + Route Handler APIs + Inngest/Cron jobs)
+- **Package manager:** pnpm 10.16.1 · **Node:** 22
 
-### Quick Reference
+### Quick reference
 
-**Tech Stack:**
-- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
-- **Auth:** Supabase SSR
-- **Database:** PostgreSQL (Supabase) + Drizzle ORM
-- **AI/Chat:** Dify (Assistant UI) + Vercel AI SDK (OpenAI/Anthropic)
-- **Validation:** Zod v4
-- **Analytics:** PostHog, LangFuse
-- **Email:** Resend + React Email
-- **Testing:** Vitest, Playwright, Storybook 10
-- **CI/CD:** GitHub Actions, semantic-release, Vercel
+**Tech stack:** Next.js 16 · React 19 · TypeScript · Tailwind v4 + shadcn/ui · Supabase (SSR auth + Postgres) · Drizzle ORM · Dify + Vercel AI SDK 6 · Zod 4 · next-intl (en/hi/bn) · Resend + React Email · Inngest · Stripe · PostHog · Sentry · Vitest/Playwright/Storybook.
 
-**Entry Points:**
-- Middleware: `src/proxy.ts` (auth + i18n + routing)
-- App: `src/app/[locale]/`
-- API: `src/app/api/` (37 endpoints)
-- Schema: `src/models/Schema.ts` (9 tables)
+**Entry points:**
+- Middleware: `src/proxy.ts` (i18n → session refresh → auth gate)
+- App: `src/app/[locale]/` (route groups `(unauth)` / `(auth)` / `(admin)`)
+- API: `src/app/api/` (39 endpoints)
+- Schema: `src/models/schema/` (16 tables, barrel `Schema.ts`)
 
 ---
 
 ## Generated Documentation
 
 ### Core
-- [Project Overview](./project-overview.md) - Executive summary, stats, tech stack
-- [Architecture](./architecture.md) - System design, request flow, auth, data, chat
-- [Source Tree Analysis](./source-tree-analysis.md) - Annotated directory structure
+- [Project Overview](./project-overview.md) — executive summary, tech stack, stats
+- [Architecture](./architecture.md) — system design, request flow, auth, chat stacks, jobs, theming, i18n
+- [Source Tree Analysis](./source-tree-analysis.md) — annotated directory structure + fork seams
 
 ### Technical
-- [API Contracts](./api-contracts.md) - All 37 API endpoints with auth, request/response
-- [Data Models](./data-models.md) - 9 database tables, relationships, migrations
-- [Component Inventory](./component-inventory.md) - 138 React components categorized
+- [API Contracts](./api-contracts.md) — all 39 API endpoints, auth, request/response, error contract
+- [Data Models](./data-models.md) — 16 tables, RLS, triggers, relationships, 6 migrations
+- [Component Inventory](./component-inventory.md) — ~235 components + hooks, categorized
 
 ### Development
-- [Development Guide](./development-guide.md) - Setup, commands, testing, patterns
-- [Deployment Guide](./deployment-guide.md) - CI/CD, Vercel, secrets, monitoring
+- [Development Guide](./development-guide.md) — setup, pnpm commands, testing, DB workflow
+- [Deployment Guide](./deployment-guide.md) — Vercel, CI/CD, secrets, prod migration gating
 
 ---
 
 ## Existing Documentation
 
 ### Guides
-- [Error Handling Guide](./error-handling-guide.md) - Error boundaries and patterns
-- [API Error Handling](./api-error-handling.md) - Error codes and responses
-- [Email System](./email-system.md) - Resend integration and templates
-- [Subscriptions & Billing](./subscriptions.md) - Tiers, quota framework, Stripe webhook, reverse-trial, lifecycle emails
-- [Admin Setup](./admin-setup.md) - Admin panel configuration
-- [CI/CD Pipeline](./ci-cd-pipeline.md) - Pipeline details
-- [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) - Common CI issues
+- [Error Handling Guide](./error-handling-guide.md) — error boundaries and patterns
+- [API Error Handling](./api-error-handling.md) — error codes and responses
+- [Email System](./email-system.md) — Resend integration and templates
+- [Subscriptions & Billing](./subscriptions.md) — tiers, quota framework, Stripe webhook, reverse-trial, lifecycle emails
+- [Admin Setup](./admin-setup.md) — admin panel configuration
+- [Testing Strategy](./testing-strategy.md) — test layering (Vitest / Playwright / Storybook)
+- [CI/CD Pipeline](./ci-cd-pipeline.md) · [CI/CD Troubleshooting](./ci-cd-troubleshooting.md) · [CI overview](./ci.md)
 
 ### Database
-- [Database Workflow](./database-workflow.md) - Three-home model, dev→prod flow, gotchas
-- [Legacy Columns](./legacy-columns.md) - Column-deprecation pattern and rollback recipe
+- [Database Workflow](./database-workflow.md) — three-home model, dev→prod flow, gotchas
+- [Legacy Columns](./legacy-columns.md) — column-deprecation pattern and rollback recipe
 
-### Analytics
-- [Analytics Setup](./analytics-setup.md) - PostHog configuration
-- [Analytics Funnels](./analytics-funnels.md) - Conversion tracking
-- [Analytics Privacy](./analytics-privacy.md) - Privacy compliance
-
-### SEO
-- [PSEO Implementation](./pseo-implementation-summary.md) - Programmatic SEO
-- [PSEO Tracking](./pseo-tracking-integration.md) - PostHog + PSEO
-- [PostHog PSEO Dashboard](./posthog-pseo-dashboard.md) - Dashboard setup
-- [Google Search Console](./google-search-console-setup.md) - GSC setup
+### Analytics & SEO
+- [Analytics Setup](./analytics-setup.md) · [Funnels](./analytics-funnels.md) · [Privacy](./analytics-privacy.md)
+- [PSEO Implementation](./pseo-implementation-summary.md) · [PSEO Tracking](./pseo-tracking-integration.md) · [PostHog PSEO Dashboard](./posthog-pseo-dashboard.md)
+- [SEO (hreflang, OG, sitemap)](./seo.md) · [Google Search Console](./google-search-console-setup.md)
 
 ### Patterns
-- [SSE Streaming](./patterns/sse-streaming.md) - Server-Sent Events patterns
-- [API Proxy](./patterns/api-proxy.md) - API proxy pattern
-- [Background Jobs](./patterns/background-jobs.md) - Inngest cron scaffolding, fan-out, at-most-once guard, crash recovery
+- [SSE Streaming](./patterns/sse-streaming.md) · [API Proxy](./patterns/api-proxy.md) · [Background Jobs](./patterns/background-jobs.md)
 
 ### Customization
-- [Remove All Chat](./customization/removing-all-chat.md)
-- [Remove Dify Chat](./customization/removing-dify-chat.md)
-- [Remove Vercel Chat](./customization/removing-vercel-chat.md)
+- [Remove All Chat](./customization/removing-all-chat.md) · [Remove Dify](./customization/removing-dify-chat.md) · [Remove Vercel](./customization/removing-vercel-chat.md)
 
-### Root Documentation
-- [README.md](../README.md) - Main project documentation
-- [CLAUDE.md](../CLAUDE.md) - AI development instructions
-- [AGENTS.md](../AGENTS.md) - Agent documentation
-- [CHANGELOG.md](../CHANGELOG.md) - Version history
-- [Changelog rendering & automation](./changelog/README.md) - The `/changelog` page, `changelog.json` schema, and the AI humanizer pipeline
+### Root / Meta
+- [README.md](../README.md) · [CLAUDE.md](../CLAUDE.md) · [AGENTS.md](../AGENTS.md) · [CHANGELOG.md](../CHANGELOG.md)
+- [Changelog rendering & automation](./changelog/README.md) · [Legal Review](./LEGAL_REVIEW.md)
 
 ---
 
 ## Getting Started
 
-### For New Developers
+### For new developers
 1. Read [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md)
-2. Install Node.js 20.x+, run `pnpm install`
-3. Copy `.env.example` to `.env.local` and configure
-4. Start with `pnpm dev`
-5. Run tests: `pnpm test` and `pnpm test:e2e`
+2. Install **Node 22** + **pnpm 10.16.1** (`corepack enable`), run `pnpm install`
+3. Copy `.env.example` → `.env.local`, fill Supabase + `DB_SCHEMA`
+4. `pnpm dev` — then `pnpm test` / `pnpm test:e2e`
 
-### For AI-Assisted Development
+### For AI-assisted development
 - Primary: [CLAUDE.md](../CLAUDE.md)
-- Architecture: [Architecture](./architecture.md)
-- APIs: [API Contracts](./api-contracts.md)
-- Components: [Component Inventory](./component-inventory.md)
-- Schema: [Data Models](./data-models.md)
+- Architecture: [architecture.md](./architecture.md) · APIs: [api-contracts.md](./api-contracts.md)
+- Components: [component-inventory.md](./component-inventory.md) · Schema: [data-models.md](./data-models.md)
 
-### For Brownfield PRD Creation
-- Start from this index
-- Reference [Architecture](./architecture.md) for system context
-- Check [API Contracts](./api-contracts.md) for existing endpoints
-- Review [Data Models](./data-models.md) for database schema
+### For brownfield PRD creation
+Start from this index → reference [architecture.md](./architecture.md), [api-contracts.md](./api-contracts.md), [data-models.md](./data-models.md).
 
 ---
 
@@ -124,19 +97,18 @@
 
 | Metric | Value |
 |--------|-------|
-| API Endpoints | 37 |
-| React Components | 138 (~70 client) |
-| Database Tables | 9 |
-| SQL Migrations | 7 |
-| Custom Hooks | 5 |
-| CI/CD Workflows | 5 |
+| API Endpoints | 39 |
+| React Components | ~235 (121 client) |
+| shadcn/ui Primitives | 43 |
+| Database Tables | 16 |
+| SQL Migrations | 6 |
+| Postgres Enums | 3 |
 | Supported Languages | 3 (en, hi, bn) |
-| E2E Test Files | 22 |
-| Total Test Files | ~100+ |
+| CI/CD Workflows | 8 |
+| E2E/Spec Test Files | 10 |
+| Total Test Files | ~189 |
 
 ---
 
-**Generated by:** BMAD Document Project Workflow v1.2.0
-**Scan Level:** Quick Rescan (pattern-based update)
-**Last Updated:** 2026-02-23
-**Changes Since Last Scan:** 37 commits, 437 files changed (security hardening, API standardization, dead code removal, 27 new E2E tests)
+**Generated by:** BMAD Document Project Workflow v1.2.0 · **Scan Level:** Deep (critical-directory file reads)
+**Notable since previous scan (Feb 23):** npm→pnpm migration · multi-theme (OKLCH) system · marketing shell + landing overlay auth-dialog + legal pages · subscriptions/quota engine + Stripe · Inngest background jobs · schema decomposed into `src/models/schema/` (9→16 tables) · Next 16.2 / React 19.2 / TS 6.

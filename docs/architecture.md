@@ -1,248 +1,107 @@
-# System Architecture
+# Architecture
 
-**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan)
-**Architecture:** Serverless Full-stack Monolith | **Framework:** Next.js 16 (App Router)
+**Generated:** 2026-07-03 | Deep scan
 
----
+## System type
 
-## Technology Stack
+VT SaaS Template is a **serverless full-stack monolith** on **Next.js 16 (App Router)**, deployed to **Vercel**. A single Next.js app serves everything: server-rendered marketing/app pages (RSC), Route Handler APIs, a background-job surface (Inngest + Vercel Cron), and static assets. There is no separate backend — persistence is **Supabase (Postgres + Auth)**, accessed via the Supabase JS client at runtime and **Drizzle** for schema-as-code/migrations.
 
-| Category | Technology | Version |
-|----------|-----------|---------|
-| Framework | Next.js (App Router + Turbopack) | 16.1.6 |
-| UI | React | 19.2.4 |
-| Language | TypeScript (strict) | 5.9.3 |
-| Styling | Tailwind CSS v4 + shadcn/ui | 4.1.18 |
-| Auth | Supabase SSR | 0.8.0 |
-| Database | PostgreSQL + Drizzle ORM | 0.45.1 |
-| AI (Dify) | Assistant UI + Dify API | 0.12.9 |
-| AI (Vercel) | Vercel AI SDK + OpenAI/Anthropic | 6.0.86 |
-| Validation | Zod v4 | 4.0.0 |
-| Analytics | PostHog | 1.342.1 |
-| Charts | Recharts | 2.15.4 |
-| Email | Resend + React Email | 6.9.2 |
-| Monitoring | Sentry + OpenTelemetry | 10.39.0 |
-| i18n | next-intl | 4.8.2 |
-| Memory | Mem0 | 2.2.2 |
-| Observability | LangFuse | 3.38.6 |
-| Unit Tests | Vitest | 4.0.17 |
-| E2E Tests | Playwright | 1.58.1 |
-| Visual Tests | Storybook 10 | 10.1.11 |
-| CI/CD | GitHub Actions + semantic-release | - |
-| Dev DB | PGlite (in-memory) | 0.3.15 |
-
----
-
-## Architecture Pattern
-
-**Serverless full-stack monolith** deployed on Vercel:
-- Server-rendered pages (SSR/SSG) via App Router
-- API routes for backend logic (serverless functions)
-- Middleware for auth, i18n, and routing (`src/proxy.ts`)
-- Component-based UI with shadcn/ui design system
-
----
-
-## Request Flow
+The codebase is intentionally layered:
 
 ```
-Client Request
-    |
-    v
-[Next.js Middleware - src/proxy.ts]
-    |-- 1. next-intl (locale detection/prefix)
-    |-- 2. Supabase session update (cookie refresh)
-    |-- 3. Protected route check → redirect to /sign-in if unauthenticated
-    |-- 4. Email verification check → redirect to /verify-email if unverified
-    |-- 5. Admin route check → redirect to /dashboard if not admin
-    |
-    v
-[App Router - src/app/[locale]/]
-    |-- (unauth)/ → Public pages (landing, auth, articles)
-    |-- (auth)/   → Protected pages (dashboard, chat, onboarding)
-    |-- (admin)/  → Admin pages (users, analytics, audit)
-    |
-    v
-[API Routes - src/app/api/]
-    |-- Auth validation (Supabase session check)
-    |-- Zod request validation
-    |-- Business logic
-    |-- Drizzle ORM database operations
-    |-- Response (JSON or SSE stream)
+Request → proxy.ts (middleware) → app/ routes (RSC / Route Handlers)
+                                        │
+                                        ├── src/libs/*   (business logic, integrations, wrappers)
+                                        │        └── src/models/  (Drizzle schema — source of truth)
+                                        └── src/components / templates / features (UI)
 ```
 
----
+Routes stay thin; anything reusable (auth wrappers, API error contract, email, SEO, AI clients, quota engine, background jobs) lives under `src/libs/` and is imported via the `@/` alias.
 
-## Authentication Architecture
+## Request lifecycle (middleware order)
 
-```
-Supabase Auth (External)
-    |
-    |-- Email/Password signup → email verification
-    |-- Social OAuth (Google, GitHub)
-    |-- Magic link
-    |
-    v
-[Server] createClient(cookies) → session
-[Client] createClient() → browser session
-[Middleware] updateSession() → cookie refresh
-    |
-    v
-Admin Check: user.app_metadata.is_admin || ADMIN_EMAILS
-```
+The entrypoint is **`src/proxy.ts`**, matched on all non-asset, non-`/api`, non-`/auth` paths. It runs three stages **in strict order**:
 
-**Key Files:**
-- `src/proxy.ts` - Route protection middleware
-- `src/libs/supabase/server.ts` - Server client
-- `src/libs/supabase/client.ts` - Browser client
-- `src/libs/supabase/middleware.ts` - Cookie management
-- `src/libs/auth/isAdmin.ts` - Admin detection
+1. **i18n** — `next-intl` resolves the locale (`en` default unprefixed, `hi`/`bn` prefixed; `localePrefix: 'as-needed'`) and produces the base `NextResponse`.
+2. **Supabase session refresh** — `updateSession()` (`src/libs/supabase/middleware.ts`) creates a request/response-bound SSR client and calls `supabase.auth.getUser()` once, reading/writing auth cookies. This single call both refreshes the session and yields the auth check.
+3. **Auth check** — for protected paths (`/dashboard`, `/onboarding`, `/chat`, `/admin`, `/settings`, matched as path segments after any locale prefix):
+   - **Unauthenticated** → `/api/*` returns `401 {error, code:'AUTH_REQUIRED'}`; page routes redirect to the **landing page with the overlay auth dialog auto-opened** (`?auth=signin&redirect=<intended-path>`) via `redirectUnauthToLanding()`.
+   - **Unverified email** → redirect to `/verify-email`.
+   - **Non-admin on `/admin`** → redirect to `/dashboard?error=access_denied` (`isAdmin()` reads `app_metadata`/`ADMIN_EMAILS`, no DB hit).
 
----
+`/api` and `/auth` are excluded from the matcher — API routes self-enforce auth via `withAuth` wrappers.
 
-## Data Architecture
+### Example flow — protected page, unauthenticated
 
 ```
-[Supabase PostgreSQL]
-    |
-    |-- $DB_SCHEMA schema (configurable, e.g. vt_saas or public)
-    |   |-- threads (Dify conversations)
-    |   |-- userPreferences (settings)
-    |   |-- feedback (user feedback)
-    |   |-- adminAuditLog (admin actions)
-    |   |-- vercelConversations + vercelMessages (AI SDK chat)
-    |   |-- shareableLinks (share URLs)
-    |   |-- mem0Memories + memoryExtractionJobs (memory)
-    |
-    |-- Row-Level Security (RLS) on threads, conversations
-    |
-    v
-[Drizzle ORM] → src/models/Schema.ts
-    |
-    |-- Auto-migration on startup
-    |-- PGlite for local development
+Browser GET /settings?tab=billing
+  → proxy.ts
+      1. next-intl resolves locale (en)
+      2. updateSession() → getUser() → null
+      3. isProtectedRoute('/settings') = true, user = null
+         → 307 → /?auth=signin&redirect=/settings?tab=billing
+  → Landing page (RSC) renders inside (marketing) shell
+      → AuthDialogAutoOpener reads ?auth → opens overlay dialog (Radix portal)
+      → user signs in (Supabase) → redirected back to /settings?tab=billing
 ```
 
-**9 tables, 2 enums, 7 migrations**
+## Auth model
 
----
+**Supabase SSR, cookie-based** (not Clerk). Client factories in `src/libs/supabase/`:
 
-## Chat Architecture (Dual Implementation)
+- **`server.ts`** — `createServerClient` bound to Next's `cookies()`; RSC + Route Handlers. Writes from Server Components are swallowed (middleware owns refresh).
+- **`client.ts`** — `createBrowserClient`; Client Components.
+- **`middleware.ts`** — request/response-bound client; the only place that refreshes the session.
+- **`admin.ts`** — service-role singleton for privileged server work (crons, admin ops); bypasses RLS.
+- **`cached-user.ts`** — request-cached `getUser` to avoid duplicate calls within a render.
 
-### Dify Implementation
-```
-Browser → ChatInterface (Assistant-UI)
-    |
-    v
-POST /api/chat → SSE Proxy
-    |-- Validates session
-    |-- Proxies to Dify API (API key stays server-side)
-    |-- Streams SSE response
-    |-- Fire-and-forget: saves thread with conversation_id
-    |
-    v
-Dify API (external) → SSE stream → Client
-```
+All clients pin to the schema named by `DB_SCHEMA`/`NEXT_PUBLIC_DB_SCHEMA` (`vt_saas`) — never hardcoded. API routes/actions wrap handlers with `withAuth`/`withAdminAuth`/`withActionAuth`.
 
-### Vercel AI SDK Implementation
-```
-Browser → VercelChatInterface (useChat hook)
-    |
-    v
-POST /api/chat/vercel → streamText()
-    |-- Validates session
-    |-- Loads memory context (Mem0)
-    |-- Streams via Vercel AI SDK
-    |-- LangFuse tracing
-    |-- Saves messages + token counts
-    |
-    v
-OpenAI/Anthropic API → SSE stream → Client
-```
+## Rendering strategy
 
----
+- **RSC + SSR** by default. `[locale]` uses `generateStaticParams()` over `AllLocales`.
+- **Theme FOUC prevention**: root layout injects an inline `<head>` script that stamps `.dark` + the selected theme onto `<html>` before first paint.
+- **Marketing landing** is `export const dynamic = 'force-dynamic'`. pSEO blog pages render MDX from `content/blog/**`.
+- Client interactivity (auth dialog, theme toggle, chat UI, dashboards) is isolated to `'use client'`; providers (`ThemeProvider`, `PostHogProvider`, `QueryProvider`, `NextIntlClientProvider`) wrap the tree in `[locale]/layout.tsx`.
 
-## Component Architecture
+## The two interchangeable chat stacks
 
-```
-[Design System - src/components/ui/]
-    |-- 37 shadcn/ui primitives (Radix UI)
-    |-- Tailwind CSS v4 styling
-    |-- Dark mode via next-themes
-    |
-    v
-[Feature Components]
-    |-- Admin (30) - User mgmt, analytics, audit, feedback
-    |-- Chat (16) - Dify + Vercel implementations
-    |-- Landing (9) - Hero, features, CTA
-    |-- Onboarding (8) - Username, preferences, tour
-    |-- Share (8) - Link generation, management
-    |-- Dashboard (5) - Welcome, actions, profile
-    |
-    v
-[Layouts]
-    |-- MainAppShell - Collapsible sidebar, mobile Sheet
-    |-- AdminLayoutClient - Admin sidebar
-    |-- Centered layout - Auth forms
-```
+Both live behind one `/chat` selector; nav hides whatever isn't configured. Selection is env-driven via **`src/utils/chatConfig.ts`** — `getChatConfig()` (server) reports `dify.configured` (needs `DIFY_API_URL` + `DIFY_API_KEY`) and `vercel.configured` (needs `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`); `getPublicChatConfig()` is the client-safe counterpart.
 
----
+- **Dify** (`/chat/dify`, `src/app/api/chat/route.ts`) — server-side proxy to Dify. `withAuth`-gated, validates message/`conversation_id`, streams SSE, and via a `TransformStream` captures `conversation_id`/answer to fire-and-forget persist a `thread` row. The Dify key never reaches the client.
+- **Vercel AI SDK** (`/chat/vercel`, `route.ts` + `conversations/*`) — full control via AI SDK 6 `streamText`, provider-agnostic (`src/libs/vercel-ai/`, OpenAI or Anthropic). Postgres-backed conversation/message persistence, optional **Mem0** memory injection and **Langfuse** tracing.
 
-## Email Architecture
+Shared **API-error contract** (`src/libs/api/errors` server, `src/libs/api/client` client): `{ error, code, details? }` with a fixed `ApiErrorCode` union. See [api-contracts.md](./api-contracts.md).
 
-```
-[Resend API]
-    |
-    v
-src/libs/email/client.ts
-    |-- Retry: 3 attempts, exponential backoff
-    |-- Dev mode: console logging
-    |-- React Email templates
-    |
-    v
-sendEmail() / sendEmailAsync() (fire-and-forget)
-```
+## Background job architecture
 
----
+Two mechanisms coexist:
 
-## Analytics Architecture
+- **Inngest** (`src/app/api/inngest/route.ts` serves the functions) — the primary job runner. Functions in `src/libs/inngest/functions/`:
+  - `scheduled-tasks` — cron that atomically **claims** due tasks (`src/libs/jobs/claim.ts`, `UPDATE…RETURNING`) and **fans out** one `vt-saas/task.process` event per task to a single-task worker, so each retries in isolation.
+  - `token-refresh` — refreshes OAuth tokens in `platform_connections` expiring within a 30-day window, via the `OAuthProvider` seam (decrypt/re-encrypt through `src/libs/crypto/token-encryption`).
+  - `force-expire-trials-and-promotions` + `trial-promotion-expiry-warnings` — reverse-trial lifecycle (no-op when `ENABLE_REVERSE_TRIAL` off; always registered so toggling needs no redeploy).
+  - Registration is gated: only `VERCEL_ENV=production` or local `development` register functions — preview deploys stay empty.
+- **Vercel Cron** (`vercel.json`) — one job hitting `/api/cron/memory-extraction` every 5 min, guarded by `CRON_SECRET`, draining the Mem0 extraction queue.
 
-```
-[PostHog]
-    |
-    v
-src/libs/analytics/
-    |-- Type-safe event tracking
-    |-- UTM parameter capture
-    |-- Referral tracking
-    |
-    v
-Components: PostHogProvider, LandingPageTracker, UserIdentifier
+See [patterns/background-jobs.md](./patterns/background-jobs.md).
 
-[LangFuse]
-    |-- LLM call tracing via OpenTelemetry
-    |-- Token usage, latency tracking
-```
+## Theming architecture
 
----
+`next-themes`-based multi-theme system. **`src/components/theme/theme-config.ts`** is the type-safe registry: 4 groups (Default, Modern SaaS, Warm Sand, Sage Green) × light/dark = 8 `ThemeId`s, each mapping to a CSS class in `src/styles/global.css` using **OKLCH** palettes. `ThemeProvider` passes `ALL_THEME_IDS` + `system` to next-themes and includes `DarkClassSync` (keeps `.dark` on `<html>` for every `*-dark` theme so Tailwind `dark:` resolves). The inline head script prevents FOUC.
 
-## SEO Architecture
+The **marketing shell has its own scoped theme**: the `(marketing)` layout applies `SITE_CONFIG.marketingTheme` as a CSS class over just that subtree (SSR'd), decoupling the landing look from the signed-in user's theme. Because Radix portals mount to `document.body` outside the shell, `MarketingThemeScope` mirrors the marketing theme class onto `body` so overlays inherit the palette — mirroring the admin panel's `[data-admin]` body-scope.
 
-- **Hreflang:** Auto-generated for en, hi, bn + x-default
-- **OG Images:** Dynamic generation at `/api/og` (Edge Runtime)
-- **Sitemap:** Auto-generated at `/sitemap.xml`
-- **Robots.txt:** Auto-generated, protects /dashboard, /admin, /api
-- **PSEO:** Article pages with structured data (breadcrumbs, schema.org)
+## i18n
 
----
+**next-intl** with locales `en` (default, unprefixed), `hi`, `bn`. `AppConfig`/`AllLocales` (`src/utils/AppConfig.ts`) drive `localePrefix: 'as-needed'`. Server config in `src/libs/i18n.ts` (`getRequestConfig`) validates locale and loads `src/locales/<locale>.json`; `src/libs/i18nNavigation.ts` provides locale-aware navigation. Strings sync via **Crowdin** (`crowdin.yml`).
 
-## Security
+## Key architectural notes
 
-- **Headers:** HSTS, X-Frame-Options DENY, nosniff, Permissions-Policy
-- **Auth:** Centralized API auth infrastructure with server-side session validation
-- **API Keys:** Never exposed to client (Dify, OpenAI via server proxy)
-- **RLS:** Row-level security on database tables
-- **Admin:** Double-check via metadata + ADMIN_EMAILS
-- **Share Tokens:** 256-bit crypto-random, expiration support
-- **CSRF:** SameSite cookies via Supabase SSR
-- **Dependency Overrides:** Pinned axios, cookie, esbuild, glob for security patches
+- **Two auth-check surfaces, one model**: `proxy.ts` gates page/route access globally; `/api/*` is excluded from the matcher and self-guards via `withAuth`. Both rely on the same Supabase cookie session.
+- **Unauth→landing overlay flow** is deliberate: protected-route redirects land on `/` with `?auth=signin&redirect=<path>`; the marketing shell's `AuthDialogAutoOpener` opens the dialog. Server-free helpers in `src/libs/auth/landing-auth-url.ts` keep this importable from middleware.
+- **Fork seams are explicit**: `src/libs/actions/items.ts` + `queries/item.ts` + `hooks/use-item.ts` are a stubbed generic `item` entity exemplar a fork replaces; `config/site-config.ts` holds brand + `marketingTheme`.
+- **Background jobs split by need**: durable/retryable work uses Inngest (memoized steps, fan-out); the single Mem0 drain uses a plain Vercel Cron endpoint.
+- **Schema pinning everywhere**: every Supabase client sets `db.schema` from `(NEXT_PUBLIC_)DB_SCHEMA` — the `vt_saas` schema is never hardcoded.
+
+**Related docs:** [source-tree-analysis.md](./source-tree-analysis.md) · [data-models.md](./data-models.md) · [api-contracts.md](./api-contracts.md) · [error-handling-guide.md](./error-handling-guide.md) · [subscriptions.md](./subscriptions.md) · [seo.md](./seo.md)
