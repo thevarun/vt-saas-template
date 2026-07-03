@@ -103,8 +103,16 @@ Set up a freshly forked/templated project as an independent downstream project.
    - author       → ASK or leave as-is.
 
 3. Reset the changelog:
-   - Truncate docs/CHANGELOG.md to a single heading (semantic-release regenerates it
-     from your commits): "# Changelog\n"
+   - Overwrite docs/changelog.json with an empty seed: {"versions": []}
+     (this is the humanized, user-facing changelog rendered at /changelog). The
+     Changelog Sync workflow reads the GitHub Releases API and humanizes every
+     release NEWER than the newest entry here — an empty seed means it starts
+     from your product's very first release. Do NOT carry over the template's
+     high-water marker entry (e.g. 3.28.0); left in place it sits ABOVE all your
+     0.x releases and changelog-sync would skip them forever.
+   - Note: semantic-release is tag-only and does NOT write a docs/CHANGELOG.md
+     file — release notes live on the GitHub Release page. There is no CHANGELOG.md
+     to reset.
 
 4. OUTPUT: "Project identity reset — package '<package_name>' @ 0.1.0."
 ```

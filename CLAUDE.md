@@ -122,7 +122,7 @@ Layer boundary and rationale: [docs/testing-strategy.md](docs/testing-strategy.m
 ## Commits & CI
 
 - **Remote `main` is protected** — always branch, then PR. Run `pnpm lint && pnpm check-types && pnpm test && pnpm build` locally before pushing (faster feedback than CI).
-- **Conventional Commits**, one-line, no "Co-Authored-By". semantic-release bumps version from commit type (`feat:`→minor, `fix:`→patch, `feat!:`→major) and writes `docs/CHANGELOG.md`.
+- **Conventional Commits**, one-line, no "Co-Authored-By". semantic-release bumps version from commit type (`feat:`→minor, `fix:`→patch, `feat!:`→major), tags, and publishes the release notes to the **GitHub Release page** (config: `commit-analyzer` + `release-notes-generator` + `@semantic-release/github`). It does **not** write a `docs/CHANGELOG.md` file — there's no `@semantic-release/changelog`/`git` plugin (releases are tag-only, no commit-back to main).
 - Quality gates: ESLint · TypeScript · Vitest · Build · Playwright E2E. Preview deploy on PRs, production on merge. Required secrets + details: [docs/ci-cd-pipeline.md](docs/ci-cd-pipeline.md).
 
 ## Deployment & QA skills
