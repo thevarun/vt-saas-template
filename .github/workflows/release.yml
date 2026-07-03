@@ -1,12 +1,17 @@
 name: Release
 
 # Triggered directly on push to main (was chained off the CI workflow via
-# `workflow_run`). CI no longer needs to gate the release: branch protection is
-# `strict` (branches must be up to date before merge), so the PR already
-# validated the exact merge result — re-running CI just to gate the release was
-# redundant. semantic-release no-ops when a push has no releasable commits, so
-# firing on every main push is safe. Releases are tag-only (no commit back to
-# main), so this never re-triggers itself.
+# `workflow_run`). CI does not gate the release, and it doesn't need to:
+# semantic-release only tags + publishes a GitHub Release — it never deploys and
+# never commits back to main, so a release built on an un-tested commit has no
+# runtime blast radius (Vercel runs its own build on merge; the required `CI Gate`
+# check already passed on the PR head). NOTE: branch protection is currently
+# `strict: false`, so a PR can merge without being up to date with main — CI
+# validated the PR head, not necessarily the exact merge result. Enable strict
+# mode if you want that guarantee; the release path itself stays safe either way.
+# semantic-release no-ops when a push has no releasable commits, so firing on
+# every main push is safe. Releases are tag-only (no commit back to main), so
+# this never re-triggers itself.
 on:
   push:
     branches:
