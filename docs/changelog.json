@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "3.28.0",
+      "date": "2026-07-02",
+      "summary": "Automated changelog starts here — releases before this point predate the humanizer and are intentionally not backfilled. This entry is the high-water mark that keeps changelog-sync dormant until the next release; downstream forks reset it via /init-downstream.",
+      "highlights": [],
+      "underTheHood": []
+    },
+    {
       "version": "1.0.0",
       "date": "2026-01-01",
       "summary": "The first release of your product.",

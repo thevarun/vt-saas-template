@@ -8,15 +8,17 @@ branch, commit, or PR commands, and do NOT modify any other file.
 
 ## Steps
 
-1. Read `docs/CHANGELOG.md` — the developer source of truth (NEVER modify it). It
-   lists versions newest-first with commits grouped under Features / Bug Fixes /
-   Performance. Read `docs/changelog.json` if it exists (shape
-   `{ "versions": [ ... ] }`, newest-first).
+1. Read the **pending-releases JSON file** — the developer source of truth (NEVER
+   modify it). Its absolute path is given at the very end of these instructions.
+   It is a newest-first array of `{ version, date, notes }`, one entry per
+   published GitHub Release; `notes` is the release body with commits grouped
+   under Features / Bug Fixes / Performance. Read `docs/changelog.json` if it
+   exists (shape `{ "versions": [ ... ] }`, newest-first).
 
-2. Find every version present in `CHANGELOG.md` but NOT yet in `changelog.json`.
-   Process ALL of them, newest-first (not just the topmost — a rolling branch may
-   have several pending). If every `CHANGELOG.md` version is already present, make
-   NO changes and stop (idempotent — produce no edits).
+2. Find every `version` in the pending-releases file but NOT yet in
+   `changelog.json`. Process ALL of them, newest-first (not just the topmost — a
+   rolling branch may have several pending). If every release version is already
+   present, make NO changes and stop (idempotent — produce no edits).
 
 3. Learn the product and audience from `CLAUDE.md` (Project Overview) and the
    writing voice from `docs/voice.md` (fall back to the voice guidance in
@@ -59,8 +61,8 @@ branch, commit, or PR commands, and do NOT modify any other file.
    }
    ```
 
-   Field rules: `version` and `date` (`YYYY-MM-DD`) come from the `CHANGELOG.md`
-   header. `summary` is one short sentence. `tag` is exactly one of `new` (a new
+   Field rules: `version` and `date` (`YYYY-MM-DD`) come from the pending-releases
+   entry (`version`, `date`). `summary` is one short sentence. `tag` is exactly one of `new` (a new
    capability), `improved` (an improvement or performance win), or `fixed` (a bug
    fix). `highlights` and `underTheHood` may each be empty, but do not emit an
    entry where both are empty (that version should have been skipped per step 4).

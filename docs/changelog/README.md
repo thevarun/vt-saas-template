@@ -7,14 +7,17 @@ and the automation that keeps the JSON up to date.
 ## Data flow
 
 ```
-release-generated changelog source  →  AI humanizer  →  docs/changelog.json  →  /changelog page
-        (docs/CHANGELOG.md)            (claude-code-action)                       (server component)
+GitHub Releases API  →  AI humanizer  →  docs/changelog.json  →  /changelog page
+  (release notes)       (claude-code-action)                      (server component)
 ```
 
-1. semantic-release produces a developer-facing `docs/CHANGELOG.md` (commits
-   grouped under Features / Bug Fixes / Performance) — see the prerequisite below.
-2. The `Changelog Sync` workflow runs the humanizer prompt against that file and
-   writes user-facing entries to `docs/changelog.json`.
+1. semantic-release publishes a **GitHub Release** per version (release notes with
+   commits grouped under Features / Bug Fixes / Performance). Releases are the
+   source of truth — the config is tag-only (no `@semantic-release/git`), so there
+   is **no** `docs/CHANGELOG.md` file.
+2. The `Changelog Sync` workflow reads the Releases API, selects every version
+   newer than the newest already in `docs/changelog.json`, and runs the humanizer
+   prompt against those release notes to write user-facing entries.
 3. The `/changelog` page (`src/app/[locale]/(unauth)/(marketing)/changelog/page.tsx`)
    `fs`-reads `docs/changelog.json` at build/request time and renders one card per
    version with tag badges, highlights, and a collapsible "Under the hood" list.
@@ -69,25 +72,24 @@ operation.
 
 ### Prerequisites
 
-The automation is **not turn-key** in a fresh template. Before it does anything:
+The automation reads the GitHub Releases API directly, so it is **turn-key** once
+these are in place (no `@semantic-release/changelog` plugin needed):
 
-1. **A release-maintained source file at `docs/CHANGELOG.md`.** Both the
-   workflow's pre-check (a `grep` for the newest version) and the humanizer prompt
-   read `docs/CHANGELOG.md` as the release source of truth. The template's current
-   `semantic-release` config (`package.json` → `release.plugins`) only creates
-   GitHub Releases — it does **not** generate `docs/CHANGELOG.md`. You must add
-   `@semantic-release/changelog` (with `changelogFile: docs/CHANGELOG.md`) and
-   `@semantic-release/git` to the release config first. **Until that lands, this
-   workflow is dormant-but-correct:** its pre-check finds no `docs/CHANGELOG.md`
-   (or no version in it) and skips, so nothing breaks.
-2. **The `CLAUDE_CODE_OAUTH_TOKEN` repo secret** (the same secret `claude.yml`
+1. **The `CLAUDE_CODE_OAUTH_TOKEN` repo secret** (the same secret `claude.yml`
    already requires).
-3. **"Allow auto-merge" enabled** in repo settings (Settings → General → Pull
+2. **"Allow auto-merge" enabled** in repo settings (Settings → General → Pull
    Requests).
-4. **The workflow must be on the default branch.** `workflow_run` reads the
+3. **The workflow must be on the default branch.** `workflow_run` reads the
    workflow definition from `main`, so `changelog-sync.yml` only activates once
    it is merged to `main`. Use the **Run workflow** dispatch button to test it
    before then.
+4. **A bounded high-water seed in `docs/changelog.json`.** The pre-check humanizes
+   every release *newer* than the newest entry here. With an empty/absent file the
+   first run would humanize the **entire** release history in one job (timeout
+   risk) — so the template seeds a marker entry at its current version to stay
+   dormant until the next release. A fresh fork resets this to `{"versions": []}`
+   via `/init-downstream`, so its changelog-sync starts from the fork's first
+   release.
 
 ### Alternative: a cloud routine
 

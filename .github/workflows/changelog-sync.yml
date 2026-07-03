@@ -9,9 +9,11 @@ name: Changelog Sync
 #     suppresses workflow triggers from token-created events — so `on: release`
 #     would never fire. `workflow_run` is the same chaining release.yml uses off
 #     CI, and fires reliably.
-#   - A cheap pre-check compares the newest version in docs/CHANGELOG.md against
-#     docs/changelog.json, so Claude only runs when there's a new release to
-#     humanize (the Release workflow completes on every main CI success).
+#   - A cheap pre-check reads the GitHub Releases API and compares published
+#     versions against docs/changelog.json, so Claude only runs when there's a new
+#     release to humanize (the Release workflow completes on every main CI
+#     success). Releases are the source of truth: semantic-release is configured
+#     tag-only (no @semantic-release/git), so there is no docs/CHANGELOG.md.
 #   - Concurrency-grouped + queued: bursts of releases process in order.
 #   - One rolling PR on `changelog/auto` accumulates entries — max one open PR.
 #   - Each run rebases the rolling branch onto main BEFORE appending, so entries
@@ -22,19 +24,19 @@ name: Changelog Sync
 #   - Claude only edits docs/changelog.json; the workflow owns git / PR / merge.
 #
 # Known minor inefficiency: a release whose only change is a non-user-facing
-# `fix(deps)` (e.g. moving a CLI to devDependencies) lands in CHANGELOG.md but
-# the humanizer correctly produces no entry — so the pre-check keeps seeing it as
-# "not present" and re-runs Claude (a no-op) on each Release completion until the
-# next user-facing release. Bounded and cheap; not worth a version high-water mark.
+# `fix(deps)` (e.g. moving a CLI to devDependencies) still publishes a GitHub
+# Release, but the humanizer correctly produces no entry — so the pre-check keeps
+# seeing it as "not present" and re-runs Claude (a no-op) on each Release
+# completion until the next user-facing release. Bounded and cheap; not worth a
+# version high-water mark.
 #
-# Prerequisites (see docs/changelog/README.md):
-#   - A release-maintained source file at docs/CHANGELOG.md. The template's
-#     semantic-release config does NOT generate this by default — add
-#     @semantic-release/changelog (changelogFile: docs/CHANGELOG.md) to the
-#     release config first. Until then this workflow's pre-check finds no version
-#     and skips safely (dormant-but-correct).
+# Prerequisites:
 #   - The CLAUDE_CODE_OAUTH_TOKEN repo secret (shared with the Claude Code action).
 #   - "Allow auto-merge" enabled in repo settings.
+#   - A seed docs/changelog.json (shape `{ "versions": [ ... ] }`, newest-first)
+#     so the pre-check has a high-water mark. With an empty/absent file the first
+#     run would try to humanize the ENTIRE release history in one job — seed it
+#     with the latest release (or a `1.0.0` placeholder) to bound the first run.
 #   - Activates only once this file is on the default branch (workflow_run reads
 #     the workflow definition from main). Use the Run workflow button to test.
 
@@ -69,36 +71,45 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      - name: Detect un-humanized release
+      - name: Detect un-humanized releases
         id: precheck
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASES_FILE: ${{ runner.temp }}/pending-releases.json
         run: |
           set -euo pipefail
-          if [ ! -f docs/CHANGELOG.md ]; then
-            echo "docs/CHANGELOG.md does not exist — nothing to do (see docs/changelog/README.md)."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # semantic-release headers look like "## [1.29.1](url) (2026-06-13)" or
-          # "# [1.29.0](url) ..." — grab the version from the topmost one.
-          NEWEST=$(grep -oE '^#+[[:space:]]+\[?[0-9]+\.[0-9]+\.[0-9]+' docs/CHANGELOG.md \
-            | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
-          if [ -z "$NEWEST" ]; then
-            echo "No parseable version in docs/CHANGELOG.md — nothing to do."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Newest version in CHANGELOG.md: $NEWEST"
-          PRESENT=no
-          if [ -f docs/changelog.json ]; then
-            PRESENT=$(node -e "const d=require('./docs/changelog.json'); process.stdout.write(d.versions.some(v=>v.version==='$NEWEST')?'yes':'no')")
-          fi
-          if [ "$PRESENT" = "yes" ]; then
-            echo "$NEWEST already in changelog.json — skipping."
+          # GitHub Releases are the source of truth: semantic-release is tag-only
+          # (no @semantic-release/git), so there is no docs/CHANGELOG.md to parse.
+          # The Releases API returns the FULL history; humanize only releases
+          # STRICTLY NEWER than the newest already in docs/changelog.json — we move
+          # the changelog forward, never backfill the entire history (that overruns
+          # the job timeout). Write the bounded to-humanize list (newest-first) to
+          # RELEASES_FILE, outside the repo tree so it never becomes a stray file in
+          # the changelog/auto working tree the commit step guards against.
+          ALL="${{ runner.temp }}/all-releases.json"
+          gh api "repos/${{ github.repository }}/releases" --paginate \
+            --jq 'map(select(.draft | not) | {version: (.tag_name | ltrimstr("v")), date: (.published_at[0:10]), notes: .body})' \
+            > "$ALL"
+          echo "releases_file=$RELEASES_FILE" >> "$GITHUB_OUTPUT"
+          TODO=$(ALL="$ALL" OUT="$RELEASES_FILE" node -e '
+            const fs=require("fs");
+            const all=JSON.parse(fs.readFileSync(process.env.ALL,"utf8"));
+            let have=[]; try { have=require("./docs/changelog.json").versions.map(v=>v.version); } catch {}
+            const haveSet=new Set(have);
+            const newest=have[0]; // changelog.json is newest-first
+            const cmp=(a,b)=>{const x=a.split(".").map(Number),y=b.split(".").map(Number);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d;}return 0;};
+            const todo=all.filter(r=>!haveSet.has(r.version) && (!newest || cmp(r.version,newest)>0));
+            fs.writeFileSync(process.env.OUT, JSON.stringify(todo,null,2));
+            process.stdout.write(todo.map(r=>r.version).join(","));
+          ')
+          if [ -z "$TODO" ]; then
+            echo "Nothing newer than the latest humanized release — skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "$NEWEST not yet humanized — proceeding."
+            echo "To humanize (newer than latest in changelog.json): $TODO"
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "newest=$NEWEST" >> "$GITHUB_OUTPUT"
+            # newest-first list → first element is the high-water version for the commit msg
+            echo "newest=${TODO%%,*}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check for existing rolling PR
@@ -148,12 +159,19 @@ jobs:
           {
             echo 'CHANGELOG_PROMPT<<PROMPT_EOF'
             cat .github/prompts/changelog-humanize.md
+            echo ''
+            echo 'The pending-releases JSON (newest-first array of { version, date, notes }) is at:'
+            echo '${{ steps.precheck.outputs.releases_file }}'
             echo 'PROMPT_EOF'
           } >> "$GITHUB_ENV"
 
       - name: Run Claude changelog humanizer
         if: steps.precheck.outputs.skip != 'true'
-        uses: anthropics/claude-code-action@v1
+        # This workflow is `workflow_run`-triggered, which the action DOES accept
+        # (unlike docs-sync's `push`, which the action rejects → that one uses the
+        # CLI). Pinned to v1.0.140 — earlier versions threw a tsconfig "directory
+        # mismatch" on the runner. Dependabot bumps the pin as releases ship.
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: --model claude-sonnet-4-6
