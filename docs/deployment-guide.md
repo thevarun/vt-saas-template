@@ -1,113 +1,60 @@
 # Deployment Guide
 
-**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan)
+**Generated:** 2026-07-03 | Deep scan
 
----
+> Uses **pnpm** (`pnpm@10.16.1`). See also [ci-cd-pipeline.md](./ci-cd-pipeline.md) and [ci-cd-troubleshooting.md](./ci-cd-troubleshooting.md).
 
 ## Platform
 
-**Primary:** Vercel (auto-deploy from GitHub)
-**Database:** Supabase PostgreSQL (or any PostgreSQL provider)
+Deploys to **Vercel**. Preview deploys on PRs; production deploys on merge to `main`. Production build runs `pnpm build`, which (only when `VERCEL_ENV=production`) runs migrations before `next build` and, in `postbuild`, registers a Sentry release deploy.
 
----
+## CI/CD pipeline
 
-## CI/CD Pipeline
+**CI (`.github/workflows/CI.yml`)** — triggers on push and PR to `main`. Uses `pnpm/action-setup@v4` + `actions/setup-node@v6` (`node-version-file: .nvmrc`, `cache: pnpm`), installs with `pnpm install --frozen-lockfile --prefer-offline`. Jobs:
 
-### Quality Gates (CI.yml)
-Runs on push to `main` and all PRs:
+1. **Detect Changes** — `dorny/paths-filter` computes a `code` signal; `docs_only` PRs skip build/lint/test, `deps_only` PRs skip E2E, Dependabot PRs skip E2E.
+2. **Install & Build** — `pnpm install`, `pnpm audit --prod --audit-level high` (currently advisory / `continue-on-error`), `pnpm build`; caches `node_modules` + `.next`. Build env uses `vt_saas` schema + placeholder Supabase/Dify secrets.
+3. **Lint & Types** — commitlint on PR commits (skipped for Dependabot), then `pnpm lint` and `pnpm check-types`.
+4. **Unit Tests** — `pnpm test` (node + jsdom), no coverage gate.
+5. **Build & E2E** — installs Chromium (`pnpm exec playwright install`), runs `pnpm test:e2e` with real Supabase/Dify secrets; uploads traces/videos on failure. Skipped for docs-only, deps-only, Dependabot PRs.
+6. **Storybook** — `pnpm test:stories` (headless Chromium via Storybook Vitest addon); runs even on Dependabot PRs (no secrets).
+7. **CI Gate** — aggregate status check (`if: always()`); green when all upstream jobs passed or legitimately skipped. Intended as the single required branch-protection context.
 
-1. **Change Detection** - Skips tests for docs-only changes
-2. **Lint & Types** - ESLint + TypeScript check (always runs)
-3. **Unit Tests** - Vitest with coverage (skipped for docs-only)
-4. **Build & E2E** - Production build + Playwright (skipped for docs-only, E2E skipped for Dependabot)
+**PR Title Lint (`pr-title-lint.yml`)** — validates the PR title against Conventional Commits. Merges are squashed and the PR title becomes the squash commit semantic-release reads.
 
-### Release (release.yml)
-Runs after CI passes on `main`:
-- semantic-release with Conventional Commits
-- `feat:` -> minor, `fix:` -> patch, `feat!:` -> major
-- Creates GitHub releases + changelog
+**Release (`release.yml`)** — triggers on push to `main`. Runs `pnpm exec semantic-release`. Releases are **tag-only** (no commit back to `main`, so it never re-triggers itself); serialized via `concurrency: group: release, cancel-in-progress: false`. Version bump derives from commit type.
 
-### Auto-fix (codex-ci-fixer.yml)
-On CI failure: triggers Codex bot to auto-fix (max 3 attempts)
+**Ancillary:** `docs-sync.yml` / `changelog-sync.yml` (doc + changelog upkeep), `dependabot-auto-merge.yml` (auto-squash-merges Dependabot patch/minor), `claude.yml` + `claude-code-review.yml` (Claude PR assistance/review).
 
-### Dependabot (dependabot-auto-merge.yml)
-Auto-merges patch and minor dependency updates.
+## Production migration gating
 
----
+Migrations apply at **build time on Vercel production only** — no auto-apply on first request. The `build` script:
 
-## Required GitHub Secrets
-
-| Secret | Purpose |
-|--------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Admin operations |
-| `DIFY_API_KEY` | Dify AI (if using) |
-| `DIFY_API_URL` | Dify API URL |
-| `SENTRY_AUTH_TOKEN` | Source map upload |
-| `CODEX_TRIGGER_PAT` | Codex bot token |
-
----
-
-## Vercel Configuration
-
-### Environment Variables
-Set all variables from `.env.example` in Vercel dashboard:
-- Production: Real API keys
-- Preview: Test/staging keys
-- `NEXT_PUBLIC_SITE_URL`: Auto-detected on Vercel
-
-### Build Settings
-- **Framework:** Next.js (auto-detected)
-- **Build Command:** `pnpm build`
-- **Output:** `.next/`
-- **Node.js:** 20.x
-
-### Cron Jobs
-Configure in `vercel.json`:
-```json
-{
-  "crons": [{
-    "path": "/api/cron/memory-extraction",
-    "schedule": "*/5 * * * *"
-  }]
-}
+```
+if VERCEL_ENV = production:
+  if RUN_PROD_MIGRATIONS = true → run `pnpm db:migrate:ci` (drizzle-kit migrate, journal-driven)
+  else → skip with a warning
+then always → next build
 ```
 
----
+So prod migrations require **`RUN_PROD_MIGRATIONS=true`** in Vercel prod env. `db:migrate:ci` is journal-driven — only `.sql` files listed in `meta/_journal.json` run. `postbuild` also creates a Sentry release deploy on production builds. Supabase-side objects (RLS, grants, triggers, cross-schema FKs) live in `supabase/prod-setup.sql` and are applied separately after migrations.
 
-## Branch Protection
+## Required env / secrets
 
-- `main` is protected - always create feature branches
-- PRs require CI to pass before merge
-- Run all checks locally before pushing:
-```bash
-pnpm lint && pnpm check-types && pnpm test && pnpm build
-```
+**Vercel production env vars:**
 
----
+- **DB/schema:** `DB_SCHEMA`, `NEXT_PUBLIC_DB_SCHEMA` (`vt_saas`), `DATABASE_URL` (Transaction pooler, port 6543), `RUN_PROD_MIGRATIONS`.
+- **Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_ID`.
+- **AI:** `DIFY_API_KEY` / `DIFY_API_URL` and/or `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`), `AI_PROVIDER`, `DEFAULT_AI_MODEL`; optional `ENABLE_MEM0` / `MEM0_API_KEY`, `LANGFUSE_*`.
+- **Email:** `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `EMAIL_REPLY_TO`.
+- **Analytics/monitoring:** `NEXT_PUBLIC_POSTHOG_KEY` / `_HOST`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`.
+- **Jobs/payments:** `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`, `CRON_SECRET`; `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+- **Misc:** `ADMIN_EMAILS`, `TOKEN_ENCRYPTION_KEY`, `NEXT_PUBLIC_SITE_URL`, optional search (`SEARCH_PROVIDER`, `TAVILY_API_KEY` / `PERPLEXITY_API_KEY`).
 
-## Security Headers
+**GitHub Actions secrets** (repo Settings → Secrets): `SENTRY_AUTH_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DIFY_API_KEY`, `DIFY_API_URL` (E2E), plus `CROWDIN_PROJECT_ID` / `CROWDIN_PERSONAL_TOKEN` (translation sync). `GITHUB_TOKEN` is auto-provided for release and auto-merge.
 
-Configured in `next.config.mjs`:
-- X-Frame-Options: DENY
-- X-Content-Type-Options: nosniff
-- Strict-Transport-Security: max-age=63072000
-- Referrer-Policy: strict-origin-when-cross-origin
-- Permissions-Policy: camera=(), microphone=(), geolocation=()
+## Cron
 
----
+`vercel.json` declares one cron: `/api/cron/memory-extraction` every 5 minutes (Mem0 drain), guarded by `CRON_SECRET`. Durable/retryable jobs run through Inngest (`/api/inngest`), registered only on production and local dev.
 
-## Monitoring
-
-- **Production:** Sentry (configure org/project in `next.config.mjs`)
-- **Development:** Sentry Spotlight (runs with `pnpm dev`)
-- **Logging:** Pino + Logtail (optional)
-- **LLM Observability:** LangFuse (optional)
-- **Analytics:** PostHog (optional)
-
----
-
-## Pre-Launch Audit
-
-Run `/launch-checklist` in Claude Code before your first deployment. It scans 35 checks (auth, security, SEO, email, legal, performance) and generates a scorecard with prioritized next steps.
+**Related:** [architecture.md](./architecture.md) (background jobs) · [database-workflow.md](./database-workflow.md) · [admin-setup.md](./admin-setup.md)

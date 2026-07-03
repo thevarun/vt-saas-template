@@ -1,175 +1,85 @@
 # Development Guide
 
-**Generated:** 2026-02-23 | **Scan Level:** Quick (rescan)
+**Generated:** 2026-07-03 | Deep scan
 
----
+> The repo uses **pnpm** (`packageManager: pnpm@10.16.1`) — it migrated off npm. Use pnpm for all commands.
 
 ## Prerequisites
 
-- **Node.js:** 20.x or 22.6+ (check `.nvmrc`)
-- **Package Manager:** npm
-- **Database:** PostgreSQL (production) or PGlite (development, auto)
-- **Editor:** VS Code recommended (Next.js plugin)
+- **Node.js 22** — pinned via `.nvmrc` (`nvm use`; CI reads `node-version-file: .nvmrc`).
+- **pnpm 10.16.1** — declared in `package.json`. Enable with `corepack enable` (recommended) or install directly.
+- `.npmrc` sets `strict-peer-dependencies=false` and `auto-install-peers=true` (preserves the permissive peer-dep behavior from the npm era). Single-package repo — no `pnpm-workspace.yaml`.
 
----
-
-## Quick Start
+## Setup
 
 ```bash
-# Clone and install
-git clone <repo-url>
-pnpm install
-
-# Configure environment
-cp .env.example .env.local
-# Edit .env.local with your keys (see Environment Variables below)
-
-# Start development
-pnpm dev          # Next.js + Sentry Spotlight
-pnpm dev:next     # Next.js only (faster)
+pnpm install                 # install deps (honors .npmrc + pnpm overrides)
+cp .env.example .env.local   # fill in values; .env.local is gitignored
 ```
 
-The app starts at `http://localhost:3000`.
+Required env in `.env.local`: `DB_SCHEMA` / `NEXT_PUBLIC_DB_SCHEMA` (default `vt_saas`), `DATABASE_URL` (Drizzle only — Transaction pooler, port 6543), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only), `SUPABASE_PROJECT_ID`. Everything else (Dify, OpenAI/Anthropic, Resend, PostHog, Langfuse, Mem0, Inngest, Stripe, Sentry) is optional and degrades gracefully when unset. Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `DIFY_API_KEY`) stay in `.env.local` only. `.env.example` is the canonical, annotated list.
 
----
+## Dev
 
-## Environment Variables
-
-### Required
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=        # Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Supabase anon key
+pnpm dev            # Next.js + Sentry Spotlight sidecar (Turbopack) — runs dev:* in parallel
+pnpm dev:next       # Next.js dev server only
+pnpm dev:spotlight  # Sentry Spotlight sidecar only
+pnpm start          # serve the production build (next start)
 ```
 
-### Optional - Chat
+## Quality (run all before pushing)
+
 ```bash
-# Dify (choose one or both chat implementations)
-DIFY_API_KEY=                    # Server-only
-DIFY_API_URL=https://api.dify.ai/v1
-
-# Vercel AI SDK
-OPENAI_API_KEY=                  # Or ANTHROPIC_API_KEY
-AI_PROVIDER=openai               # Or anthropic
-DEFAULT_AI_MODEL=gpt-4o-mini
+pnpm lint         # ESLint (antfu config)
+pnpm lint:fix     # ESLint autofix (also auto-sorts imports — never hand-order)
+pnpm check-types  # tsc --noEmit --pretty
+pnpm build        # production build (next build)
 ```
 
-### Optional - Features
+## Test
+
+Test account credentials (local + E2E): **`test@test.com` / `password`** (`TEST_USER_EMAIL` / `TEST_USER_PASSWORD`; admin flows use `admin@test.com` / `password`).
+
 ```bash
-ADMIN_EMAILS=admin@example.com   # Comma-separated admin emails
-RESEND_API_KEY=                  # Email (logs to console without)
-NEXT_PUBLIC_POSTHOG_KEY=         # Analytics
-LANGFUSE_PUBLIC_KEY=             # LLM observability
-ENABLE_MEM0=false                # Memory extraction
-CRON_SECRET=                     # Cron job auth
-NEXT_PUBLIC_SITE_URL=            # SEO (auto on Vercel)
+pnpm test                              # Vitest — node + jsdom projects (co-located *.test.ts / *.test.tsx)
+pnpm exec vitest run path/to/file.test.ts   # single file
+pnpm test:stories                      # runs every *.stories.tsx as a headless-Chromium browser test
+pnpm test:e2e                          # Playwright E2E (tests/**, *.spec.ts / *.e2e.ts, Chromium-only)
+pnpm test --coverage                   # v8 coverage on demand (not gated in CI)
 ```
 
----
+**Test layering.** Vitest is the default (`node` for logic/libs/API, `jsdom` for components). Vitest is hermetic — `vitest.config.mts` blanks `DATABASE_URL` so `src/libs/DB.ts` uses in-memory PGlite; never point tests at a live Postgres. Reserve Playwright E2E for behavior that crosses a boundary (auth/session, middleware redirects, data persistence, SEO/metadata). Playwright runs `pnpm dev:next` locally / `pnpm start` in CI as its web server.
 
-## Commands
+## Database
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm dev` | Start dev server + Sentry Spotlight |
-| `pnpm dev:next` | Start Next.js only |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm lint` | ESLint check |
-| `pnpm lint:fix` | ESLint auto-fix |
-| `pnpm check-types` | TypeScript type check |
-| `pnpm test` | Run unit tests (Vitest) |
-| `pnpm test:e2e` | Run E2E tests (Playwright) |
-| `pnpm commit` | Interactive conventional commit |
-| `pnpm db:generate` | Generate migration from schema |
-| `pnpm db:migrate` | Apply migrations |
-| `pnpm db:studio` | Open Drizzle Studio |
-| `pnpm email:dev` | Email template preview (port 3001) |
-| `pnpm storybook` | Storybook dev server (port 6006) |
+**No `db:push`** — intentionally absent (drift-destructive). Apply schema changes to dev manually on the feature branch (Supabase MCP / SQL editor), then generate and commit the migration. See [database-workflow.md](./database-workflow.md) and [.claude/rules/database.md](../.claude/rules/database.md).
 
----
-
-## Database Development
-
-### Local Development (PGlite)
-No PostgreSQL needed locally. PGlite runs in-memory with auto-migration.
-
-### Schema Changes
-1. Edit `src/models/Schema.ts`
-2. Run `pnpm db:generate`
-3. Migration auto-applies on next DB interaction
-
-### Production Database
 ```bash
-# Apply migrations manually
-pnpm db:migrate
-
-# Visual database browser
-pnpm db:studio
+pnpm db:generate    # migration from Schema.ts diff (feature branch, rebased onto main)
+pnpm db:migrate     # dotenv -c production — journal-driven; targets PROD by design, don't run against shared dev
+pnpm db:migrate:ci  # drizzle-kit migrate — used at build time on Vercel prod
+pnpm db:gen-types   # regenerate src/libs/supabase/types.ts (run after every migration)
+pnpm db:studio      # Drizzle Studio
 ```
 
----
+Drizzle config (`drizzle.config.ts`): schema at `./src/models/schema/index.ts`, migrations output to `./migrations`, dialect `postgresql`, introspection scoped to `DB_SCHEMA` via `schemaFilter`.
 
-## Testing
+## Email & Storybook
 
-### Unit Tests (Vitest)
 ```bash
-pnpm test                    # Run all
-pnpm test -- --watch         # Watch mode
-pnpm test -- --coverage      # With coverage
+pnpm email:dev      # React Email preview — src/libs/email/templates, port 3001
+pnpm email:render   # render Supabase auth templates (tsx script)
+pnpm storybook      # Storybook dev server, port 6006
+pnpm storybook:build
 ```
-- Co-located with source: `Component.test.tsx`
-- Environment: jsdom for components, node for utilities
-- Setup: `vitest-setup.ts`
 
-### E2E Tests (Playwright)
+## Commits
+
 ```bash
-pnpm test:e2e            # Run all
-pnpm exec playwright test --ui    # Interactive UI
+pnpm commit         # Commitizen (Conventional Commits, one-line, no Co-Authored-By)
 ```
-- Location: `tests/` directory
-- Test credentials: `test@test.com` / `password`
-- Global setup creates test account
 
-### Visual Development
-After frontend changes, use Playwright MCP to navigate to affected pages and capture screenshots. Save to `_bmad-output/implementation-artifacts/screenshots`.
+Remote `main` is protected — always branch, then PR. Run `pnpm lint && pnpm check-types && pnpm test && pnpm build` locally before pushing. semantic-release bumps version from commit type (`feat:`→minor, `fix:`→patch, `feat!:`→major).
 
-### Launch Readiness
-Before deploying, run `/launch-checklist` to audit 35 production-readiness checks and get a prioritized scorecard.
-
----
-
-## Code Style
-
-- **ESLint:** @antfu/eslint-config (no semicolons, single quotes in JSX)
-- **Formatting:** Prettier + ESLint auto-fix
-- **Git Hooks:** Husky runs linting on staged files + commitlint
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`)
-- **Imports:** Absolute with `@/` prefix, auto-sorted
-
-### Bundler gotcha: no lazy-`require()` of local ESM modules
-
-Under Next 16 + Turbopack, always use static `import` for local modules. Never reach for an `eslint-disable` to lazy-`require()` a local ESM module — the production bundle drops the named export under ESM↔CJS interop, so a module that works in dev silently loses its export in prod. Every `eslint-disable` needs a `-- reason`.
-
----
-
-## Key Patterns
-
-### Adding a Protected Route
-1. Add path to `protectedPaths` in `src/proxy.ts`
-2. Create in `src/app/[locale]/(auth)/`
-3. Access user via Supabase server client
-
-### Adding Translations
-1. Add keys to `src/locales/{en,hi,bn}.json`
-2. Use `useTranslations('Namespace')` hook
-3. Crowdin syncs on push to `main`
-
-### Adding API Routes
-1. Create `src/app/api/<path>/route.ts`
-2. Import error builders from `@/libs/api/errors`
-3. Validate with Zod, check auth via Supabase
-
-### Adding Email Templates
-1. Create in `src/libs/email/templates/`
-2. Preview with `pnpm email:dev`
-3. Send with `sendEmail()` or `sendEmailAsync()`
+**See also:** [architecture.md](./architecture.md) · [deployment-guide.md](./deployment-guide.md) · [api-error-handling.md](./api-error-handling.md) · [error-handling-guide.md](./error-handling-guide.md)
