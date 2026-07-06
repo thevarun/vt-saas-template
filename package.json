@@ -106,7 +106,7 @@
     "recharts": "^3.8.1",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "resend": "^6.12.2",
+    "resend": "^6.17.1",
     "sharp": "^0.35.3",
     "sonner": "^2.0.7",
     "stripe": "^22.2.1",
