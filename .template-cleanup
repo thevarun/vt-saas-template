@@ -1,7 +1,9 @@
 # Template-only artifacts — safe to remove in downstream projects
 # Used by /init-downstream command
 
-_bmad-output/**
+# Note: _bmad-output/ is intentionally NOT listed. Forks track their OWN planning docs there;
+# its nested .gitignore excludes runtime churn (screenshots, epic-executions). The template's own
+# leftover docs were removed at the source, so a fresh fork inherits only the empty folder + its .gitignore.
 _bmad/**
 .github/workflows-archived/**
 .github/dependabot.yml
