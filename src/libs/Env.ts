@@ -2,6 +2,10 @@ import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
 export const Env = createEnv({
+  // .env.example ships optional keys as blank `KEY=` lines. Without this, "" hits
+  // .regex()/.email()/.url()/.min() validators (which reject empty strings, not
+  // undefined) and a fresh fork fails boot on env vars it never configured.
+  emptyStringAsUndefined: true,
   server: {
     DB_SCHEMA: z.string().min(1),
     DATABASE_URL: z.string().optional(),
