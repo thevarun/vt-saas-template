@@ -1,5 +1,5 @@
 ---
-description: 'Interactive post-fork initialization for downstream projects. Renames DB schema, resets project identity, configures git + GitHub repo, cleans template artifacts.'
+description: "Interactive post-fork initialization for downstream projects. Renames DB schema, resets project identity, configures git + GitHub repo, cleans template artifacts."
 ---
 
 # Init Downstream
@@ -38,8 +38,23 @@ Set up a freshly forked/templated project as an independent downstream project.
    - Delete all files in migrations/*.sql
    - Delete all files in migrations/meta/
 
-3. Update .env.example:
-   - Change DB_SCHEMA=vt_saas → DB_SCHEMA=<new_schema>
+3. Sweep the old schema literal EVERYWHERE. 'vt_saas' is NOT confined to
+   Schema.ts — replace it in every file below. This list is a starting point,
+   not the definition of done; the grep-verify in sub-step 7 is:
+   - .env.example              → DB_SCHEMA= and NEXT_PUBLIC_DB_SCHEMA= defaults
+   - supabase/seed.sql         → every INSERT INTO "vt_saas".* statement
+                                 (missed in a real fork: the seed then lands in
+                                 ANOTHER fork's schema on shared dev and blocks
+                                 that instance's signups — upstream issue #405)
+   - supabase/prod-setup.sql   → grants, RLS, FKs, CHECKs, the `schema_name`
+                                 variable, AND the schema-namespaced auth
+                                 trigger/function names (vt_saas_on_auth_user_created
+                                 → <new_schema>_on_auth_user_created, vt_saas.handle_new_user
+                                 → <new_schema>.handle_new_user, etc.)
+   - .github/workflows/*.yml   → DB_SCHEMA / NEXT_PUBLIC_DB_SCHEMA env defaults
+                                 in CI jobs
+   - src/** (incl. *.test.ts)  → test env stubs, comments, error-message examples
+                                 (e.g. src/models/schema/_db-schema.ts)
 
 4. Trim optional feature tables (pick only what this project needs):
    - The template schema is modular — one file per feature under src/models/schema/,
@@ -54,24 +69,41 @@ Set up a freshly forked/templated project as an independent downstream project.
        each other via FKs)
      - vercel-chat (AI chat history) → vercel-chat.ts
    - Usually-core (keep): preferences, audit, feedback, threads, share-links.
-   - For each feature the user drops:
-     a. Remove its export line(s) from src/models/schema/index.ts
-     b. Delete the module file(s) under src/models/schema/
-     c. Remove the matching ENABLE ROW LEVEL SECURITY / policy block from supabase/prod-setup.sql
-     d. Flag the now-orphaned app code (features/routes/libs that import the dropped tables)
-        for the user to delete — don't auto-delete app code here.
-     e. Remove now-dead E2E/test specs for the dropped feature (they will fail CI otherwise).
+   - For each feature the user drops, trace the FULL blast radius — schema + RLS
+     alone is not enough (a real fork shipped green with an orphaned cron 404ing
+     every 5 min, live code querying a dropped table, and dead env vars — upstream
+     issue #378). Walk EVERY layer:
+     a. Schema module file(s) under src/models/schema/ + export line(s) in index.ts
+     b. supabase/prod-setup.sql — the feature's RLS/policy block AND its
+        cross-schema FK block(s); supabase/seed.sql — the feature's seed rows
+     c. Libs that query the dropped table(s) (e.g. src/libs/<feature>/)
+     d. Route handlers and pages importing those libs (src/app/api/**,
+        src/app/[locale]/**)
+     e. Job/cron registrations — the layer real forks miss:
+        - Inngest functions (src/libs/inngest/functions/*.ts) AND their
+          registration in src/app/api/inngest/route.ts
+        - vercel.json crons[] entries pointing at routes deleted above
+          (a stale cron 404s on schedule forever after deploy)
+     f. Env vars used ONLY by the feature: src/libs/Env.ts (both the schema
+        block and runtimeEnv) + .env.example
+     g. .claude/rules/<feature>.md and doc references
+     h. Co-located unit tests + E2E specs (they fail CI otherwise).
         Feature → spec map (adjust to what actually exists in tests/):
           - vercel-chat           → tests/e2e/chat.spec.ts, chat-history.spec.ts,
                                      multi-thread-chat.spec.ts, chat-selection.spec.ts
           - platform-connections  → any tests/e2e/*platform*.spec.ts
           - subscriptions/billing → any tests/e2e/*billing*|*subscription*.spec.ts
-        SHOW the matched spec files and ASK before deleting (git rm). If unsure, keep them
-        and let the launch-checklist flag failures later.
-     f. Scan .github/workflows/*.yml for jobs/steps that reference the dropped feature
-        (e.g. a chat-specific smoke step) and FLAG them for the user to prune — don't
-        auto-edit CI here.
+     i. .github/workflows/*.yml jobs/steps referencing the feature
+     SHOW the full matched file list for the feature (all layers a–i) and ASK once;
+     on confirm, delete them all (git rm). If the user declines, keep the schema
+     module too — a half-dropped feature is worse than a kept one.
+   - GREP-VERIFY each dropped feature before moving to the next:
+       grep -rn "<dropped_table>|libs/<feature>" src/ tests/ vercel.json .github/
+     must come back clean. Any hit = a missed layer; fix and re-grep.
    - If unsure, keep everything — extra tables are harmless; you can drop later.
+   - SEQUENCING: any docs/rebrand sweep must run AFTER all code deletion (do it
+     as the LAST init step) — run earlier it can't see which references are dead,
+     and you pay for a second pass.
 
 5. Generate fresh migration:
    - Run: DB_SCHEMA=<new_schema> pnpm db:generate
@@ -83,7 +115,15 @@ Set up a freshly forked/templated project as an independent downstream project.
    - Confirm output says "No schema changes, nothing to migrate"
    - If a second migration was generated → OUTPUT: "WARNING: Schema generation is not idempotent. Check Schema.ts."
 
-7. OUTPUT: "Schema renamed to '<new_schema>'. Migration regenerated."
+7. GREP-VERIFY the rename — the exit criterion for this whole step:
+   - Run: grep -rn "vt_saas" --exclude-dir=node_modules --exclude-dir=.git .
+   - Expected remaining hits: ONLY files that talk about the upstream template
+     by name (this command file, upstream-sync docs/config).
+   - ANY hit in src/, supabase/, migrations/, tests/, .github/, vercel.json or
+     .env* is a missed rename — fix it and re-run the grep until clean.
+     (This catches files added to the template after this list was written.)
+
+8. OUTPUT: "Schema renamed to '<new_schema>'. Migration regenerated. Grep-verify clean."
 ```
 
 ---
@@ -170,7 +210,14 @@ Set up a freshly forked/templated project as an independent downstream project.
    - This disables merge-commit + rebase-merge, enables squash, sets the squash commit
      title to the PR title, and auto-deletes the branch after merge.
 
-4. OUTPUT: "GitHub repo configured — squash-only merge, auto-delete branch on merge,
+4. Dependabot during bootstrap (advisory): a fresh fork inherits .github/dependabot.yml,
+   and Dependabot PRs landing mid-bootstrap repeatedly rebase-conflict your init branch
+   on package.json / pnpm-lock.yaml. RECOMMEND pausing it until the init commit lands:
+   set `open-pull-requests-limit: 0` on each ecosystem in .github/dependabot.yml now,
+   and restore the original limits in a follow-up commit once bootstrap is merged.
+   ASK before editing; skip freely — this is a papercut, not a blocker.
+
+5. OUTPUT: "GitHub repo configured — squash-only merge, auto-delete branch on merge,
    default repo set to $REPO."
    - NOTE: `main` branch protection is intentionally NOT set here — a fresh fork has no
      green CI yet. The /launch-checklist audit verifies branch protection at launch time.
@@ -240,12 +287,25 @@ checklist of what CI/deploy will need, so your first CI run doesn't fail on miss
    - If build fails → OUTPUT: "WARNING: Build failed. Review errors above."
    - If build succeeds → OUTPUT: "Build passed."
 
-3. Print summary:
+3. Run: pnpm smoke   (scripts/fork-smoke.sh — the first-boot gate)
+   - Boots the REAL `pnpm dev` (run-p + all dev:* sidecars) with .env.example-shaped
+     env: required keys get fake values, DATABASE_URL is blanked so DB.ts uses
+     in-memory PGlite. Needs NO .env.local and NO secrets — safe right now,
+     before the user has configured anything.
+   - Asserts / returns 200 and the dev log has no fatal boot errors. A green
+     build does NOT imply this passes (env validation, run-p forwarding, and
+     sidecar bins only surface on a real boot — upstream issues #379/#380).
+   - If it fails → OUTPUT: "WARNING: fork smoke failed — the app builds but does
+     not BOOT. Review the log above." (warn, don't halt)
+   - Requires ports 3000 + 8969 free; if occupied, re-run with SMOKE_PORT=<free port>.
+
+4. Print summary:
    ────────────────────────────────────
    Downstream initialization complete!
    ────────────────────────────────────
-   - DB schema: <new_schema>
+   - DB schema: <new_schema> (rename grep-verified clean)
    - Migration: single clean migration generated
+   - Boot check: pnpm smoke (dev server boots, / returns 200)
    - Project identity: package renamed, version reset to 0.1.0, changelog cleared
    - Git behavior: pull.rebase + rebase.autoStash + merge.ours configured
    - GitHub repo: squash-only merge + auto-delete branch + default repo (if gh available)
@@ -254,7 +314,9 @@ checklist of what CI/deploy will need, so your first CI run doesn't fail on miss
    - CI secrets: manifest printed (fill before first CI run)
 
    Next steps:
-   1. Create .env.local with your DB_SCHEMA=<new_schema> and other secrets
+   1. Create .env.local with your DB_SCHEMA=<new_schema> and other secrets,
+      then boot for real: pnpm dev (the smoke above used fake env + PGlite;
+      this is the first boot against YOUR env)
    2. Set up your database and run: pnpm db:migrate
    3. Enable build-time migrations for production: set RUN_PROD_MIGRATIONS=true in your
       deploy environment (e.g. Vercel → Production env). The template ships with this OFF

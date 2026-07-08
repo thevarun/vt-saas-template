@@ -210,6 +210,39 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
 
   # ============================================
+  # Fork Smoke (first-boot gate)
+  # Proves `pnpm dev` actually boots with .env.example-shaped env — the check
+  # `pnpm build` structurally can't do (no populated env, no run-p, no
+  # Spotlight sidecar; see #379/#380). Needs ZERO secrets: DATABASE_URL is
+  # blanked so DB.ts uses in-memory PGlite, so this job is green on a fresh
+  # fork's very first CI run, before any secrets are configured.
+  # ============================================
+  fork-smoke:
+    name: Fork Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [changes, install]
+    if: needs.changes.outputs.docs_only != 'true'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/cache/restore@v6
+        with:
+          path: |
+            node_modules
+            .next
+          key: build-${{ github.sha }}
+
+      - run: bash scripts/fork-smoke.sh
+
+  # ============================================
   # E2E Tests
   # Skipped for: docs-only changes, deps-only changes, and Dependabot PRs.
   # - Docs-only: nothing to E2E.

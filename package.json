@@ -3,7 +3,7 @@
   "version": "1.8.0",
   "packageManager": "pnpm@10.16.1",
   "scripts": {
-    "dev:spotlight": "spotlight-sidecar",
+    "dev:spotlight": "spotlight",
     "dev:next": "next dev",
     "dev": "run-p dev:*",
     "build": "if [ \"$VERCEL_ENV\" = 'production' ]; then if [ \"$RUN_PROD_MIGRATIONS\" = 'true' ]; then echo '▶ Running production migrations...' && pnpm db:migrate:ci; else echo '⚠️  Skipping build-time migrations (RUN_PROD_MIGRATIONS != true) — set it to enable; see .claude/rules/database.md.'; fi; fi && next build",
@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check-types": "tsc --noEmit --pretty",
+    "smoke": "bash scripts/fork-smoke.sh",
     "test": "vitest run",
     "test:stories": "VITEST_STORYBOOK=1 vitest run",
     "test:e2e": "playwright test",
@@ -184,11 +185,6 @@
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.10",
     "vitest-fail-on-console": "^0.10.1"
-  },
-  "config": {
-    "commitizen": {
-      "path": "@commitlint/cz-commitlint"
-    }
   },
   "release": {
     "branches": [

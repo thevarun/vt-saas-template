@@ -3,7 +3,6 @@ import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import { migrate as migratePg } from 'drizzle-orm/node-postgres/migrator';
 import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
 import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator';
@@ -41,9 +40,11 @@ if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
     });
 
     globalForDb.pgDrizzle = drizzlePg(globalForDb.pgPool, { schema });
-    await migratePg(globalForDb.pgDrizzle, {
-      migrationsFolder: path.join(process.cwd(), 'migrations'),
-    });
+    // No boot-time migration against real Postgres: dev applies DDL manually
+    // (Supabase MCP / SQL editor), prod applies at build via db:migrate:ci.
+    // Drizzle's migration ledger is instance-global, so auto-migrating a DB
+    // shared by several forks replays another fork's baseline (CREATE SCHEMA
+    // → 42P06) and 500s every request. See .claude/rules/database.md.
   }
 
   drizzle = globalForDb.pgDrizzle;

@@ -10,6 +10,7 @@ VT SaaS Template uses a comprehensive CI/CD pipeline powered by GitHub Actions a
 Push/PR → GitHub Actions CI → Quality Gates → Vercel Deployment → Production
           ├─ Lint & Types
           ├─ Unit Tests
+          ├─ Fork Smoke (first-boot gate)
           └─ Build & E2E Tests
 ```
 
@@ -20,6 +21,7 @@ Push/PR → GitHub Actions CI → Quality Gates → Vercel Deployment → Produc
 Runs on every push to `main` and on all pull requests.
 
 #### Job 1: Lint & Types (10 min timeout)
+
 - **Triggers:** All pushes and PRs
 - **Node Version:** From `.nvmrc` (v20)
 - **Checks:**
@@ -29,6 +31,7 @@ Runs on every push to `main` and on all pull requests.
 - **Caching:** pnpm dependencies via `actions/setup-node@v4`
 
 #### Job 2: Unit Tests (10 min timeout)
+
 - **Triggers:** After lint job passes
 - **Dependencies:** Requires `lint` job to complete
 - **Checks:**
@@ -40,7 +43,14 @@ Runs on every push to `main` and on all pull requests.
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **Caching:** pnpm dependencies
 
+#### Job: Fork Smoke (10 min timeout)
+
+- **What:** Runs `scripts/fork-smoke.sh` — boots the real `pnpm dev` (run-p + Spotlight sidecar) with `.env.example`-shaped env and asserts `/` returns 200 with a clean log.
+- **Why:** `pnpm build` can't catch first-run failures (env validation, run-p flag forwarding, sidecar bins) — see issues #379/#380.
+- **Secrets:** None. `DATABASE_URL` is blanked so `DB.ts` uses in-memory PGlite, so the job is green on a fresh fork's first CI run before any secrets exist. Run locally with `pnpm smoke`.
+
 #### Job 3: Build & E2E (20 min timeout)
+
 - **Triggers:** After lint job passes (runs parallel with unit tests)
 - **Dependencies:** Requires `lint` job to complete
 - **Steps:**
@@ -79,16 +89,17 @@ Runs automatically after successful CI completion on `main` branch.
 
 semantic-release uses Conventional Commits to determine version bumps:
 
-| Commit Type | Example | Version Bump |
-|-------------|---------|--------------|
-| `feat:` | `feat(auth): add OAuth support` | Minor (1.8.0 → 1.9.0) |
-| `fix:` | `fix(api): handle null user` | Patch (1.8.0 → 1.8.1) |
-| `perf:` | `perf(db): optimize queries` | Patch (1.8.0 → 1.8.1) |
-| `revert:` | `revert: undo feature X` | Patch (1.8.0 → 1.8.1) |
-| `BREAKING CHANGE:` | `feat!: redesign API` | Major (1.8.0 → 2.0.0) |
-| `docs:`, `chore:`, `refactor:`, `test:` | Any non-code changes | No release |
+| Commit Type                             | Example                         | Version Bump          |
+| --------------------------------------- | ------------------------------- | --------------------- |
+| `feat:`                                 | `feat(auth): add OAuth support` | Minor (1.8.0 → 1.9.0) |
+| `fix:`                                  | `fix(api): handle null user`    | Patch (1.8.0 → 1.8.1) |
+| `perf:`                                 | `perf(db): optimize queries`    | Patch (1.8.0 → 1.8.1) |
+| `revert:`                               | `revert: undo feature X`        | Patch (1.8.0 → 1.8.1) |
+| `BREAKING CHANGE:`                      | `feat!: redesign API`           | Major (1.8.0 → 2.0.0) |
+| `docs:`, `chore:`, `refactor:`, `test:` | Any non-code changes            | No release            |
 
 **Breaking changes** trigger a major version bump via two syntaxes:
+
 1. Add `!` after the type: `feat!: redesign API` or `feat(api)!: redesign API`
 2. Include a `BREAKING CHANGE:` footer in the commit body
 
@@ -97,6 +108,7 @@ semantic-release uses Conventional Commits to determine version bumps:
 **Output Location:** `docs/CHANGELOG.md`
 
 **Format:** Grouped by release version and commit type:
+
 - Features
 - Bug Fixes
 - Performance Improvements
@@ -104,17 +116,18 @@ semantic-release uses Conventional Commits to determine version bumps:
 - Documentation (visible in changelog)
 
 **Example Release Entry:**
+
 ```markdown
 # [1.9.0](https://github.com/USER/REPO/compare/v1.8.0...v1.9.0) (2026-02-10)
 
 ### Features
 
-* **share:** add share widget component ([abc123f](https://github.com/USER/REPO/commit/abc123f))
-* **changelog:** add changelog page ([def456a](https://github.com/USER/REPO/commit/def456a))
+- **share:** add share widget component ([abc123f](https://github.com/USER/REPO/commit/abc123f))
+- **changelog:** add changelog page ([def456a](https://github.com/USER/REPO/commit/def456a))
 
 ### Bug Fixes
 
-* **auth:** prevent null reference in login flow ([789ghij](https://github.com/USER/REPO/commit/789ghij))
+- **auth:** prevent null reference in login flow ([789ghij](https://github.com/USER/REPO/commit/789ghij))
 ```
 
 **Changelog Directory:** `docs/changelog/` is reserved for individual release files (used by Story 8.4 - Changelog Page).
@@ -122,11 +135,13 @@ semantic-release uses Conventional Commits to determine version bumps:
 #### Testing Release Automation
 
 **Dry-run (local):**
+
 ```bash
 pnpm exec semantic-release --dry-run --no-ci
 ```
 
 This command:
+
 - Analyzes commits since last release
 - Shows what version would be released
 - Shows what changelog would be generated
@@ -145,10 +160,12 @@ This command:
 ### Current Status
 
 **Branch Protection:** ⚠️ NOT CONFIGURED
+
 - Main branch is not protected
 - Recommendation: Enable branch protection requiring status checks
 
 **Required Secrets:** ✅ CONFIGURED
+
 - `DIFY_API_KEY` ✓
 - `DIFY_API_URL` ✓
 - `NEXT_PUBLIC_SUPABASE_URL` ✓
@@ -177,6 +194,7 @@ Vercel deployment is handled by the **Vercel GitHub App** (not GitHub Actions).
 ### Vercel Configuration
 
 **Build Settings:**
+
 - Framework: Next.js (auto-detected)
 - Build Command: `pnpm build`
 - Output Directory: `.next`
@@ -185,6 +203,7 @@ Vercel deployment is handled by the **Vercel GitHub App** (not GitHub Actions).
 
 **Environment Variables in Vercel:**
 Set separately for Production, Preview, and Development:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `DATABASE_URL`
@@ -214,6 +233,7 @@ Set separately for Production, Preview, and Development:
 ### Pipeline Timing
 
 Typical execution times:
+
 - Lint & Types: 2-3 minutes
 - Unit Tests: 2-3 minutes
 - Build & E2E: 8-12 minutes
@@ -222,6 +242,7 @@ Typical execution times:
 ### Future Optimizations
 
 Consider adding:
+
 - Next.js build cache (`.next/cache`)
 - E2E test sharding for faster execution
 - Conditional E2E runs (only when relevant files change)
@@ -265,18 +286,21 @@ pnpm test:e2e
 ### Fixing Failed CI
 
 1. **Lint Failures:**
+
    ```bash
    pnpm lint:fix  # Auto-fix issues
    pnpm lint      # Verify
    ```
 
 2. **Type Failures:**
+
    ```bash
    pnpm check-types  # See errors
    # Fix type issues manually
    ```
 
 3. **Test Failures:**
+
    ```bash
    pnpm test              # Run locally
    pnpm test -- --watch   # Debug specific test
@@ -291,21 +315,25 @@ pnpm test:e2e
 ### Debugging CI Issues
 
 **View workflow runs:**
+
 ```bash
 gh run list --workflow=CI.yml --limit=10
 ```
 
 **View specific run:**
+
 ```bash
 gh run view <run-id>
 ```
 
 **View failed logs:**
+
 ```bash
 gh run view <run-id> --log-failed
 ```
 
 **Re-run failed jobs:**
+
 ```bash
 gh run rerun <run-id>
 ```
@@ -315,6 +343,7 @@ gh run rerun <run-id>
 ### GitHub Secrets
 
 **How to add:**
+
 ```bash
 # Via GitHub CLI
 gh secret set SECRET_NAME
@@ -324,6 +353,7 @@ Settings → Secrets and variables → Actions → New repository secret
 ```
 
 **Required secrets:**
+
 - `DIFY_API_KEY` - Dify API key (keep secret)
 - `DIFY_API_URL` - Dify API URL (e.g., https://api.dify.ai/v1)
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
@@ -332,6 +362,7 @@ Settings → Secrets and variables → Actions → New repository secret
 - `SENTRY_AUTH_TOKEN` - Optional for source map uploads
 
 **List secrets:**
+
 ```bash
 gh secret list
 ```
@@ -339,6 +370,7 @@ gh secret list
 ### Vercel Environment Variables
 
 **How to add:**
+
 1. Visit Vercel project settings
 2. Go to "Environment Variables"
 3. Add variable for each environment:
@@ -353,6 +385,7 @@ gh secret list
 ### Enable Protection Rules
 
 **Via GitHub UI:**
+
 1. Settings → Branches → Add rule
 2. Branch name pattern: `main`
 3. Enable:
@@ -366,6 +399,7 @@ gh secret list
    - ✅ Restrict deletions
 
 **Via GitHub CLI:**
+
 ```bash
 gh api repos/:owner/:repo/branches/main/protection \
   --method PUT \
@@ -392,6 +426,7 @@ https://vercel.com/USER/PROJECT
 ### Build Artifacts
 
 **Test Results:**
+
 - Uploaded on E2E test failure
 - Location: Workflow run → Artifacts
 - Includes: `test-results/` and `playwright-report/`
@@ -419,13 +454,17 @@ When modifying `.github/workflows/*.yml`:
 ## Support
 
 **Common Issues:**
+
 - See `docs/ci-cd-troubleshooting.md` for detailed troubleshooting
 
 **GitHub Actions Documentation:**
+
 - https://docs.github.com/en/actions
 
 **Vercel Documentation:**
+
 - https://vercel.com/docs
 
 **Next.js CI/CD:**
+
 - https://nextjs.org/docs/deployment
