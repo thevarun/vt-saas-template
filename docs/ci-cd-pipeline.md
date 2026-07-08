@@ -10,7 +10,6 @@ VT SaaS Template uses a comprehensive CI/CD pipeline powered by GitHub Actions a
 Push/PR → GitHub Actions CI → Quality Gates → Vercel Deployment → Production
           ├─ Lint & Types
           ├─ Unit Tests
-          ├─ Fork Smoke (first-boot gate)
           └─ Build & E2E Tests
 ```
 
@@ -43,11 +42,7 @@ Runs on every push to `main` and on all pull requests.
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **Caching:** pnpm dependencies
 
-#### Job: Fork Smoke (10 min timeout)
-
-- **What:** Runs `scripts/fork-smoke.sh` — boots the real `pnpm dev` (run-p + Spotlight sidecar) with `.env.example`-shaped env and asserts `/` returns 200 with a clean log.
-- **Why:** `pnpm build` can't catch first-run failures (env validation, run-p flag forwarding, sidecar bins) — see issues #379/#380.
-- **Secrets:** None. `DATABASE_URL` is blanked so `DB.ts` uses in-memory PGlite, so the job is green on a fresh fork's first CI run before any secrets exist. Run locally with `pnpm smoke`.
+> **First-boot gate (local, not a CI job):** `pnpm smoke` (`scripts/fork-smoke.sh`) boots the real `pnpm dev` with `.env.example`-shaped env (fake required keys, in-memory PGlite, zero secrets) and asserts `/` returns 200 with a clean log — the check `pnpm build` structurally can't do (see issues #379/#380). It runs during `/init-downstream` and the `from-recipe` bootstrap verify chain, and on demand after touching env schema, dev scripts, or boot-path code. Deliberately kept out of CI to keep runs lean for a solo-dev workflow.
 
 #### Job 3: Build & E2E (20 min timeout)
 
