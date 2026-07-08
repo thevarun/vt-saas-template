@@ -48,8 +48,6 @@ The live marketing shell is the **`(marketing)` route group** under `src/app/[lo
 | `legal/legal-toc.tsx` | TOC for terms/privacy |
 | `pseo/*` | `PseoTemplate`, `Breadcrumbs`, `RelatedPages`, `mdx-components` |
 
-> The untracked `(marketing-v2)` stub in the working tree is **not** the live shell — the tracked `(marketing)` group is.
-
 ### Auth
 `auth/social-auth-buttons.tsx` (uses `useOAuth`), `auth/AccessDeniedToast.tsx`, `auth/VerificationToast.tsx`, `marketing/auth-dialog.tsx` (overlay), route-level `sign-in/SignInFormClient.tsx`.
 

@@ -154,8 +154,8 @@ Beyond branding, these stubs ship with placeholder content you should replace or
 
 | Stub | Location | Action |
 |------|----------|--------|
-| Navbar links (Product, Docs, Community, Company) | `src/templates/Navbar.tsx` | Point to real pages or remove |
-| Footer links (Terms, Privacy, social icons) | `src/templates/Footer.tsx` | Create real pages or remove |
+| Navbar links (Product, Docs, Community, Company) | `src/components/marketing/navbar.tsx` | Point to real pages or remove |
+| Footer links (Terms, Privacy, social icons) | `src/components/marketing/footer.tsx` | Create real pages or remove |
 | Sidebar nav stubs (Pricing, Settings — disabled) | `src/components/layout/MainAppShell.tsx` | Implement or remove |
 | Sidebar design system routes | `src/components/layout/MainAppShell.tsx` | Remove for production |
 | Onboarding feature tour | `src/components/onboarding/OnboardingFeatureTour.tsx` + `src/locales/en.json` | Replace with your product's features |

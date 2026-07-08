@@ -165,7 +165,7 @@ Use this table to decide how to resolve merge conflicts:
 | **Core — Accept Upstream** | `src/proxy.ts`, `src/libs/supabase/*`, `src/libs/api/*`, `src/libs/DB.ts`, `src/models/Schema.ts`, `next.config.mjs`, `drizzle.config.ts` | Accept upstream changes. You rarely modify these. |
 | **Core — Review Carefully** | `src/app/[locale]/layout.tsx`, `package.json`, `tsconfig.json`, `.github/workflows/*` | Merge manually. Keep both your additions and upstream updates. |
 | **Branding — Keep Yours** | `src/styles/global.css`, `public/*` (logo, favicon, og-image), `src/utils/AppConfig.ts`, `src/libs/seo/constants.ts` | Keep your version. Cherry-pick upstream changes if needed. |
-| **Content — Keep Yours** | `src/templates/Navbar.tsx`, `src/templates/Footer.tsx`, `src/locales/*`, `README.md` | Keep your version. These are fully customized for your product. |
+| **Content — Keep Yours** | `src/components/marketing/navbar.tsx`, `src/components/marketing/footer.tsx`, `src/locales/*`, `README.md` | Keep your version. These are fully customized for your product. |
 | **Your Product Code** | `src/app/[locale]/(auth)/dashboard/*`, `src/features/*`, your custom routes | No conflict expected — upstream won't have these files. |
 | **Infrastructure** | `pnpm-lock.yaml` | See "Common Conflicts" below. |
 
