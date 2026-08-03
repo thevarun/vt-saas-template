@@ -133,7 +133,7 @@
     "@percy/playwright": "^1.1.0",
     "@playwright/test": "^1.61.1",
     "@react-email/preview-server": "^5.2.10",
-    "@sentry/cli": "^2.58.5",
+    "@sentry/cli": "^3.6.2",
     "@spotlightjs/spotlight": "^4.11.3",
     "@storybook/addon-links": "^10.5.5",
     "@storybook/addon-vitest": "^10.5.5",
