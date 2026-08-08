@@ -68,6 +68,30 @@ jobs:
             actions: read
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: code-review@claude-code-plugins
+          # Grant the code-review plugin the tools it needs to READ the diff and
+          # POST findings. Without these, the SDK runs non-interactively (no human
+          # to approve a permission prompt) so every `gh`/`git` call the plugin
+          # makes to post inline comments is DENIED — the run stays green, posts
+          # nothing, and the only trace is `permission_denials_count` in the raw
+          # JSON result summary. Fix per anthropics/claude-code#32459.
+          # NB: do NOT add `show_full_output: true` here — the denial count is in
+          # the always-printed result summary, and full-transcript streaming would
+          # log every message + tool result (may contain secrets) into Actions logs.
+          settings: |
+            {
+              "permissions": {
+                "allow": [
+                  "Bash(gh:*)",
+                  "Bash(git diff:*)",
+                  "Bash(git log:*)",
+                  "Bash(git show:*)",
+                  "Read",
+                  "Glob",
+                  "Grep",
+                  "mcp__github_inline_comment__create_inline_comment"
+                ]
+              }
+            }
           # `--comment` posts line-level findings live during the session. The
           # plugin's final *summary* rides the session's last result, which the
           # action intermittently drops when the session ends on a TodoWrite tool
