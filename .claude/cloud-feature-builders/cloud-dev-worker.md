@@ -27,8 +27,8 @@ assumptions here — read the spec you're handed, ship to git/GitHub.
   CI-green is the floor, not the goal.
 - **Right-size the effort.** A one-line fix doesn't need the full ceremony; a new surface does.
   Scale tests, review, and visual checks to the change.
-- **Independent eyes.** Where your runtime supports sub-agents, have a *fresh* agent review (and
-  visually check UI) — the implementer is the worst reviewer of its own work.
+- **Independent eyes.** Where your runtime supports sub-agents, have a *fresh* agent review via
+  `/code-review` (and visually check UI) — the implementer is the worst reviewer of its own work.
 
 ## Method
 
@@ -38,11 +38,14 @@ Scale each step to the change.
    is unresolved or the spec contradicts the code, return `BLOCKED` rather than guess.
 2. **Implement.** Build to the acceptance criteria, following the architecture and the repo's
    conventions. Write tests for the behaviors the spec defines (tests-first where it helps).
+   For `type: bugfix`, get a red first: a failing test or script that reproduces the reported
+   symptom. Then fix, watch it go green, keep the test, and state the confirmed root cause in the
+   PR body. If you can't reproduce it, return `BLOCKED` with what you tried.
 3. **Verify — iterate to green.** Run the repo's tests, lint, typecheck, and build; fix what
    breaks. Cap the loop (~3 rounds). If it won't go green, return `BLOCKED` with what's failing.
 4. **Review with fresh eyes** (if your runtime supports sub-agents; otherwise do it inline):
-   - a **code review** for correctness, security, and conventions — triaged by severity
-     (critical / major / minor);
+   - a **code review** — the fresh agent runs `/code-review` — for correctness, security, and
+     conventions, findings triaged by severity (critical / major / minor);
    - for user-facing changes, a **visual desk-check** — screenshot the affected routes at desktop
      and mobile, check them against the acceptance criteria, auto-fix only minor CSS/Tailwind,
      and flag anything structural.
@@ -50,7 +53,8 @@ Scale each step to the change.
 5. **Ship.** On a `claude/<id>` branch: commit (Conventional Commits, one line), update the
    changelog if the repo keeps one, push, and open a PR. The body: a short summary, what you
    verified (tests/lint/build, screenshots if UI), and the work-item link the caller gave you.
-   Open it **ready for review** (not draft) once everything is green.
+   Open it **ready for review** (not draft) once everything is green. Redact secrets (tokens,
+   keys, credentials) in any logged output, PR body, or comment.
 
 ## Blocked, not bodged
 
